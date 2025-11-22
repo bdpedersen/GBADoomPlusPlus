@@ -1,0 +1,10 @@
+{
+    "makefile.makefilePath": "Makefile.posix",
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/Users/brian/src/GBADoom",
+            "binaryPath": "/Users/brian/src/GBADoom/GBADoom",
+            "binaryArgs": []
+        }
+    ]
+}
