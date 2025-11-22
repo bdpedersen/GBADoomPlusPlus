@@ -45,6 +45,7 @@
 #include "r_draw.h"
 
 #include "global_data.h"
+#include "annontations.h"
 
 //
 // Data needed to add patches to full screen intermission pics.
@@ -292,7 +293,7 @@ static void WI_slamBackground(void)
 //
 // The ticker is used to detect keys
 //  because of timing issues in netgames.
-boolean WI_Responder(event_t* ev)
+boolean WI_Responder(event_t* ev UNUSED)
 {
   return false;
 }

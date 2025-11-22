@@ -40,7 +40,7 @@ INCLUDEPATH := \
     -Iinclude
 
 
-CFLAGS      := -std=c11 -Wall -Wextra -g $(DEFINES) $(INCLUDEPATH)
+CFLAGS      := -std=c11 -Wall -Wextra -Werror -g $(DEFINES) $(INCLUDEPATH)
 CXXFLAGS    := -std=c++17 -Wall -Wextra -Werror -g $(DEFINES) $(INCLUDEPATH)
 CFLAGS      += $(QT_CFLAGS)
 CXXFLAGS    += $(QT_CFLAGS)

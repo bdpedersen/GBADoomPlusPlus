@@ -119,8 +119,8 @@ typedef struct player_s
 
   // This is only used between levels,
   // mo->health is used during levels.
-  short                 health;
-  short               armorpoints;
+  int                 health;
+  int                 armorpoints;
   // Armor type is 0-2.
   int                 armortype;
 
@@ -135,9 +135,9 @@ typedef struct player_s
   // Is wp_nochange if not changing.
   weapontype_t        pendingweapon;
 
-  unsigned            weaponowned[NUMWEAPONS];
-  short               ammo[NUMAMMO];
-  short               maxammo[NUMAMMO];
+  int                 weaponowned[NUMWEAPONS];
+  int                 ammo[NUMAMMO];
+  int                 maxammo[NUMAMMO];
 
   // True if button down last tic.
   int                 attackdown;

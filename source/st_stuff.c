@@ -127,7 +127,7 @@ static void ST_updateFaceWidget(void)
 
             for (i=0;i<NUMWEAPONS;i++)
             {
-                if (_g->oldweaponsowned[i] != _g->player.weaponowned[i])
+                if ((int)_g->oldweaponsowned[i] != _g->player.weaponowned[i])
                 {
                     doevilgrin = true;
                     _g->oldweaponsowned[i] = _g->player.weaponowned[i];
@@ -275,11 +275,11 @@ static void ST_updateFaceWidget(void)
 
 static void ST_updateWidgets(void)
 {
-    const static int  largeammo = 1994; // means "n/a"
+    static int  largeammo = 1994; // means "n/a"
     int         i;
 
     if(_g->fps_show)
-        _g->w_ready.num = &_g->fps_framerate;
+        _g->w_ready.num = (int *)&_g->fps_framerate;
     else if (weaponinfo[_g->player.readyweapon].ammo == am_noammo)
         _g->w_ready.num = &largeammo;
     else
@@ -473,7 +473,7 @@ void ST_Drawer(boolean statusbaron, boolean refresh)
 // CPhipps - Loads graphics needed for status bar if doload is true,
 //  unloads them otherwise
 //
-static void ST_loadGraphics(boolean doload)
+static void ST_loadGraphics(boolean doload UNUSED)
 {
     int  i, facenum;
     char namebuf[9];

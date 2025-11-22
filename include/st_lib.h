@@ -146,7 +146,7 @@ void STlib_initNum
   int x,
   int y,
   const patch_t **pl,
-  short* num,
+  int* num,
   boolean* on,
   int width );
 
@@ -162,7 +162,7 @@ void STlib_initPercent
   int x,
   int y,
   const patch_t** pl,
-  short* num,
+  int* num,
   boolean* on,
   const patch_t* percent );
 

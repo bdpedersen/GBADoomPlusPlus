@@ -46,6 +46,7 @@
 
 #include "global_data.h"
 #include "gba_functions.h"
+#include "annontations.h"
 
 /*
  * V_DrawBackground tiles a 64x64 patch over the entire screen, providing the
@@ -146,7 +147,7 @@ void V_DrawPatch(int x, int y, int scrn, const patch_t* patch)
                 unsigned short color = source[frac >> FRACBITS];
 
                 //The GBA must write in 16bits.
-                if((unsigned int)dest & 1)
+                if((uintptr_t)dest & 1)
                 {
                     //Odd addreses, we combine existing pixel with new one.
                     unsigned short* dest16 = (unsigned short*)(dest - 1);
@@ -182,7 +183,7 @@ void V_DrawPatch(int x, int y, int scrn, const patch_t* patch)
 // This inline is _only_ for the function below
 
 void V_DrawNumPatch(int x, int y, int scrn, int lump,
-         int cm, enum patch_translation_e flags)
+         int cm UNUSED, enum patch_translation_e flags UNUSED)
 {
     V_DrawPatch(x, y, scrn, W_CacheLumpNum(lump));
 }
@@ -242,7 +243,7 @@ static void V_PlotPixel(int x, int y, int color)
     byte* dest = &fb[(ScreenYToOffset(y) << 1) + x];
 
     //The GBA must write in 16bits.
-    if((unsigned int)dest & 1)
+    if((uintptr_t)dest & 1)
     {
         //Odd addreses, we combine existing pixel with new one.
         unsigned short* dest16 = (unsigned short*)(dest - 1);
