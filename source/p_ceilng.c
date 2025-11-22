@@ -424,14 +424,14 @@ void P_AddActiveCeiling(ceiling_t* ceiling)
 {
     ceilinglist_t *old_head = _g->activeceilings;
 
-    ceilinglist_t *list = Z_Malloc(sizeof *list, PU_LEVEL, &_g->activeceilings);
+    ceilinglist_t *list = Z_Malloc(sizeof *list, PU_LEVEL, (void **)&_g->activeceilings);
     list->ceiling = ceiling;
     ceiling->list = list;
 
     if ((list->next = old_head))
         list->next->prev = &list->next;
 
-    list->prev = old_head;
+    list->prev = &_g->activeceilings;
 }
 
 //

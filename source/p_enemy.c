@@ -50,6 +50,7 @@
 #include "lprintf.h"
 
 #include "global_data.h"
+#include "annontations.h"
 
 const int distfriend = 128;
 
@@ -1895,12 +1896,12 @@ void A_BabyMetal(mobj_t *mo)
   A_Chase(mo);
 }
 
-void A_OpenShotgun2(player_t *player, pspdef_t *psp)
+void A_OpenShotgun2(player_t *player, pspdef_t *psp UNUSED)
 {
   S_StartSound(player->mo, sfx_dbopn);
 }
 
-void A_LoadShotgun2(player_t *player, pspdef_t *psp)
+void A_LoadShotgun2(player_t *player, pspdef_t *psp UNUSED)
 {
   S_StartSound(player->mo, sfx_dbload);
 }
@@ -1942,12 +1943,12 @@ void P_SpawnBrainTargets(void)  // killough 3/26/98: renamed old function
       }
 }
 
-void A_BrainAwake(mobj_t *mo)
+void A_BrainAwake(mobj_t *mo UNUSED)
 {
   S_StartSound(NULL,sfx_bossit); // killough 3/26/98: only generates sound now
 }
 
-void A_BrainPain(mobj_t *mo)
+void A_BrainPain(mobj_t *mo UNUSED)
 {
   S_StartSound(NULL,sfx_bospn);
 }
@@ -1983,7 +1984,7 @@ void A_BrainExplode(mobj_t *mo)
     th->tics = 1;
 }
 
-void A_BrainDie(mobj_t *mo)
+void A_BrainDie(mobj_t *mo UNUSED)
 {
   G_ExitLevel();
 }
