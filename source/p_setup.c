@@ -51,6 +51,7 @@
 #include "v_video.h"
 
 #include "global_data.h"
+#include "annontations.h"
 
 //
 // P_LoadVertexes
@@ -229,7 +230,7 @@ static void P_LoadLineDefs (int lump)
 // killough 4/4/98: delay using sidedefs until they are loaded
 // killough 5/3/98: reformatted, cleaned up
 
-static void P_LoadLineDefs2(int lump)
+static void P_LoadLineDefs2(int lump UNUSED)
 {
     /*
   int i = _g->numlines;
@@ -461,7 +462,7 @@ void P_FreeLevelData()
 //
 // killough 5/3/98: reformatted, cleaned up
 
-void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
+void P_SetupLevel(int episode, int map, int playermask UNUSED, skill_t skill UNUSED)
 {
     int   i;
     char  lumpname[9];

@@ -48,6 +48,7 @@
 #include "lprintf.h"
 
 #include "global_data.h"
+#include "annontations.h"
 
 // when to clip out sounds
 // Does not fit the large outdoor areas.
@@ -76,7 +77,7 @@ static const unsigned int numChannels = 8;
 // Internals.
 //
 
-void S_StopChannel(int cnum);
+void S_StopChannel(unsigned cnum);
 
 int S_AdjustSoundParams(mobj_t *listener, mobj_t *source, int *vol, int *sep);
 
@@ -92,8 +93,6 @@ void S_Init(int sfxVolume, int musicVolume)
     //jff 1/22/98 skip sound init if sound not enabled
     if (!nosfxparm)
     {
-        int i;
-
         lprintf(LO_CONFIRM, "S_Init: default sfx volume %d", sfxVolume);
 
         S_SetSfxVolume(sfxVolume);
@@ -177,7 +176,8 @@ void S_Start(void)
 
 void S_StartSoundAtVolume(mobj_t *origin, int sfx_id, int volume)
 {
-    int priority, cnum, is_pickup;
+    unsigned cnum;
+    int is_pickup;
     const sfxinfo_t *sfx;
 
     int sep = NORM_SEP;
@@ -198,7 +198,6 @@ void S_StartSoundAtVolume(mobj_t *origin, int sfx_id, int volume)
     // Initialize sound parameters
     if (sfx->link)
     {
-        priority = sfx->priority;
         volume += sfx->volume;
 
         if (volume < 1)
@@ -207,10 +206,7 @@ void S_StartSoundAtVolume(mobj_t *origin, int sfx_id, int volume)
         if (volume > _g->snd_SfxVolume)
             volume = _g->snd_SfxVolume;
     }
-    else
-    {
-        priority = NORM_PRIORITY;
-    }
+
 
     // Check to see if it is audible, modify the params
     // killough 3/7/98, 4/25/98: code rearranged slightly
@@ -283,7 +279,7 @@ void S_StartSound2(degenmobj_t* origin, int sfx_id)
 
 void S_StopSound(void *origin)
 {
-    int cnum;
+    unsigned cnum;
 
     //jff 1/22/98 return if sound is not enabled
     if (nosfxparm)
@@ -344,11 +340,9 @@ static boolean S_SoundIsPlaying(int cnum)
 //
 // Updates music & sounds
 //
-void S_UpdateSounds(void* listener_p)
+void S_UpdateSounds(void* listener_p UNUSED)
 {
-	mobj_t *listener = (mobj_t*) listener_p;
-	int cnum;
-    int sep = NORM_SEP;
+	unsigned cnum;
 	
 	//jff 1/22/98 return if sound is not enabled
 	if (nosfxparm)
@@ -465,9 +459,9 @@ void S_StopMusic(void)
 
 
 
-void S_StopChannel(int cnum)
+void S_StopChannel(unsigned cnum)
 {
-    int i;
+    unsigned i;
     channel_t *c = &_g->channels[cnum];
 
     //jff 1/22/98 return if sound is not enabled
@@ -570,7 +564,7 @@ int S_AdjustSoundParams(mobj_t *listener, mobj_t *source, int *vol, int *sep)
 static int S_getChannel(void *origin, const sfxinfo_t *sfxinfo, int is_pickup)
 {
     // channel number to use
-    int cnum;
+    unsigned cnum;
     channel_t *c;
 
     //jff 1/22/98 return if sound is not enabled

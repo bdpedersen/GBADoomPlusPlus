@@ -544,7 +544,7 @@ typedef struct
 
 // p_lights
 
-typedef struct
+typedef struct fireflicker_s
 {
   thinker_t thinker;
   sector_t* sector;
@@ -554,7 +554,7 @@ typedef struct
 
 } fireflicker_t;
 
-typedef struct
+typedef struct lightflash_s
 {
   thinker_t thinker;
   sector_t* sector;
@@ -566,7 +566,7 @@ typedef struct
 
 } lightflash_t;
 
-typedef struct
+typedef struct strobe_s
 {
   thinker_t thinker;
   sector_t* sector;
@@ -578,7 +578,7 @@ typedef struct
 
 } strobe_t;
 
-typedef struct
+typedef struct glow_s
 {
   thinker_t thinker;
   sector_t* sector;
@@ -590,7 +590,7 @@ typedef struct
 
 // p_plats
 
-typedef struct
+typedef struct plat_s
 {
   thinker_t thinker;
   sector_t* sector;
@@ -617,7 +617,7 @@ typedef struct platlist {
 
 // p_ceilng
 
-typedef struct
+typedef struct vldoor_s
 {
   thinker_t thinker;
   vldoor_e type;
@@ -643,7 +643,7 @@ typedef struct
 
 // p_doors
 
-typedef struct
+typedef struct ceiling_s
 {
   thinker_t thinker;
   ceiling_e type;
@@ -675,7 +675,7 @@ typedef struct ceilinglist {
 
 // p_floor
 
-typedef struct
+typedef struct floormove_s
 {
   thinker_t thinker;
   floor_e type;
@@ -690,7 +690,7 @@ typedef struct
 
 } floormove_t;
 
-typedef struct
+typedef struct elevator_s
 {
   thinker_t thinker;
   elevator_e type;
@@ -705,7 +705,7 @@ typedef struct
 
 // killough 3/7/98: Add generalized scroll effects
 
-typedef struct {
+typedef struct scroll_s {
   thinker_t thinker;   // Thinker structure for scrolling
   int affectee;        // Number of affected sidedef, sector, tag, or whatever
 } scroll_t;

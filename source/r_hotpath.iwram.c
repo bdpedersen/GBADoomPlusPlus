@@ -35,7 +35,6 @@
 
 //This is to keep the codesize under control.
 //This whole file needs to fit within IWRAM.
-#pragma GCC optimize ("Os")
 
 
 #ifdef HAVE_CONFIG_H
@@ -529,8 +528,6 @@ static const lighttable_t* R_LoadColorMap(int lightlevel)
 //  be used. It has also been used with Wolfenstein 3D.
 //
 
-#pragma GCC push_options
-#pragma GCC optimize ("Ofast")
 
 #define COLEXTRABITS 9
 #define COLBITS (FRACBITS + COLEXTRABITS)
@@ -720,7 +717,6 @@ static void R_DrawFuzzColumn (const draw_column_vars_t *dcvars)
     _g->fuzzpos = fuzzpos;
 }
 
-#pragma GCC pop_options
 
 
 
@@ -1272,9 +1268,6 @@ static void R_DrawMasked(void)
 //  and the inner loop has to step in texture space u and v.
 //
 
-#pragma GCC push_options
-#pragma GCC optimize ("Ofast")
-
 inline static void R_DrawSpanPixel(unsigned short* dest, const byte* source, const byte* colormap, unsigned int position)
 {
 
@@ -1348,7 +1341,6 @@ static void R_DrawSpan(unsigned int y, unsigned int x1, unsigned int x2, const d
     }
 }
 
-#pragma GCC pop_options
 
 static void R_MapPlane(unsigned int y, unsigned int x1, unsigned int x2, draw_span_vars_t *dsvars)
 {    
@@ -3171,18 +3163,18 @@ boolean P_SetMobjState(mobj_t* mobj, statenum_t state)
 
         // Modified handling.
         // Call action functions when the state is set
-        if(st->action)
+        if(st->action.acm1)
         {
             if(!(_g->player.cheats & CF_ENEMY_ROCKETS))
             {
-                st->action(mobj);
+                st->action.acm1(mobj);
             }
             else
             {
-                if(mobjinfo[mobj->type].missilestate && (state >= mobjinfo[mobj->type].missilestate) && (state < mobjinfo[mobj->type].painstate))
+                if(mobjinfo[mobj->type].missilestate && ((int)state >= mobjinfo[mobj->type].missilestate) && ((int)state < mobjinfo[mobj->type].painstate))
                     A_CyberAttack(mobj);
                 else
-                    st->action(mobj);
+                    st->action.acm1(mobj);
             }
         }
 
@@ -3205,14 +3197,14 @@ void P_MobjThinker (mobj_t* mobj)
     if (mobj->momx | mobj->momy || mobj->flags & MF_SKULLFLY)
     {
         P_XYMovement(mobj);
-        if (mobj->thinker.function != P_MobjThinker) // cph - Must've been removed
+        if (mobj->thinker.function.acm1 != P_MobjThinker) // cph - Must've been removed
             return;       // killough - mobj was removed
     }
 
     if (mobj->z != mobj->floorz || mobj->momz)
     {
         P_ZMovement(mobj);
-        if (mobj->thinker.function != P_MobjThinker) // cph - Must've been removed
+        if (mobj->thinker.function.acm1 != P_MobjThinker) // cph - Must've been removed
             return;       // killough - mobj was removed
     }
 
@@ -3288,21 +3280,14 @@ void P_RunThinkers (void)
     while(th != th_end)
     {
         thinker_t* th_next = th->next;
-        if(th->function)
-            th->function(th);
+        if(th->function.act1)
+            th->function.act1(th);
 
         th = th_next;
     }
 }
 
 
-
-static int I_GetTime_e32(void)
-{
-    int thistimereply = *((unsigned short*)(0x400010C));
-
-    return thistimereply;
-}
 
 
 int I_GetTime(void)

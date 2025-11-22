@@ -48,6 +48,7 @@
 #include "lprintf.h"
 
 #include "global_data.h"
+#include "annontations.h"
 
 
 
@@ -492,16 +493,17 @@ void P_MobjBrainlessThinker(mobj_t* mobj)
 
 static think_t P_ThinkerFunctionForType(mobjtype_t type, mobj_t* mobj)
 {
+    think_t retval = {NULL};
     //Full thinking ability.
     if(type < MT_MISC0)
-        return P_MobjThinker;
+        retval.acm1 = P_MobjThinker;
 
     //Just state cycles.
     if(mobj->tics != -1)
-        return P_MobjBrainlessThinker;
+        retval.acm1 = P_MobjBrainlessThinker;
 
     //No thinking at all.
-    return NULL;
+    return retval;
 }
 
 //
@@ -637,7 +639,7 @@ void P_RemoveMobj (mobj_t* mobj)
  * killough 8/24/98: rewrote to use hashing
  */
 
-static PUREFUNC int P_FindDoomedNum(unsigned int type)
+static PUREFUNC int P_FindDoomedNum(int type)
 {
     // find which type to spawn
     for (int i=0 ; i< NUMMOBJTYPES ; i++)
@@ -664,7 +666,7 @@ void P_RespawnSpecials (void)
 //  between levels.
 //
 
-void P_SpawnPlayer (int n, const mapthing_t* mthing)
+void P_SpawnPlayer (int n UNUSED, const mapthing_t* mthing)
   {
   player_t* p;
   fixed_t   x;

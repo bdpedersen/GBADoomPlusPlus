@@ -136,12 +136,12 @@ void P_RemoveThingDelayed(thinker_t *thinker)
 
 void P_RemoveThinker(thinker_t *thinker)
 {
-  thinker->function = P_RemoveThinkerDelayed;
+  thinker->function.act1 = P_RemoveThinkerDelayed;
 }
 
 void P_RemoveThing(mobj_t *thing)
 {
-  thing->thinker.function = P_RemoveThingDelayed;
+  thing->thinker.function.act1 = P_RemoveThingDelayed;
 }
 
 

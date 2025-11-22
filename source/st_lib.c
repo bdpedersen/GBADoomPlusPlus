@@ -42,6 +42,7 @@
 #include "global_data.h"
 
 #include "gba_functions.h"
+#include "annontations.h"
 
 //
 // STlib_init()
@@ -65,7 +66,7 @@ void STlib_initNum
   int x,
   int y,
   const patch_t **pl,
-  int* num,
+  short* num,
   boolean* on,
   int     width )
 {
@@ -93,8 +94,8 @@ void STlib_initNum
  */
 static void STlib_drawNum
 ( st_number_t*  n,
-  int cm,
-  boolean refresh )
+  int cm UNUSED,
+  boolean refresh UNUSED)
 {
 
   int   numdigits = n->width;
@@ -176,7 +177,7 @@ void STlib_initPercent
   int x,
   int y,
   const patch_t** pl,
-  int* num,
+  short* num,
   boolean* on,
   const patch_t *percent )
 {
@@ -240,7 +241,7 @@ void STlib_initMultIcon
 //
 void STlib_updateMultIcon
 ( st_multicon_t*  mi,
-  boolean   refresh )
+  boolean   refresh UNUSED)
 {
     if(!mi->p)
         return;

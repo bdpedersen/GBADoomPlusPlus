@@ -64,7 +64,7 @@ typedef struct
   short   oldnum;
 
   // pointer to current value
-  short*  num;
+  int*  num;
 
   // pointer to boolean stating
   //  whether to update number
@@ -146,7 +146,7 @@ void STlib_initNum
   int x,
   int y,
   const patch_t **pl,
-  int* num,
+  short* num,
   boolean* on,
   int width );
 
@@ -162,7 +162,7 @@ void STlib_initPercent
   int x,
   int y,
   const patch_t** pl,
-  int* num,
+  short* num,
   boolean* on,
   const patch_t* percent );
 

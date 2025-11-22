@@ -40,6 +40,22 @@
 #pragma interface
 #endif
 
+/* Forward declarations of types used in some prototypes */
+typedef struct mobj_s mobj_t;
+typedef struct player_s player_t;
+typedef struct pspdef_s pspdef_t;
+typedef struct scroll_s scroll_t;
+typedef struct thinker_s thinker_t;
+typedef struct ceiling_s ceiling_t;
+typedef struct vldoor_s vldoor_t;
+typedef struct plat_s plat_t;
+typedef struct floormove_s floormove_t;
+typedef struct elevator_s elevator_t;
+typedef struct fireflicker_s fireflicker_t;
+typedef struct glow_s glow_t;
+typedef struct lightflash_s lightflash_t;
+typedef struct strobe_s strobe_t;
+
 /*
  * Experimental stuff.
  * To compile this as "ANSI C with classes"
@@ -47,23 +63,45 @@
  *  action functions cleanly.
  */
 // killough 11/98: convert back to C instead of C++
-typedef  void (*actionf_t)();
-//typedef  void (*actionf_v)();
-//typedef  void (*actionf_p1)( void* );
-//typedef  void (*actionf_p2)( void*, void* );
+//typedef  void (*actionf_t)();
+typedef  void (*actionf_v)();
+typedef  void (*actionf_p1)( player_t* );
+typedef  void (*actionf_p2)( player_t*, pspdef_t* );
+typedef void (*actionf_m1)( mobj_t* );
+typedef void (*actionf_s1)( scroll_t* );
+typedef void (*actionf_t1)( thinker_t*);
+typedef void (*actionf_c1)( ceiling_t* );
+typedef void (*actionf_d1)( vldoor_t* );
+typedef void (*actionf_l1)( plat_t* );
+typedef void (*actionf_f1)( floormove_t* );
+typedef void (*actionf_e1)( elevator_t* );
+typedef void (*actionf_r1)( fireflicker_t* );
+typedef void (*actionf_g1)( glow_t* );
+typedef void (*actionf_i1)( lightflash_t* );
+typedef void (*actionf_o1)( strobe_t* );
 
 /* Note: In d_deh.c you will find references to these
  * wherever code pointers and function handlers exist
  */
-/*
 typedef union
 {
-  actionf_p1    acp1;
-  actionf_v     acv;
-  actionf_p2    acp2;
+  actionf_v     acv;  /// No parameters
+  actionf_p1    acp1; /// player_t *
+  actionf_p2    acp2; /// player_t *, pspdef_t *
+  actionf_m1    acm1; /// mobj_t *
+  actionf_s1    acs1; /// scroll_t *
+  actionf_t1    act1; /// thinker_t*
+  actionf_c1    acc1; /// ceiling_t *
+  actionf_d1    acd1; /// vldoor_t *
+  actionf_l1    acl1; /// plat_t *
+  actionf_f1    acf1; /// floormove_t *
+  actionf_e1    ace1; /// elevator_t *
+  actionf_r1    acr1; /// fireflicker_t *
+  actionf_g1    acg1; /// glow_t *
+  actionf_i1    aci1; /// lightflash_t *
+  actionf_o1    aco1; /// strobe_t *
 
 } actionf_t;
-*/
 
 /* Historically, "think_t" is yet another
  *  function pointer to a routine to handle

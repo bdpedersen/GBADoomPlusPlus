@@ -106,7 +106,7 @@ const animdef_t		animdefs[] =
     {true,	"WFALL4",	"WFALL1",	8},
     {true,	"DBRAIN4",	"DBRAIN1",	8},
 
-    {-1}
+    {-1, "", "", 0} // end of animdefs marker
 };
 
 
@@ -2316,11 +2316,7 @@ void P_SpawnSpecials (void)
 {
   sector_t*   sector;
   int         i;
-  int         episode;
 
-  episode = 1;
-  if (W_CheckNumForName("texture2") >= 0)
-    episode = 2;
 
   //  Init special sectors.
   sector = _g->sectors;
@@ -2453,7 +2449,7 @@ void T_Scroll(scroll_t *s)
 static void Add_Scroller(int affectee)
 {
   scroll_t *s = Z_Malloc(sizeof *s, PU_LEVSPEC, 0);
-  s->thinker.function = T_Scroll;
+  s->thinker.function.acs1 = T_Scroll;
   s->affectee = affectee;
   P_AddThinker(&s->thinker);
 }
