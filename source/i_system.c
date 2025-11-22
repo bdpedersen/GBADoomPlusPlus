@@ -54,6 +54,6 @@
  */
 const char* I_GetVersionString(char* buf, size_t sz)
 {
-    sprintf(buf,"GBADoom v%s",VERSION);
+    snprintf(buf,sz,"GBADoom v%s",VERSION);
     return buf;
 }

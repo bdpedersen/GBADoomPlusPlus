@@ -15,6 +15,8 @@
 
 #include "lprintf.h"
 
+#include "annontations.h"
+
 
 //**************************************************************************************
 
@@ -117,7 +119,7 @@ void I_CreateBackBuffer_e32()
 
 //**************************************************************************************
 
-void I_FinishUpdate_e32(const byte* srcBuffer, const byte* pallete, const unsigned int width, const unsigned int height)
+void I_FinishUpdate_e32(const byte* srcBuffer, const byte* pallete, const unsigned int width UNUSED, const unsigned int height UNUSED)
 {
     pb = (unsigned char*)srcBuffer;
     pl = (unsigned char*)pallete;
@@ -157,7 +159,7 @@ void I_FinishUpdate_e32(const byte* srcBuffer, const byte* pallete, const unsign
 
 //**************************************************************************************
 
-void I_SetPallete_e32(const byte* pallete)
+void I_SetPallete_e32(const byte* pallete UNUSED)
 {
 
 }
@@ -191,12 +193,21 @@ void I_Error (const char *error, ...)
 {
 	char msg[MAX_MESSAGE_SIZE];
  
-	va_list v;
-	va_start(v, error);
-	
-	vsprintf(msg, error, v);
-	
-	va_end(v);
+    va_list v;
+    va_start(v, error);
+
+    int n = vsnprintf(msg, MAX_MESSAGE_SIZE, error, v);
+
+    va_end(v);
+
+    if (n < 0)
+    {
+        msg[0] = '\0';
+    }
+    else if ((size_t)n >= MAX_MESSAGE_SIZE)
+    {
+        msg[MAX_MESSAGE_SIZE - 1] = '\0';
+    }
 
     printf("%s\n", msg);
 

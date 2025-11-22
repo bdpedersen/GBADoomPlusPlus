@@ -6,6 +6,8 @@
 #include <QApplication>
 #include <QWidget>
 
+#include "annontations.h"
+
 //GBA Keys
 #define KEYD_A          1
 #define KEYD_B          2
@@ -51,7 +53,7 @@ extern unsigned char* pl;
 class DoomWindow : public QWidget
 {
     protected:
-    void paintEvent(QPaintEvent *event) override
+    void paintEvent(QPaintEvent *event UNUSED) override
     {
         QPainter p(this);
 
@@ -70,7 +72,7 @@ class DoomWindow : public QWidget
         p.drawImage(this->rect(), i, i.rect());
     }
 
-    void closeEvent(QCloseEvent *event) override
+    void closeEvent(QCloseEvent *event UNUSED) override
     {
         exit(0);
     }

@@ -73,7 +73,6 @@
 #include "i_system.h"
 
 #include "global_data.h"
-
 #include "gba_functions.h"
 
 //
@@ -558,6 +557,9 @@ void G_Ticker (void)
     case GS_DEMOSCREEN:
         D_PageTicker ();
         break;
+
+    default: 
+        break;
     }
 }
 
@@ -571,7 +573,7 @@ void G_Ticker (void)
 // Can when a player completes a level.
 //
 
-static void G_PlayerFinishLevel(int player)
+static void G_PlayerFinishLevel(int player UNUSED)
 {
     player_t *p = &_g->player;
     memset(p->powers, 0, sizeof p->powers);
@@ -589,7 +591,7 @@ static void G_PlayerFinishLevel(int player)
 // almost everything is cleared and initialized
 //
 
-void G_PlayerReborn (int player)
+void G_PlayerReborn (int player UNUSED)
 {
     player_t *p;
     int i;
@@ -627,7 +629,7 @@ void G_PlayerReborn (int player)
 // G_DoReborn
 //
 
-void G_DoReborn (int playernum)
+void G_DoReborn (int playernum UNUSED)
 {
     _g->gameaction = ga_loadlevel;      // reload the level from scratch
 }
@@ -929,7 +931,7 @@ void G_UpdateSaveGameStrings()
 
 // killough 3/16/98: add slot info
 // killough 5/15/98: add command-line
-void G_LoadGame(int slot, boolean command)
+void G_LoadGame(int slot, boolean command UNUSED)
 {  
     _g->savegameslot = slot;
     _g->demoplayback = false;
@@ -980,13 +982,13 @@ void G_DoLoadGame()
 // Description is a 24 byte text string
 //
 
-void G_SaveGame(int slot, const char *description)
+void G_SaveGame(int slot, const char *description UNUSED)
 {
     _g->savegameslot = slot;
     G_DoSaveGame(true);
 }
 
-static void G_DoSaveGame(boolean menu)
+static void G_DoSaveGame(boolean menu UNUSED)
 {
     unsigned int savebuffersize = sizeof(gba_save_data_t) * 8;
 

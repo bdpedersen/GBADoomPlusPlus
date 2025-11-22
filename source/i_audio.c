@@ -276,7 +276,8 @@ static const audio_map_t soundMap[NUMSFX] =
 //  (eight, usually) of internal channels.
 // Returns a handle.
 //
-static int addsfx(int sfxid, int channel, int volume, int sep)
+
+static int addsfx(int sfxid MAYBE_UNUSED, int channel, int volume MAYBE_UNUSED, int sep MAYBE_UNUSED)
 {
 #ifdef GBA
 
@@ -333,7 +334,7 @@ void I_InitSound(void)
     lprintf(LO_INFO,"I_InitSound: sound ready");
 }
 
-void I_PlaySong(int handle, int looping)
+void I_PlaySong(int handle, int looping MAYBE_UNUSED)
 {
     if(handle == mus_None)
         return;
@@ -348,28 +349,28 @@ void I_PlaySong(int handle, int looping)
 }
 
 
-void I_PauseSong (int handle)
+void I_PauseSong (int handle MAYBE_UNUSED)
 {
 #ifdef GBA
     mmPause();
 #endif
 }
 
-void I_ResumeSong (int handle)
+void I_ResumeSong (int handle MAYBE_UNUSED)
 {
 #ifdef GBA
     mmResume();
 #endif
 }
 
-void I_StopSong(int handle)
+void I_StopSong(int handle MAYBE_UNUSED)
 {
 #ifdef GBA
     mmStop();
 #endif
 }
 
-void I_SetMusicVolume(int volume)
+void I_SetMusicVolume(int volume MAYBE_UNUSED)
 {
 #ifdef GBA
     int mmvol = volume * 32;

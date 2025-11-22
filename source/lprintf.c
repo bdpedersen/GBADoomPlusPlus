@@ -47,12 +47,14 @@
 #include "i_main.h"
 #include <string.h>
 
+#include "annontations.h"
+
 /* cphipps - enlarged message buffer and made non-static
  * We still have to be careful here, this function can be called after exit
  */
 #define MAX_MESSAGE_SIZE 128
 
-int lprintf(OutputLevels pri, const char *s, ...)
+int lprintf(OutputLevels pri UNUSED, const char *s, ...)
 {
 	char msg[MAX_MESSAGE_SIZE];
 
@@ -63,7 +65,7 @@ int lprintf(OutputLevels pri, const char *s, ...)
 	
 	va_end(v);
 
-    int len = strlen(msg);
+    //int len = strlen(msg);
 
     printf("%s\n", msg);
 

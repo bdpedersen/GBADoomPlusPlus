@@ -53,7 +53,7 @@ static const c_cheat cheat_def[] =
 	{"FPS Counter Ammo",CHEAT_SEQ(KEYD_A,   KEYD_B,     KEYD_L,     KEYD_UP,    KEYD_DOWN,  KEYD_B,         KEYD_LEFT,     KEYD_LEFT),      cheat_fps},
 };
 
-static const unsigned int num_cheats = sizeof(cheat_def) / sizeof (c_cheat);
+static const int num_cheats = sizeof(cheat_def) / sizeof (c_cheat);
 
 static boolean CheckCheats(unsigned int keybuff)
 {

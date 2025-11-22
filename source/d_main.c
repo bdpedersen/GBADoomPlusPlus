@@ -484,7 +484,7 @@ void D_StartTitle (void)
 // the gamemode from it. Also note if DOOM II, whether secret levels exist
 // CPhipps - const char* for iwadname, made static
 
-static void CheckIWAD2(const unsigned char* iwad_data, const unsigned int iwad_len, GameMode_t *gmode,boolean *hassec)
+static void CheckIWAD2(const unsigned char* iwad_data, const unsigned int iwad_len UNUSED, GameMode_t *gmode,boolean *hassec)
 {
     const wadinfo_t* header = (const wadinfo_t*)iwad_data;
 

@@ -54,6 +54,8 @@
 #include <ctype.h>
 #include <limits.h>
 
+#include "annontations.h"
+
 // this should go here, not in makefile/configure.ac -- josh
 #ifndef O_BINARY
 #define O_BINARY 0
@@ -140,10 +142,11 @@ typedef enum {
 // at the intermission screen, the game final animation, or a demo.
 
 typedef enum {
-  GS_LEVEL,
-  GS_INTERMISSION,
-  GS_FINALE,
-  GS_DEMOSCREEN
+  GS_NOTSET=-1,
+  GS_LEVEL=1,
+  GS_INTERMISSION=2,
+  GS_FINALE=3,
+  GS_DEMOSCREEN=4
 } gamestate_t;
 
 //

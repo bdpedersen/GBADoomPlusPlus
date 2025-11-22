@@ -1,5 +1,19 @@
 ## GBADoom
 
+This is a modified version of the original GBADoom. It is rewritten to C++11 to
+allow use of a stronger type system around caching of lumps. This in turn allows
+more aggressive caching strategies where objects are loaded from flash on
+demand - possibly even external flash. The goal is to have a port that is very
+light on RAM requirements for platforms such as microcontrollers that have
+large program memory areas (typically flash) but small RAM areas. GBADoom is
+the starting point as a number of memory reducing efforts had already been done.
+
+The memory allocation in this build only allows for compatibilty with the Doom1
+wad, so what is stated below around compatibility is no longer true. 
+
+
+Original README below:
+
 A port of prBoom to the GBA.
 
 **What's hot?**

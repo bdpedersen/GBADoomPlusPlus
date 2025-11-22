@@ -60,6 +60,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "annontations.h"
 
 /* Most of the following has been rewritten by Lee Killough
  *
@@ -80,7 +81,7 @@ static void PrintVer(void)
     lprintf(LO_INFO,"%s",I_GetVersionString(vbuf,200));
 }
 
-int main(int argc, const char * const * argv)
+int main(int argc UNUSED, const char * const * argv UNUSED)
 {
     /* cphipps - call to video specific startup code */
     I_PreInitGraphics();

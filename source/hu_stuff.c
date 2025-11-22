@@ -68,9 +68,9 @@
 // proff - changed to SCREENWIDTH to 320 for stretching
 #define HU_COORDX (320 - 13*_g->hu_font['A'-HU_FONTSTART].width)
 //jff 3/3/98 split coord widget into three lines in upper right of screen
-#define HU_COORDX_Y (1 + 0*_g->hu_font['A'-HU_FONTSTART].height)
-#define HU_COORDY_Y (2 + 1*_g->hu_font['A'-HU_FONTSTART].height)
-#define HU_COORDZ_Y (3 + 2*_g->hu_font['A'-HU_FONTSTART].height)
+#define HU_COORDX_Y (1 + 0*_g->hu_font['A'-HU_FONTSTART]->height)
+#define HU_COORDY_Y (2 + 1*_g->hu_font['A'-HU_FONTSTART]->height)
+#define HU_COORDZ_Y (3 + 2*_g->hu_font['A'-HU_FONTSTART]->height)
 
 //jff 2/16/98 add ammo, health, armor widgets, 2/22/98 less gap
 #define HU_GAPY 8
@@ -117,7 +117,7 @@
 
 //#define HU_INPUTTOGGLE  't' // not used                           // phares
 #define HU_INPUTX HU_MSGX
-#define HU_INPUTY (HU_MSGY + HU_MSGHEIGHT*(hu_font[0].height) +1)
+#define HU_INPUTY (HU_MSGY + HU_MSGHEIGHT*(_g->hu_font[0]->height) +1)
 #define HU_INPUTWIDTH 64
 #define HU_INPUTHEIGHT  1
 

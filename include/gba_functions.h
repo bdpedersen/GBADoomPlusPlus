@@ -10,6 +10,8 @@
     #include <gba_dma.h>
 #endif
 
+#include "annontations.h"
+
 
 inline static CONSTFUNC int IDiv32 (int a, int b)
 {
@@ -84,14 +86,15 @@ inline static void* ByteFind(byte* mem, byte val, unsigned int count)
     return NULL;
 }
 
-inline static void SaveSRAM(const byte* eeprom, unsigned int size, unsigned int offset)
+
+inline static void SaveSRAM(const byte* eeprom MAYBE_UNUSED, unsigned int size MAYBE_UNUSED, unsigned int offset MAYBE_UNUSED)
 {
 #ifdef GBA
     ByteCopy((byte*)(0xE000000 + offset), eeprom, size);
 #endif
 }
 
-inline static void LoadSRAM(byte* eeprom, unsigned int size, unsigned int offset)
+inline static void LoadSRAM(byte* eeprom MAYBE_UNUSED, unsigned int size MAYBE_UNUSED, unsigned int offse MAYBE_UNUSED)
 {
 #ifdef GBA
     ByteCopy(eeprom, (byte*)(0xE000000 + offset), size);

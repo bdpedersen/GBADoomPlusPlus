@@ -59,6 +59,7 @@
 #include "i_sound.h"
 
 #include "global_data.h"
+#include "annontations.h"
 
 static void (*messageRoutine)(int response);
 
@@ -315,7 +316,7 @@ void M_DrawNewGame(void)
   V_DrawNamePatch(54, 38, 0, "M_SKILL",CR_DEFAULT, VPT_STRETCH);
 }
 
-void M_NewGame(int choice)
+void M_NewGame(int choice UNUSED)
 {
     if ( _g->gamemode == commercial )
     {
@@ -455,7 +456,7 @@ void M_LoadSelect(int choice)
 // Selected from DOOM menu
 //
 
-void M_LoadGame (int choice)
+void M_LoadGame (int choice UNUSED)
 {
   /* killough 5/26/98: exclude during demo recordings
    * cph - unless a new demo */
@@ -541,7 +542,7 @@ void M_SaveSelect(int choice)
 //
 // Selected from DOOM menu
 //
-void M_SaveGame (int choice)
+void M_SaveGame (int choice UNUSED)
 {
   // killough 10/6/98: allow savegames during single-player demo playback
   if (!_g->usergame && (!_g->demoplayback))
@@ -622,7 +623,7 @@ void M_DrawOptions(void)
   M_DrawThermo(OptionsDef.x + 158, OptionsDef.y+LINEHEIGHT*gamma+2,6,_g->gamma);
 }
 
-void M_Options(int choice)
+void M_Options(int choice UNUSED)
 {
   M_SetupNextMenu(&OptionsDef);
 }
@@ -677,7 +678,7 @@ void M_DrawSound(void)
   M_DrawThermo(SoundDef.x,SoundDef.y+LINEHEIGHT*(music_vol+1),16,_g->snd_MusicVolume);
 }
 
-void M_Sound(int choice)
+void M_Sound(int choice UNUSED)
 {
   M_SetupNextMenu(&SoundDef);
 }
@@ -738,7 +739,7 @@ static void M_EndGameResponse(int ch)
   D_StartTitle ();
 }
 
-void M_EndGame(int choice)
+void M_EndGame(int choice UNUSED)
 {
   M_StartMessage(ENDGAME,M_EndGameResponse,true); // Ty 03/27/98 - externalized
 }
@@ -748,7 +749,7 @@ void M_EndGame(int choice)
 //    Toggle messages on/off
 //
 
-void M_ChangeMessages(int choice)
+void M_ChangeMessages(int choice UNUSED)
 {
   // warning: unused parameter `int choice'
   choice = 0;
@@ -765,7 +766,7 @@ void M_ChangeMessages(int choice)
 }
 
 
-void M_ChangeAlwaysRun(int choice)
+void M_ChangeAlwaysRun(int choice UNUSED)
 {
     // warning: unused parameter `int choice'
     choice = 0;
@@ -779,7 +780,7 @@ void M_ChangeAlwaysRun(int choice)
     G_SaveSettings();
 }
 
-void M_ChangeDetail(int choice)
+void M_ChangeDetail(int choice UNUSED)
 {
     // warning: unused parameter `int choice'
     choice = 0;
