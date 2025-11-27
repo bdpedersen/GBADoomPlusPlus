@@ -28,17 +28,18 @@ void I_ProcessKeyEvents();
 
 int I_GetTime_e32(void);
 
-void I_Error (const char *error, ...);
-
 void I_Quit_e32();
 
 unsigned short* I_GetBackBuffer();
 
 unsigned short* I_GetFrontBuffer();
 
+void I_Error (const char *error, ...);
+
 #ifdef __cplusplus
 }
 #endif
+
 
 
 #endif

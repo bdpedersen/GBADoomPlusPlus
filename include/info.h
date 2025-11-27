@@ -196,7 +196,7 @@ typedef enum
  * States (frames) enumeration -- must match info.c                 *
  ********************************************************************/
 
-typedef enum
+typedef enum 
 {
   S_NULL,
   S_LIGHTDONE,
@@ -1247,7 +1247,6 @@ typedef enum
   S_MUSHROOM,  /* killough 10/98: mushroom explosion effect */
 
   NUMSTATES  /* Counter of how many there are */
-
 } statenum_t;
 
 /********************************************************************

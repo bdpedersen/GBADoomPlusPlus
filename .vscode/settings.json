@@ -1,9 +1,14 @@
 {
-    "makefile.makefilePath": "Makefile.posix",
+    "makefile.makefilePath": "Makefile.cplusplus",
     "makefile.launchConfigurations": [
         {
             "cwd": "/Users/brian/src/GBADoom",
             "binaryPath": "/Users/brian/src/GBADoom/GBADoom",
+            "binaryArgs": []
+        },
+        {
+            "cwd": "/Users/brian/src/GBADoom",
+            "binaryPath": "/Users/brian/src/GBADoom/GBADoomCpp",
             "binaryArgs": []
         }
     ]

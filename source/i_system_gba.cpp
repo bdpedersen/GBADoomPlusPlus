@@ -349,7 +349,7 @@ void I_Error (const char *error, ...)
     va_list v;
     va_start(v, error);
 
-    vsprintf(msg, error, v);
+    vsnprintf(msg, sizeof(msg), error, v);
 
     va_end(v);
 

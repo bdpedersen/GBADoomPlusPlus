@@ -321,7 +321,7 @@ void HU_Init(void)
     j = HU_FONTSTART;
     for (i=0;i<HU_FONTSIZE;i++)
     {
-        sprintf(buffer, "STCFN%.3d", j++);
+        snprintf(buffer, sizeof(buffer), "STCFN%.3d", j++);
         _g->hu_font[i] = (const patch_t *) W_CacheLumpName(buffer);
     }
 }

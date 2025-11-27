@@ -61,7 +61,7 @@ int lprintf(OutputLevels pri UNUSED, const char *s, ...)
 	va_list v;
 	va_start(v,s);
 	
-	vsprintf(msg,s,v);
+	vsnprintf(msg, sizeof(msg), s,v);
 	
 	va_end(v);
 

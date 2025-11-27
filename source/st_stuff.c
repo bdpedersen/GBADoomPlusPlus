@@ -482,10 +482,10 @@ static void ST_loadGraphics(boolean doload UNUSED)
     for (i=0;i<10;i++)
     {
         //sprintf(namebuf, "STTNUM%d", i);
-		sprintf(namebuf, "STGANUM%d", i); //Special GBA Doom II Red Numbers ~Kippykip
+		snprintf(namebuf, sizeof(namebuf), "STGANUM%d", i); //Special GBA Doom II Red Numbers ~Kippykip
         _g->tallnum[i] = (const patch_t *) W_CacheLumpName(namebuf);
 
-        sprintf(namebuf, "STYSNUM%d", i);
+        snprintf(namebuf, sizeof(namebuf), "STYSNUM%d", i);
         _g->shortnum[i] = (const patch_t *) W_CacheLumpName(namebuf);
     }
 
@@ -496,14 +496,14 @@ static void ST_loadGraphics(boolean doload UNUSED)
     // key cards
     for (i=0;i<NUMCARDS;i++)
     {
-        sprintf(namebuf, "STKEYS%d", i);
+        snprintf(namebuf, sizeof(namebuf), "STKEYS%d", i);
         _g->keys[i] = (const patch_t *) W_CacheLumpName(namebuf);
     }
 
     // arms ownership widgets
     for (i=0;i<6;i++)
     {
-        sprintf(namebuf, "STGNUM%d", i+2);
+        snprintf(namebuf, sizeof(namebuf), "STGNUM%d", i+2);
 
         // gray #
         _g->arms[i][0] = (const patch_t *) W_CacheLumpName(namebuf);
@@ -523,18 +523,18 @@ static void ST_loadGraphics(boolean doload UNUSED)
     {
         for (int j=0;j<ST_NUMSTRAIGHTFACES;j++)
         {
-            sprintf(namebuf, "STFST%d%d", i, j);
+            snprintf(namebuf, sizeof(namebuf), "STFST%d%d", i, j);
             _g->faces[facenum++] = W_CacheLumpName(namebuf);
         }
-        sprintf(namebuf, "STFTR%d0", i);	// turn right
+        snprintf(namebuf, sizeof(namebuf), "STFTR%d0", i);	// turn right
         _g->faces[facenum++] = W_CacheLumpName(namebuf);
-        sprintf(namebuf, "STFTL%d0", i);	// turn left
+        snprintf(namebuf, sizeof(namebuf), "STFTL%d0", i);	// turn left
         _g->faces[facenum++] = W_CacheLumpName(namebuf);
-        sprintf(namebuf, "STFOUCH%d", i);	// ouch!
+        snprintf(namebuf, sizeof(namebuf), "STFOUCH%d", i);	// ouch!
         _g->faces[facenum++] = W_CacheLumpName(namebuf);
-        sprintf(namebuf, "STFEVL%d", i);	// evil grin ;)
+        snprintf(namebuf, sizeof(namebuf), "STFEVL%d", i);	// evil grin ;)
         _g->faces[facenum++] = W_CacheLumpName(namebuf);
-        sprintf(namebuf, "STFKILL%d", i);	// pissed off
+        snprintf(namebuf, sizeof(namebuf), "STFKILL%d", i);	// pissed off
         _g->faces[facenum++] = W_CacheLumpName(namebuf);
     }
     _g->faces[facenum++] = W_CacheLumpName("STFGOD0");
