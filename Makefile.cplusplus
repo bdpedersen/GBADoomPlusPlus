@@ -32,6 +32,7 @@ QT_LIBS     := $(shell pkg-config --libs $(QT_MODULE))
 DEFINES     := \
     -DQT_DEPRECATED_WARNINGS \
     -DRANGECHECK \
+	-DRPT_MALLOC \
     -D_CRT_SECURE_NO_WARNINGS
 
 INCLUDEPATH := \

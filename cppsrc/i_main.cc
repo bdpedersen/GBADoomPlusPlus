@@ -96,5 +96,7 @@ int main(int argc UNUSED, const char * const * argv UNUSED)
     InitGlobals();
 
     D_DoomMain ();
+
+    Z_ReportAll();
     return 0;
 }

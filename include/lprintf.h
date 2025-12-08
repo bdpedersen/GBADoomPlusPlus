@@ -50,7 +50,9 @@ extern int lprintf(OutputLevels pri, const char *fmt, ...);
 /* killough 3/20/98: add const
  * killough 4/25/98: add gcc attributes
  * cphipps 01/11- moved from i_system.h */
- extern "C"
+ #ifdef __cplusplus
+extern "C"
+#endif
 void I_Error (const char *error, ...);
 
 #endif

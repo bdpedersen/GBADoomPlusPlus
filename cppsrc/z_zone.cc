@@ -26,6 +26,12 @@
 #include "doomtype.h"
 #include "lprintf.h"
 
+#ifdef RPT_MALLOC
+#undef Z_Malloc
+#undef Z_Free
+#undef Z_Realloc
+#undef Z_Calloc
+#endif
 
 //
 // ZONE MEMORY ALLOCATION

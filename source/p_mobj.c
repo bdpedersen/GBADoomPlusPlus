@@ -493,15 +493,17 @@ void P_MobjBrainlessThinker(mobj_t* mobj)
 
 static think_t P_ThinkerFunctionForType(mobjtype_t type, mobj_t* mobj)
 {
-    think_t retval = {NULL};
-    //Full thinking ability.
-    if(type < MT_MISC0)
-        retval.acm1 = P_MobjThinker;
-
+  think_t retval = {NULL};
+  //Full thinking ability.
+  if(type < MT_MISC0){
+      retval.acm1 = P_MobjThinker;
+  } else {
     //Just state cycles.
     if(mobj->tics != -1)
         retval.acm1 = P_MobjBrainlessThinker;
-
+  }
+  //No thinking at all.
+  return retval;
     //No thinking at all.
     return retval;
 }
