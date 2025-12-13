@@ -63,9 +63,9 @@ void* Z_MallocRpt(int size, int tag, void **ptr, const char* file, int line);
 #define Z_Malloc(s,t,p) Z_MallocRpt(s,t,p,__FILE__,__LINE__)
 void Z_FreeRpt(void *ptr, const char* file, int line);
 #define Z_Free(p) Z_FreeRpt(p,__FILE__,__LINE__)
-void Z_ReallocRpt(void *ptr, size_t n, int tag, const char* file, int line);
-#define Z_Realloc(p,n,t) Z_ReallocRpt(p,n,t,__FILE__,__LINE__)
-
+void* Z_ReallocRpt(void *ptr, size_t n, int tag, void **user, const char* file, int line);
+#define Z_Realloc(p,n,t,u) Z_ReallocRpt(p,n,t,u,__FILE__,__LINE__)
+void Z_ReportAll(); 
 #endif // RPT_MALLOC
 
 

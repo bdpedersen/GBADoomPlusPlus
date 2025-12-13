@@ -1,4 +1,4 @@
-#include "../source/gfx/stbar.h"
+#include "gfx/stbar.h"
 
 #include "st_gfx.h"
 

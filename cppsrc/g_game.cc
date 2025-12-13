@@ -74,6 +74,7 @@
 
 #include "global_data.h"
 #include "gba_functions.h"
+#include "z_zone.h"
 
 //
 // controls (have defaults)
