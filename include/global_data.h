@@ -158,10 +158,10 @@ boolean         castdeath;
 //g_game.c
 //******************************************************************************
 
-const byte *demobuffer;   /* cph - only used for playback */
+CachedBuffer<byte> demobuffer;   /* cph - only used for playback */
 int demolength; // check for overrun (missing DEMOMARKER)
 
-const byte *demo_p;
+CachedBuffer<byte> demo_p;
 
 gameaction_t    gameaction;
 gamestate_t     gamestate;

@@ -116,7 +116,7 @@ static const fixed_t sidemove[2]    = {0x18, 0x28};
 static const fixed_t angleturn[3]   = {640, 1280, 320};  // + slow turn
 
 static void G_DoSaveGame (boolean menu);
-static const byte* G_ReadDemoHeader(const byte* demo_p, size_t size, boolean failonerror);
+static CachedBuffer<byte> G_ReadDemoHeader(CachedBuffer<byte> demo_p, size_t size, boolean failonerror);
 
 
 typedef struct gba_save_data_t
@@ -1163,7 +1163,7 @@ void G_ReadDemoTiccmd (ticcmd_t* cmd)
 
     if (*_g->demo_p == DEMOMARKER)
         G_CheckDemoStatus();      // end of demo data stream
-    else if (_g->demoplayback && _g->demo_p + (_g->longtics?5:4) > _g->demobuffer + _g->demolength)
+    else if (_g->demoplayback && _g->demo_p.addOffset(_g->longtics?5:4).byteoffset() > _g->demobuffer.addOffset(_g->demolength).byteoffset())
     {
         lprintf(LO_WARN, "G_ReadDemoTiccmd: missing DEMOMARKER\n");
         G_CheckDemoStatus();
@@ -1187,9 +1187,9 @@ void G_ReadDemoTiccmd (ticcmd_t* cmd)
  * cph - const byte*'s
  */
 
-const byte *G_ReadOptions(const byte *demo_p)
+CachedBuffer<byte> G_ReadOptions(CachedBuffer<byte> demo_p)
 {
-    const byte *target = demo_p + GAME_OPTION_SIZE;
+    auto target = demo_p.addOffset(GAME_OPTION_SIZE);
 
     return target;
 }
@@ -1209,9 +1209,9 @@ void G_DeferedPlayDemo (const char* name)
 static int demolumpnum = -1;
 
 //e6y: Check for overrun
-static boolean CheckForOverrun(const byte *start_p, const byte *current_p, size_t maxsize, size_t size, boolean failonerror)
+static boolean CheckForOverrun(CachedBuffer<byte> start_p, CachedBuffer<byte> current_p, size_t maxsize, size_t size, boolean failonerror)
 {
-    size_t pos = current_p - start_p;
+    size_t pos = current_p.byteoffset() - start_p.byteoffset();
     if (pos + size > maxsize)
     {
         if (failonerror)
@@ -1222,7 +1222,7 @@ static boolean CheckForOverrun(const byte *start_p, const byte *current_p, size_
     return false;
 }
 
-static const byte* G_ReadDemoHeader(const byte *demo_p, size_t size, boolean failonerror)
+CachedBuffer<byte> G_ReadDemoHeader(CachedBuffer<byte> demo_p, size_t size, boolean failonerror)
 {
     skill_t skill;
     int episode, map;
@@ -1230,7 +1230,7 @@ static const byte* G_ReadDemoHeader(const byte *demo_p, size_t size, boolean fai
     // e6y
     // The local variable should be used instead of demobuffer,
     // because demobuffer can be uninitialized
-    const byte *header_p = demo_p;
+    auto header_p = demo_p;
 
     _g->basetic = _g->gametic;  // killough 9/29/98
 
@@ -1240,7 +1240,7 @@ static const byte* G_ReadDemoHeader(const byte *demo_p, size_t size, boolean fai
 
     //e6y: check for overrun
     if (CheckForOverrun(header_p, demo_p, size, 1, failonerror))
-        return NULL;
+        return CachedBuffer<byte>();
 
     _g->demover = *demo_p++;
     _g->longtics = 0;
@@ -1270,7 +1270,7 @@ static const byte* G_ReadDemoHeader(const byte *demo_p, size_t size, boolean fai
         {
             //e6y: check for overrun
             if (CheckForOverrun(header_p, demo_p, size, 8, failonerror))
-                return NULL;
+                return CachedBuffer<byte>();
 
             skill = (skill_t)*demo_p++;
             episode = *demo_p++;
@@ -1285,7 +1285,7 @@ static const byte* G_ReadDemoHeader(const byte *demo_p, size_t size, boolean fai
         {
             //e6y: check for overrun
             if (CheckForOverrun(header_p, demo_p, size, 2, failonerror))
-                return NULL;
+                return CachedBuffer<byte>();
 
             episode = *demo_p++;
             map = *demo_p++;
@@ -1300,26 +1300,29 @@ static const byte* G_ReadDemoHeader(const byte *demo_p, size_t size, boolean fai
         case 201:
             //e6y: check for overrun
             if (CheckForOverrun(header_p, demo_p, size, 1, failonerror))
-                return NULL;
+                return CachedBuffer<byte>();
             break;
         case 202:
             //e6y: check for overrun
             if (CheckForOverrun(header_p, demo_p, size, 1, failonerror))
-                return NULL;
+                return CachedBuffer<byte>();
 
             break;
         case 203:
             /* LxDoom or MBF - determine from signature
      * cph - load compatibility level */
-            switch (*(header_p + 2)) {
-            case 'B': /* LxDoom */
-                /* cph - DEMOSYNC - LxDoom demos recorded in compatibility modes support dropped */
-                break;
-            case 'M':
-                demo_p++;
+            {
+                auto header_p2 = header_p.addOffset(2);
+                switch (*(header_p2)) {
+                case 'B': /* LxDoom */
+                    /* cph - DEMOSYNC - LxDoom demos recorded in compatibility modes support dropped */
+                    break;
+                case 'M':
+                    demo_p++;
+                    break;
+                }
                 break;
             }
-            break;
         case 210:
             demo_p++;
             break;
@@ -1339,7 +1342,7 @@ static const byte* G_ReadDemoHeader(const byte *demo_p, size_t size, boolean fai
         }
         //e6y: check for overrun
         if (CheckForOverrun(header_p, demo_p, size, 5, failonerror))
-            return NULL;
+            return CachedBuffer<byte>();
 
         skill = (skill_t)*demo_p++;
         episode = *demo_p++;
@@ -1349,7 +1352,7 @@ static const byte* G_ReadDemoHeader(const byte *demo_p, size_t size, boolean fai
 
         //e6y: check for overrun
         if (CheckForOverrun(header_p, demo_p, size, GAME_OPTION_SIZE, failonerror))
-            return NULL;
+            return CachedBuffer<byte>();
 
         demo_p = G_ReadOptions(demo_p);  // killough 3/1/98: Read game options
 
@@ -1359,7 +1362,7 @@ static const byte* G_ReadDemoHeader(const byte *demo_p, size_t size, boolean fai
 
     //e6y: check for overrun
     if (CheckForOverrun(header_p, demo_p, size, MAXPLAYERS, failonerror))
-        return NULL;
+        return CachedBuffer<byte>();
 
     _g->playeringame = *demo_p++;
     demo_p += MIN_MAXPLAYERS - MAXPLAYERS;
@@ -1383,9 +1386,8 @@ void G_DoPlayDemo(void)
 
     /* cph - store lump number for unlocking later */
     demolumpnum = W_GetNumForName(basename);
-    _g->demobuffer = (byte *)W_CacheLumpNum(demolumpnum);
-    _g->demolength = W_LumpLength(demolumpnum);
-
+    _g->demobuffer = CachedBuffer<byte>(demolumpnum);
+    _g->demolength = _g->demobuffer.size();
     _g->demo_p = G_ReadDemoHeader(_g->demobuffer, _g->demolength, true);
 
     _g->gameaction = ga_nothing;

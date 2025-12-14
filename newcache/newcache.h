@@ -29,40 +29,60 @@ class Pinned {
 template <typename T>
 class CachedBuffer {
     public:
-        CachedBuffer() : lumpnum(-1), byteoffset(0) {}
-        CachedBuffer(short lumpnum) : lumpnum(lumpnum), byteoffset(0) {} 
-        CachedBuffer(short lumpnum, unsigned int byteoffset) : lumpnum(lumpnum), byteoffset(byteoffset) {}
-        CachedBuffer(const char* name) : lumpnum(W_GetNumForName(name)), byteoffset(0) {}
+        CachedBuffer() : lumpnum(-1), _byteoffset(0) {}
+        CachedBuffer(short lumpnum) : lumpnum(lumpnum), _byteoffset(0) {} 
+        CachedBuffer(short lumpnum, unsigned int byteoffset) : lumpnum(lumpnum), _byteoffset(byteoffset) {}
+        CachedBuffer(const char* name) : lumpnum(W_GetNumForName(name)), _byteoffset(0) {}
 
         const Cached<T> operator[](int index) const {
             return Cached<T>(lumpnum, index*sizeof(T));
         }
 
         int size() const {
-            return (W_LumpLength(lumpnum)-byteoffset) / sizeof(T);
+            return (W_LumpLength(lumpnum)-_byteoffset) / sizeof(T);
         }
 
         template <typename U>
         CachedBuffer<U> transmute() const  {
-            return CachedBuffer<U>(lumpnum,byteoffset);
+            return CachedBuffer<U>(lumpnum,_byteoffset);
         }   
 
         CachedBuffer<T> addOffset(int offset) const {
-            return CachedBuffer<T>(lumpnum, byteoffset+offset*sizeof(T));
+            return CachedBuffer<T>(lumpnum, _byteoffset+offset*sizeof(T));
         }
 
         Pinned<T> pin() const {
             const char * base = (const char*)W_CacheLumpNum(lumpnum);
-            return Pinned<T>((const T*)(base + byteoffset), lumpnum);
+            return Pinned<T>((const T*)(base + _byteoffset), lumpnum);
         }   
 
         bool isnull() const {
             return lumpnum == -1;
         }
 
+        unsigned int byteoffset() const {
+            return _byteoffset;
+        }
+
+        CachedBuffer<T> operator++(int) {
+            CachedBuffer<T> old = *this;
+            _byteoffset += sizeof(T);
+            return old;
+        }
+
+        T operator*() const {
+            const char * base = (const char*)W_CacheLumpNum(lumpnum);
+            return *(T*)(base + _byteoffset);
+        }
+
+        CachedBuffer<T>& operator+=(int count) {
+            _byteoffset += count * sizeof(T);
+            return *this;
+        }
+
     private:
         short lumpnum;
-        unsigned int byteoffset;
+        unsigned int _byteoffset;
 };
 
 template <typename T>
