@@ -116,12 +116,13 @@ static void P_LoadSubsectors (int lump)
 
 static void P_LoadSectors (int lump)
 {
-  const byte *data; // cph - const*
   int  i;
 
   _g->numsectors = W_LumpLength (lump) / sizeof(mapsector_t);
   _g->sectors = (sector_t *)Z_Calloc (_g->numsectors,sizeof(sector_t),PU_LEVEL,0);
-  data = (const byte *)W_CacheLumpNum (lump); // cph - wad lump handling updated
+  auto databuffer = CachedBuffer<byte>(lump); // cph - wad lump handling updated
+  auto pinneddata = databuffer.pin();
+  auto data = (const byte *)pinneddata; 
 
   for (i=0; i<_g->numsectors; i++)
     {
