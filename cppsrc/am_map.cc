@@ -165,15 +165,15 @@ static void AM_findMinMaxBoundaries(void)
 
     for (i=0;i<_g->numvertexes;i++)
     {
-        if (_g->vertexes[i].x < _g->min_x)
-            _g->min_x = _g->vertexes[i].x;
-        else if (_g->vertexes[i].x > _g->max_x)
-            _g->max_x = _g->vertexes[i].x;
+        if (_g->vertexes[i]->x < _g->min_x)
+            _g->min_x = _g->vertexes[i]->x;
+        else if (_g->vertexes[i]->x > _g->max_x)
+            _g->max_x = _g->vertexes[i]->x;
 
-        if (_g->vertexes[i].y < _g->min_y)
-            _g->min_y = _g->vertexes[i].y;
-        else if (_g->vertexes[i].y > _g->max_y)
-            _g->max_y = _g->vertexes[i].y;
+        if (_g->vertexes[i]->y < _g->min_y)
+            _g->min_y = _g->vertexes[i]->y;
+        else if (_g->vertexes[i]->y > _g->max_y)
+            _g->max_y = _g->vertexes[i]->y;
     }
 
     _g->max_w = (_g->max_x >>= FRACTOMAPBITS) - (_g->min_x >>= FRACTOMAPBITS);//e6y

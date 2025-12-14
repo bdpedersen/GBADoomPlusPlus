@@ -65,7 +65,7 @@ static void P_LoadVertexes (int lump)
   _g->numvertexes = W_LumpLength(lump) / sizeof(vertex_t);
 
   // Allocate zone memory for buffer.
-  _g->vertexes = (vertex_t *)W_CacheLumpNum(lump);
+  _g->vertexes = CachedBuffer<vertex_t>(lump);
 
 }
 

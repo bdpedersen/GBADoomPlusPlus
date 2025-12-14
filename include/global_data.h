@@ -452,7 +452,7 @@ fixed_t bulletslope;
 //
 
 int      numvertexes;
-const vertex_t *vertexes;
+CachedBuffer<vertex_t> vertexes;
 
 const seg_t    *segs;
 
