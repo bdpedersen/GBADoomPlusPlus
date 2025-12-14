@@ -63,7 +63,7 @@ void R_SetDefaultDrawColumnVars(draw_column_vars_t *dcvars);
 typedef struct {
   unsigned int        position;
   unsigned int        step;
-  const byte          *source; // start of a 64*64 tile image
+  CachedBuffer<byte>          source; // start of a 64*64 tile image
   CachedBuffer<lighttable_t>  colormap;
 } draw_span_vars_t;
 

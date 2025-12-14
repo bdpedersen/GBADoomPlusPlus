@@ -1295,7 +1295,8 @@ static void R_DrawSpan(unsigned int y, unsigned int x1, unsigned int x2, const d
 {
     unsigned int count = (x2 - x1);
 
-    const byte *source = dsvars->source;
+    auto pinnedsource = dsvars->source.pin();
+    const byte *source = pinnedsource;
     auto pinnedcolormap = dsvars->colormap.pin();
     const byte *colormap = pinnedcolormap;
 
@@ -1438,7 +1439,7 @@ static void R_DoDrawPlane(visplane_t *pl)
 
             draw_span_vars_t dsvars;
 
-            dsvars.source = (const byte *)W_CacheLumpNum(_g->firstflat + flattranslation[pl->picnum]);
+            dsvars.source = CachedBuffer<byte>(_g->firstflat + flattranslation[pl->picnum]);
             dsvars.colormap = R_LoadColorMap(pl->lightlevel);
 
             planeheight = D_abs(pl->height-viewz);
