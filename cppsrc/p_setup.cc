@@ -76,8 +76,9 @@ static void P_LoadVertexes (int lump)
 
 static void P_LoadSegs (int lump)
 {
-    int numsegs = W_LumpLength(lump) / sizeof(seg_t);
-    _g->segs = (const seg_t *)W_CacheLumpNum(lump);
+    // int numsegs = W_LumpLength(lump) / sizeof(seg_t);
+    _g->segs = CachedBuffer<seg_t>(lump);
+    int numsegs = _g->segs.size();
 
     if (!numsegs)
       I_Error("P_LoadSegs: no segs in level");
@@ -379,16 +380,15 @@ static int P_GroupLines (void)
     // figgi
     for (i=0 ; i<_g->numsubsectors ; i++)
     {
-        const seg_t *seg = &_g->segs[_g->subsectors[i].firstline];
         _g->subsectors[i].sector = NULL;
         for(j=0; j<_g->subsectors[i].numlines; j++)
         {
+            auto seg = _g->segs[_g->subsectors[i].firstline+j];
             if(seg->sidenum != NO_INDEX)
             {
                 _g->subsectors[i].sector = _g->sides[seg->sidenum].sector;
                 break;
             }
-            seg++;
         }
         if(_g->subsectors[i].sector == NULL)
             I_Error("P_GroupLines: Subsector a part of no sector!\n");

@@ -2656,13 +2656,13 @@ static void R_AddLine (const seg_t *line)
 static void R_Subsector(int num)
 {
     int         count;
-    const seg_t       *line;
+    Cached<seg_t>       line;
     subsector_t *sub;
 
     sub = &_g->subsectors[num];
     frontsector = sub->sector;
     count = sub->numlines;
-    line = &_g->segs[sub->firstline];
+    line = _g->segs[sub->firstline];
 
     if(frontsector->floorheight < viewz)
     {
@@ -2692,7 +2692,8 @@ static void R_Subsector(int num)
     R_AddSprites(sub, frontsector->lightlevel);
     while (count--)
     {
-        R_AddLine (line);
+        auto pinnedline = line.pin();
+        R_AddLine (pinnedline);
         line++;
         curline = NULL; /* cph 2001/11/18 - must clear curline now we're done with it, so R_ColourMap doesn't try using it for other things */
     }
@@ -3032,7 +3033,7 @@ static int P_DivlineSide(fixed_t x, fixed_t y, const divline_t *node)
 
 static boolean P_CrossSubsector(int num)
 {
-    const seg_t *seg = _g->segs + _g->subsectors[num].firstline;
+    auto seg = _g->segs[_g->subsectors[num].firstline];
     int count;
     fixed_t opentop = 0, openbottom = 0;
     const sector_t *front = NULL, *back = NULL;

@@ -143,6 +143,12 @@ class Cached {
             return CachedBuffer<byte>(lumpnum,byteoffset);
         }
 
+        Cached operator++(int) {
+            Cached<T> old = *this;
+            byteoffset += sizeof(T);
+            return old;
+        }   
+
     private:
         short lumpnum;
         unsigned int byteoffset;

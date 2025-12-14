@@ -454,7 +454,7 @@ fixed_t bulletslope;
 int      numvertexes;
 CachedBuffer<vertex_t> vertexes;
 
-const seg_t    *segs;
+CachedBuffer<seg_t>    segs;
 
 int      numsectors;
 sector_t *sectors;
