@@ -57,20 +57,21 @@
 void V_DrawBackground(const char* flatname)
 {
     /* erase the entire screen to a tiled background */
-    const byte *src;
+    
     int         lump;
 
     unsigned short *dest = _g->screens[0].data;
 
     // killough 4/17/98:
-    src = (const byte *)W_CacheLumpNum(lump = _g->firstflat + R_FlatNumForName(flatname));
+    auto src = CachedBuffer<byte>(lump = _g->firstflat + R_FlatNumForName(flatname));
+    auto pinsrc = src.pin();
 
     for(unsigned int y = 0; y < SCREENHEIGHT; y++)
     {
         for(unsigned int x = 0; x < 240; x+=64)
         {
             unsigned short* d = &dest[ ScreenYToOffset(y) + (x >> 1)];
-            const byte* s = &src[((y&63) * 64) + (x&63)];
+            const byte* s = &pinsrc[((y&63) * 64) + (x&63)];
 
             unsigned int len = 64;
 
@@ -185,7 +186,8 @@ void V_DrawPatch(int x, int y, int scrn, const patch_t* patch)
 void V_DrawNumPatch(int x, int y, int scrn, int lump,
          int cm UNUSED, enum patch_translation_e flags UNUSED)
 {
-    V_DrawPatch(x, y, scrn, (const patch_t *)W_CacheLumpNum(lump));
+    auto patch = CachedBuffer<patch_t>(lump).pin();
+    V_DrawPatch(x, y, scrn, patch);
 }
 
 //

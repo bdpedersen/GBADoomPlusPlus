@@ -1,13 +1,30 @@
 #ifndef __NEWCACHE_H__
 #define __NEWCACHE_H__  
 
-void * W_CacheLumpNum(int lumpnum, int tag);
+const void * W_CacheLumpNum(int lumpnum);
 int W_LumpLength(int lumpnum);
 int W_GetNumForName (const char* name);
 int W_CheckNumForName(const char *name);
 
 template <typename T>
 class Cached;
+
+template <typename T>
+class Pinned {
+    public:
+    // TODO: implement pinning mechanism
+        Pinned() : ptr(nullptr), lumpnum(-1) {}
+        Pinned(const T* ptr, short lumpnum) : ptr(ptr), lumpnum(lumpnum) {}
+        ~Pinned() {}
+
+        operator const T*() const {
+            return ptr;
+        }
+
+    private:
+        const T* ptr;
+        short lumpnum;
+};
 
 template <typename T>
 class CachedBuffer {
@@ -33,6 +50,11 @@ class CachedBuffer {
         CachedBuffer<T> addOffset(int offset) {
             return CachedBuffer<T>(lumpnum, byteoffset+offset*sizeof(T));
         }
+
+        Pinned<T> pin() {
+            const char * base = (const char*)W_CacheLumpNum(lumpnum);
+            return Pinned<T>((const T*)(base + byteoffset), lumpnum);
+        }   
 
     private:
         short lumpnum;
@@ -66,12 +88,12 @@ class Cached {
 
         const Sentinel<T> operator->() const {
             
-            const char * base = (const char*)W_CacheLumpNum(lumpnum, PU_CACHE);
+            const char * base = (const char*)W_CacheLumpNum(lumpnum);
             return Sentinel<T>((const T*)(base + byteoffset), lumpnum);
         }
 
         T value() const {
-            const char * base = (const char*)W_CacheLumpNum(lumpnum, PU_CACHE);
+            const char * base = (const char*)W_CacheLumpNum(lumpnum);
             return *(T*)(base + byteoffset);
         }
 

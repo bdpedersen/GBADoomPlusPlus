@@ -35,6 +35,8 @@
 
 #include "wi_stuff.h"
 
+#include "../newcache/newcache.h"
+
 
 typedef struct globals_t
 {

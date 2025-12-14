@@ -46,7 +46,7 @@
 //---------------------------------------------------------------------------
 int R_NumPatchWidth(int lump)
 {
-    const patch_t* patch = (const patch_t *)W_CacheLumpNum(lump);
+    auto patch = Cached<patch_t>(lump);
 
     return patch->width;
 }
@@ -54,7 +54,7 @@ int R_NumPatchWidth(int lump)
 //---------------------------------------------------------------------------
 int R_NumPatchHeight(int lump)
 {
-    const patch_t* patch = (const patch_t *)W_CacheLumpNum(lump);
+    auto patch = Cached<patch_t>(lump);
 
     return patch->height;
 }
