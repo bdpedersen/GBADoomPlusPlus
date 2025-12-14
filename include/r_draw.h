@@ -49,6 +49,7 @@ typedef struct {
   fixed_t             iscale;
   fixed_t             texturemid;
 
+  CachedBuffer<byte>        sourcecache; // if the column is cached
   const byte          *source; // first pixel in a column
 
   CachedBuffer<lighttable_t>  colormap;

@@ -158,7 +158,7 @@ static const texture_t* R_LoadTexture(int texture_num)
         char pname[8];
         strncpy(pname, (const char*)&pnames[mpatch->patch * 8], 8);
 
-        patch->patch = (const patch_t*)W_CacheLumpName(pname);
+        patch->patch = Cached<patch_t>(pname);
     }
 
     for (int j=0 ; j < texture->patchcount ; j++)

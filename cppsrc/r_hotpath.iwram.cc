@@ -556,7 +556,9 @@ static void R_DrawColumn (const draw_column_vars_t *dcvars)
     if (count <= 0)
         return;
 
-    const byte *source = dcvars->source;
+    auto pin = dcvars->sourcecache.pin();
+    
+    const byte *source = (pin.isnull()) ? dcvars->source : (const byte*)pin;
     auto pinnedcolormap = dcvars->colormap.pin();
     const byte *colormap = pinnedcolormap;
 
@@ -623,8 +625,10 @@ static void R_DrawColumnHiRes(const draw_column_vars_t *dcvars)
     // Zero length, column does not exceed a pixel.
     if (count <= 0)
         return;
+    
+    auto pin = dcvars->sourcecache.pin();
 
-    const byte *source = dcvars->source;
+    const byte *source = (pin.isnull()) ? dcvars->source : (const byte*)pin;
     auto pinnedcolormap = dcvars->colormap.pin();
     const byte *colormap = pinnedcolormap;
 
@@ -758,6 +762,7 @@ static void R_DrawMaskedColumn(R_DrawColumn_f colfunc, draw_column_vars_t *dcvar
         if (yh < viewheight && yl <= yh)
         {
             dcvars->source =  (const byte*)column + 3;
+            dcvars->sourcecache = CachedBuffer<byte>();
 
             dcvars->texturemid = basetexturemid - (column->topdelta<<FRACBITS);
 
@@ -859,7 +864,7 @@ static void R_DrawVisSprite(const vissprite_t *vis)
     }
 }
 
-static const column_t* R_GetColumn(const texture_t* texture, int texcolumn)
+static Cached<column_t> R_GetColumn(const texture_t* texture, int texcolumn)
 {
     const unsigned int patchcount = texture->patchcount;
     const unsigned int widthmask = texture->widthmask;
@@ -869,9 +874,9 @@ static const column_t* R_GetColumn(const texture_t* texture, int texcolumn)
     if(patchcount == 1)
     {
         //simple texture.
-        const patch_t* patch = texture->patches[0].patch;
-
-        return (const column_t *) ((const byte *)patch + patch->columnofs[xc]);
+        auto patch = texture->patches[0].patch;
+        return patch.transmuteToObjectAtByteOffset<column_t>(patch->columnofs[xc]);
+        //return (const column_t *) ((const byte *)patch + patch->columnofs[xc]);
     }
     else
     {
@@ -881,7 +886,7 @@ static const column_t* R_GetColumn(const texture_t* texture, int texcolumn)
         {
             const texpatch_t* patch = &texture->patches[i];
 
-            const patch_t* realpatch = patch->patch;
+            auto realpatch = patch->patch;
 
             const int x1 = patch->originx;
 
@@ -891,12 +896,13 @@ static const column_t* R_GetColumn(const texture_t* texture, int texcolumn)
             const int x2 = x1 + realpatch->width;
 
             if(xc < x2)
-                return (const column_t *)((const byte *)realpatch + realpatch->columnofs[xc-x1]);
+                return realpatch.transmuteToObjectAtByteOffset<column_t>(realpatch->columnofs[xc - x1]);
+                // return (const column_t *)((const byte *)realpatch + realpatch->columnofs[xc-x1]);
 
         } while(++i < patchcount);
     }
 
-    return NULL;
+    return Cached<column_t>();
 }
 
 
@@ -976,9 +982,10 @@ static void R_RenderMaskedSegRange(const drawseg_t *ds, int x1, int x2)
             dcvars.iscale = FixedReciprocal((unsigned)spryscale);
 
             // draw the texture
-            const column_t* column = R_GetColumn(texture, xc);
+            auto column = R_GetColumn(texture, xc);
+            auto pinnedcolumn = column.pin();
 
-            R_DrawMaskedColumn(R_DrawColumn, &dcvars, column);
+            R_DrawMaskedColumn(R_DrawColumn, &dcvars, pinnedcolumn);
 
             maskedtexturecol[dcvars.x] = SHRT_MAX; // dropoff overflow
         }
@@ -1427,9 +1434,13 @@ static void R_DoDrawPlane(visplane_t *pl)
                 {
                     int xc = ((viewangle + xtoviewangle[x]) >> ANGLETOSKYSHIFT);
 
-                    const column_t* column = R_GetColumn(tex, xc);
+                    auto column = R_GetColumn(tex, xc);
+                    auto columnptr = column.bytebuffer();
+                    columnptr += 3;
+                    dcvars.sourcecache = columnptr;
+                    auto pinnedcolumnptr = columnptr.pin();
 
-                    dcvars.source = (const byte*)column + 3;
+                    dcvars.source = (const byte*)pinnedcolumnptr;
                     R_DrawColumn(&dcvars);
                 }
             }
@@ -1884,7 +1895,7 @@ static const byte* R_ComposeColumn(const unsigned int texture, const texture_t* 
         {
             const texpatch_t* patch = &tex->patches[i];
 
-            const patch_t* realpatch = patch->patch;
+            auto realpatch = patch->patch;
 
             const int x1 = patch->originx;
 
@@ -1895,7 +1906,10 @@ static const byte* R_ComposeColumn(const unsigned int texture, const texture_t* 
 
             if(xc < x2)
             {
-                const column_t* patchcol = (const column_t *)((const byte *)realpatch + realpatch->columnofs[xc-x1]);
+                auto pinnedpatch = realpatch.pin();
+                const patch_t* pinnedpatchptr = (const patch_t *)pinnedpatch; 
+
+                const column_t* patchcol = (const column_t *)((const byte *)pinnedpatchptr + realpatch->columnofs[xc-x1]);
 
                 R_DrawColumnInCache (patchcol,
                                      tmpCache,
@@ -1919,12 +1933,16 @@ static void R_DrawSegTextureColumn(unsigned int texture, int texcolumn, draw_col
 
     if(tex->overlapped == 0)
     {
-        const column_t* column = R_GetColumn(tex, texcolumn);
+        auto column = R_GetColumn(tex, texcolumn);
+        auto columnbytes = column.bytebuffer();
+        columnbytes += 3;
 
-        dcvars->source = (const byte*)column + 3;
+        dcvars->sourcecache = columnbytes;
+        
     }
     else
     {
+        dcvars->sourcecache = CachedBuffer<byte>();
         dcvars->source = R_ComposeColumn(texture, tex, texcolumn, dcvars->iscale);
     }
 

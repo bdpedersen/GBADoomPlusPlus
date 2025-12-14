@@ -49,7 +49,7 @@
 typedef struct
 {
   short originx, originy;  // Block origin, which has already accounted
-  const patch_t* patch;    // for the internal origin of the patch.
+  Cached<patch_t> patch;    // for the internal origin of the patch.
 } texpatch_t;
 
 //

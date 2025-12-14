@@ -21,6 +21,10 @@ class Pinned {
             return ptr;
         }
 
+        bool isnull() const {
+            return ptr == nullptr;
+        }
+
     private:
         const T* ptr;
         short lumpnum;
@@ -34,12 +38,10 @@ class CachedBuffer {
         CachedBuffer(short lumpnum, unsigned int byteoffset) : lumpnum(lumpnum), _byteoffset(byteoffset) {}
         CachedBuffer(const char* name) : lumpnum(W_GetNumForName(name)), _byteoffset(0) {}
 
-        /*
         const Cached<T> operator[](int index) const {
             return Cached<T>(lumpnum, index*sizeof(T));
         }
-        */
-
+        
         int size() const {
             return (W_LumpLength(lumpnum)-_byteoffset) / sizeof(T);
         }
@@ -60,6 +62,10 @@ class CachedBuffer {
 
         bool isnull() const {
             return lumpnum == -1;
+        }
+
+        bool isvalid() const {
+            return lumpnum != -1;
         }
 
         unsigned int byteoffset() const {
@@ -127,11 +133,16 @@ class Cached {
             const char * base = (const char*)W_CacheLumpNum(lumpnum);
             return Pinned<T>((const T*)(base + byteoffset), lumpnum);
         }
-/*
-        CachedBuffer<T> buffer() {
-            return CachedBuffer<T>(lumpnum,byteoffset);
+
+        template <typename U>
+        Cached<U> transmuteToObjectAtByteOffset(int extrabyteoffset) const  {
+            return Cached<U>(lumpnum, byteoffset+extrabyteoffset);
         }
-*/
+
+        CachedBuffer<byte> bytebuffer() {
+            return CachedBuffer<byte>(lumpnum,byteoffset);
+        }
+
     private:
         short lumpnum;
         unsigned int byteoffset;
