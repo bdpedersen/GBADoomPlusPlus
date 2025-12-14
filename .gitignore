@@ -55,3 +55,6 @@ source/iwad/
 
 .qtc_clangd/
 GBADoom
+GBADoomCpp
+cppbuild/am_map.o cppbuild/d_client.o cppbuild/d_items.o cppbuild/d_main.o cppbuild/doom_iwad.o cppbuild/f_finale.o cppbuild/f_wipe.o cppbuild/g_game.o cppbuild/global_data.o cppbuild/hu_lib.o cppbuild/hu_stuff.o cppbuild/i_audio.o cppbuild/i_main.o cppbuild/i_system_e32.o cppbuild/i_system.o cppbuild/i_video.o cppbuild/info.o cppbuild/lprintf.o cppbuild/m_bbox.o cppbuild/m_cheat.o cppbuild/m_menu.o cppbuild/m_random.o cppbuild/m_recip.o cppbuild/p_ceilng.o cppbuild/p_doors.o cppbuild/p_enemy.o cppbuild/p_floor.o cppbuild/p_genlin.o cppbuild/p_inter.o cppbuild/p_lights.o cppbuild/p_map.o cppbuild/p_maputl.o cppbuild/p_mobj.o cppbuild/p_plats.o cppbuild/p_pspr.o cppbuild/p_setup.o cppbuild/p_sight.o cppbuild/p_spec.o cppbuild/p_switch.o cppbuild/p_telept.o cppbuild/p_tick.o cppbuild/p_user.o cppbuild/r_data.o cppbuild/r_draw.o cppbuild/r_hotpath.iwram.o cppbuild/r_main.o cppbuild/r_patch.o cppbuild/r_plane.o cppbuild/r_things.o cppbuild/s_sound.o cppbuild/sounds.o cppbuild/st_gfx.o cppbuild/st_lib.o cppbuild/st_stuff.o cppbuild/tables.o cppbuild/v_video.o cppbuild/version.o cppbuild/w_wad.o cppbuild/wi_stuff.o cppbuild/z_bmalloc.o cppbuild/z_zone_rpt.o cppbuild/z_zone.o
+cppbuild
