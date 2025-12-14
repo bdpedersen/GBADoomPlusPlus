@@ -38,6 +38,7 @@
 #include "../newcache/newcache.h"
 
 
+
 typedef struct globals_t
 {
 #ifndef GLOBAL_DEFS_H
@@ -213,7 +214,7 @@ boolean         haswolflevels;// jff 4/18/98 wolf levels present
 //******************************************************************************
 
 // font sets
-const patch_t* hu_font[HU_FONTSIZE];
+hu_fontlist_t hu_font;
 
 // widgets
 hu_textline_t  w_title;

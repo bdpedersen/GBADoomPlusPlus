@@ -36,6 +36,10 @@
 // We are referring to patches.
 #include "r_defs.h"
 #include "v_video.h"  //jff 2/16/52 include color range defs
+#include "../newcache/newcache.h"
+#include "hu_stuff.h"
+
+typedef Cached<patch_t> hu_fontlist_t[HU_FONTSIZE];
 
 
 /* background and foreground screen numbers
@@ -65,7 +69,7 @@ typedef struct
   int   x;
   int   y;
 
-  const patch_t** f;                    // font
+  hu_fontlist_t f;                    // font
   int   sc;                             // start character
   //const char *cr;                       //jff 2/16/52 output color range
   // Proff - Made this an int again. Needed for OpenGL
@@ -149,7 +153,7 @@ void HUlib_initTextLine
 (hu_textline_t *t,
   int x,
   int y,
-  const patch_t **f,
+  hu_fontlist_t f,
   int sc);
 
 // returns success
@@ -172,7 +176,7 @@ void HUlib_initSText
   int   x,
   int   y,
   int   h,
-  const patch_t **font,
+  hu_fontlist_t font,
   int   startchar,   //jff 2/16/98 add color range parameter
   boolean*  on );
 

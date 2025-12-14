@@ -292,7 +292,8 @@ static void F_TextWrite (void)
 
             w = _g->hu_font[c]->width;
             // CPhipps - patch drawing updated
-            V_DrawPatchNoScale(cx, cy, _g->hu_font[c]);
+            auto pinned_patch = _g->hu_font[c].pin();
+            V_DrawPatchNoScale(cx, cy, pinned_patch);
             cx+=w;
         }
     }
@@ -528,7 +529,8 @@ static void F_CastPrint (const char* text) // CPhipps - static, const char*
 
         w = _g->hu_font[c]->width;
         // CPhipps - patch drawing updated
-        V_DrawPatchNoScale(cx, 144, _g->hu_font[c]);
+        auto pinned_patch = _g->hu_font[c].pin();
+        V_DrawPatchNoScale(cx, 144, pinned_patch);
         cx+=w;
     }
 }

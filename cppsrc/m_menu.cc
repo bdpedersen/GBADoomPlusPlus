@@ -1263,7 +1263,8 @@ void M_WriteText (int x,int y,const char* string)
         }
 
         w = _g->hu_font[c]->width;
-        V_DrawPatchNoScale(cx, cy, _g->hu_font[c]);
+        auto pinned_font = Cached<patch_t>(_g->hu_font[c]).pin();
+        V_DrawPatchNoScale(cx, cy, pinned_font);
         cx+=w;
     }
 }

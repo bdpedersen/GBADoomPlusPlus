@@ -72,12 +72,13 @@ void HUlib_clearTextLine(hu_textline_t* t)
 // Passed a hu_textline_t, and the values used to initialize
 // Returns nothing
 //
-void HUlib_initTextLine(hu_textline_t* t, int x, int y, const patch_t **f, int sc)
+void HUlib_initTextLine(hu_textline_t* t, int x, int y, hu_fontlist_t f, int sc)
 //jff 2/16/98 add color range parameter
 {
     t->x = x;
     t->y = y;
-    t->f = f;
+    for (int i = 0; i < HU_FONTSIZE; i++)
+        t->f[i] = f[i];
     t->sc = sc;
     HUlib_clearTextLine(t);
 }
@@ -143,7 +144,8 @@ void HUlib_drawTextLine(hu_textline_t* l)
                 break;
             // killough 1/18/98 -- support multiple lines:
             // CPhipps - patch drawing updated
-            V_DrawPatchNoScale(x, y, l->f[c - l->sc]);
+            auto pinned_font = l->f[c - l->sc].pin();
+            V_DrawPatchNoScale(x, y, pinned_font);
             x += w;
         }
         else
@@ -185,7 +187,7 @@ void HUlib_eraseTextLine(hu_textline_t* l)
 // Passed a hu_stext_t, and the values used to initialize
 // Returns nothing
 //
-void HUlib_initSText(hu_stext_t* s,int x,int y,int h, const patch_t** font, int startchar, boolean* on)
+void HUlib_initSText(hu_stext_t* s,int x,int y,int h, hu_fontlist_t font, int startchar, boolean* on)
 {
 
     int i;
