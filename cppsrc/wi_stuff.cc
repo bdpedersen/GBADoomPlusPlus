@@ -376,7 +376,7 @@ WI_drawOnLnode  // draw stuff at a location by episode/map#
     int            top;
     int            right;
     int            bottom;
-    const patch_t* patch = (const patch_t *)W_CacheLumpName(c[i]);
+    auto patch = Cached<patch_t>(c[i]);
 
     left = lnodes[_g->wbs->epsd][n].x - patch->leftoffset;
     top = lnodes[_g->wbs->epsd][n].y - patch->topoffset;
@@ -496,7 +496,8 @@ static int WI_drawNum (int x, int y, int n, int digits)
   {
     x -= fontwidth;
     // CPhipps - patch drawing updated
-    V_DrawPatch(x, y, FB, _g->num[ n % 10 ]);
+    auto pinned_patch = _g->num[ n % 10 ].pin();
+    V_DrawPatch(x, y, FB, pinned_patch);
     n /= 10;
   }
 
@@ -1020,7 +1021,7 @@ void WI_loadData(void)
     // numbers 0-9
     snprintf(name, sizeof(name), "WINUM%d", i);
 
-    _g->num[i] = (const patch_t *)W_CacheLumpName(name);
+    _g->num[i] = Cached<patch_t>(name);
   }
 }
 

@@ -781,7 +781,7 @@ int    cnt_par;
 int    cnt_pause;
 
 // 0-9 graphic
-const patch_t* num[10];
+Cached<patch_t> num[10];
 
 int  sp_state;
 

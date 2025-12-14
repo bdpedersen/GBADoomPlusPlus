@@ -121,6 +121,11 @@ class Cached {
             return *(T*)(base + byteoffset);
         }
 
+        const Pinned<T> pin() const {
+            const char * base = (const char*)W_CacheLumpNum(lumpnum);
+            return Pinned<T>((const T*)(base + byteoffset), lumpnum);
+        }
+
         CachedBuffer<T> buffer() {
             return CachedBuffer<T>(lumpnum,byteoffset);
         }
