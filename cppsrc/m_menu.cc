@@ -423,19 +423,25 @@ void M_DrawSaveLoadBorder(int x,int y)
 {
     int i;
 
-    const patch_t* lpatch = (const patch_t *)W_CacheLumpName("M_LSLEFT");
-    const patch_t* mpatch = (const patch_t *)W_CacheLumpName("M_LSCNTR");
-    const patch_t* rpatch = (const patch_t *)W_CacheLumpName("M_LSRGHT");
-
-    V_DrawPatchNoScale(x-8, y+7, lpatch);
-
-    for (i = 0 ; i < 12 ; i++)
     {
-        V_DrawPatchNoScale(x, y+7, mpatch);
-        x += 8;
+      auto lpatch = Cached<patch_t>("M_LSLEFT").pin();
+      V_DrawPatchNoScale(x-8, y+7, lpatch);
     }
 
-    V_DrawPatchNoScale(x, y+7, rpatch);
+    {
+      auto mpatch = Cached<patch_t>("M_LSCNTR").pin();
+
+      for (i = 0 ; i < 12 ; i++)
+      {
+          V_DrawPatchNoScale(x, y+7, mpatch);
+          x += 8;
+      }
+    }
+
+    {
+      auto rpatch = Cached<patch_t>("M_LSRGHT").pin();
+      V_DrawPatchNoScale(x, y+7, rpatch);
+    }
 }
 
 //
