@@ -814,7 +814,7 @@ static void R_DrawVisSprite(const vissprite_t *vis)
     sprtopscreen = centeryfrac - FixedMul(dcvars.texturemid, spryscale);
 
 
-    const patch_t *patch = vis->patch;
+    auto patch = vis->patch;
 
     fixed_t xiscale = vis->xiscale;
 
@@ -824,9 +824,12 @@ static void R_DrawVisSprite(const vissprite_t *vis)
     dcvars.x = vis->x1;
     dcvars.odd_pixel = false;
 
+    auto pinnedpatch = patch.buffer().pin();
+    const patch_t *pinnedpatchptr = pinnedpatch;
+
     while(dcvars.x < SCREENWIDTH)
     {
-        const column_t* column = (const column_t *) ((const byte *)patch + patch->columnofs[frac >> FRACBITS]);
+        const column_t* column = (const column_t *) ((const byte *)pinnedpatchptr + patch->columnofs[frac >> FRACBITS]);
         R_DrawMaskedColumn(colfunc, &dcvars, column);
 
         frac += xiscale;
@@ -843,7 +846,7 @@ static void R_DrawVisSprite(const vissprite_t *vis)
             break;
 
 
-        const column_t* column2 = (const column_t *) ((const byte *)patch + patch->columnofs[frac >> FRACBITS]);
+        const column_t* column2 = (const column_t *) ((const byte *)pinnedpatchptr + patch->columnofs[frac >> FRACBITS]);
         R_DrawMaskedColumn(colfunc, &dcvars, column2);
 
         frac += xiscale;
@@ -1121,7 +1124,7 @@ static void R_DrawPSprite (pspdef_t *psp, int lightlevel)
 
     flip = (boolean) SPR_FLIPPED(sprframe, 0);
 
-    const patch_t* patch = (const patch_t *)W_CacheLumpNum(sprframe->lump[0]+_g->firstspritelump);
+    auto patch = Cached<patch_t>(sprframe->lump[0]+_g->firstspritelump);
     // calculate edges of the shape
     fixed_t       tx;
     tx = psp->sx-160*FRACUNIT;
@@ -1543,7 +1546,7 @@ static void R_ProjectSprite (mobj_t* thing, int lightlevel)
     }
 
     const boolean flip = (boolean)SPR_FLIPPED(sprframe, rot);
-    const patch_t* patch = (const patch_t *)W_CacheLumpNum(sprframe->lump[rot] + _g->firstspritelump);
+    auto patch = Cached<patch_t>(sprframe->lump[rot] + _g->firstspritelump);
 
     /* calculate edges of the shape
      * cph 2003/08/1 - fraggle points out that this offset must be flipped

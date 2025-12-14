@@ -361,7 +361,7 @@ typedef struct vissprite_s
   fixed_t texturemid;
   fixed_t iscale;
 
-  const patch_t* patch;
+  Cached<patch_t> patch;
 
   unsigned int mobjflags;
 
