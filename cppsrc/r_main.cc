@@ -91,15 +91,15 @@ void R_SetupFrame (player_t *player)
     viewsin = finesine[viewangle>>ANGLETOFINESHIFT];
     viewcos = finecosine[viewangle>>ANGLETOFINESHIFT];
 
-    fullcolormap = &colormaps[0];
+    fullcolormap = colormaps.addOffset(0);
 
     if (player->fixedcolormap)
     {
-        fixedcolormap = fullcolormap   // killough 3/20/98: use fullcolormap
-                + player->fixedcolormap*256*sizeof(lighttable_t);
+        fixedcolormap = fullcolormap.addOffset(   // killough 3/20/98: use fullcolormap
+                player->fixedcolormap*256*sizeof(lighttable_t));
     }
     else
-        fixedcolormap = 0;
+        fixedcolormap = CachedBuffer<lighttable_t>();
 
     _g->validcount++;
 

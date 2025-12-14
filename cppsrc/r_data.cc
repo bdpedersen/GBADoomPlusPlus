@@ -391,7 +391,7 @@ static void R_InitSpriteLumps(void)
 void R_InitColormaps (void)
 {
     int lump = W_GetNumForName("COLORMAP");
-    colormaps = (const lighttable_t *)W_CacheLumpNum(lump);
+    colormaps = CachedBuffer<lighttable_t>(lump);
 }
 
 //

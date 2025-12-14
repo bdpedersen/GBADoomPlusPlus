@@ -34,27 +34,31 @@ class CachedBuffer {
         CachedBuffer(short lumpnum, unsigned int byteoffset) : lumpnum(lumpnum), byteoffset(byteoffset) {}
         CachedBuffer(const char* name) : lumpnum(W_GetNumForName(name)), byteoffset(0) {}
 
-        const Cached<T> operator[](int index) {
+        const Cached<T> operator[](int index) const {
             return Cached<T>(lumpnum, index*sizeof(T));
         }
 
-        int size() {
+        int size() const {
             return (W_LumpLength(lumpnum)-byteoffset) / sizeof(T);
         }
 
         template <typename U>
-        CachedBuffer<U> transmute() {
+        CachedBuffer<U> transmute() const  {
             return CachedBuffer<U>(lumpnum,byteoffset);
         }   
 
-        CachedBuffer<T> addOffset(int offset) {
+        CachedBuffer<T> addOffset(int offset) const {
             return CachedBuffer<T>(lumpnum, byteoffset+offset*sizeof(T));
         }
 
-        Pinned<T> pin() {
+        Pinned<T> pin() const {
             const char * base = (const char*)W_CacheLumpNum(lumpnum);
             return Pinned<T>((const T*)(base + byteoffset), lumpnum);
         }   
+
+        bool isnull() const {
+            return lumpnum == -1;
+        }
 
     private:
         short lumpnum;

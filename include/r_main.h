@@ -81,9 +81,9 @@ extern angle_t  viewangle;
 
 extern short *floorclip, *ceilingclip;
 
-extern const lighttable_t *fullcolormap;
-extern const lighttable_t *colormaps;
-extern const lighttable_t* fixedcolormap;
+extern CachedBuffer<lighttable_t> fullcolormap;
+extern CachedBuffer<lighttable_t> colormaps;
+extern CachedBuffer<lighttable_t> fixedcolormap;
 
 extern int extralight;                           // bumped light from gun blasts
 

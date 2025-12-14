@@ -51,7 +51,7 @@ typedef struct {
 
   const byte          *source; // first pixel in a column
 
-  const lighttable_t  *colormap;
+  CachedBuffer<lighttable_t>  colormap;
   const byte          *translation;
 
   boolean             odd_pixel;
@@ -64,7 +64,7 @@ typedef struct {
   unsigned int        position;
   unsigned int        step;
   const byte          *source; // start of a 64*64 tile image
-  const lighttable_t  *colormap;
+  CachedBuffer<lighttable_t>  colormap;
 } draw_span_vars_t;
 
 typedef struct

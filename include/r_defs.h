@@ -48,6 +48,8 @@
 // SECTORS do store MObjs anyway.
 #include "p_mobj.h"
 
+#include "../newcache/newcache.h"
+
 #ifdef __GNUG__
 #pragma interface
 #endif
@@ -364,7 +366,7 @@ typedef struct vissprite_s
   unsigned int mobjflags;
 
   // for color translation and shadow draw, maxbright frames as well
-  const lighttable_t *colormap;
+  CachedBuffer<lighttable_t> colormap;
 
 } vissprite_t;
 

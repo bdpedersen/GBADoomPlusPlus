@@ -198,10 +198,10 @@ static fixed_t  rw_midtexturemid;
 static fixed_t  rw_toptexturemid;
 static fixed_t  rw_bottomtexturemid;
 
-const lighttable_t *fullcolormap;
-const lighttable_t *colormaps;
+CachedBuffer<lighttable_t> fullcolormap;
+CachedBuffer<lighttable_t> colormaps;
 
-const lighttable_t* fixedcolormap;
+CachedBuffer<lighttable_t> fixedcolormap;
 
 int extralight;                           // bumped light from gun blasts
 draw_vars_t drawvars;
@@ -241,8 +241,8 @@ static fixed_t  pixlowstep;
 static int      worldhigh;
 static int      worldlow;
 
-static lighttable_t current_colormap[256];
-static const lighttable_t* current_colormap_ptr;
+//static lighttable_t current_colormap[256];
+CachedBuffer<lighttable_t> current_colormap_ptr;
 
 static fixed_t planeheight;
 
@@ -478,9 +478,9 @@ static CONSTFUNC fixed_t R_PointToDist(fixed_t x, fixed_t y)
     return FixedApproxDiv(dx, finesine[(tantoangle[FixedApproxDiv(dy,dx) >> DBITS] + ANG90) >> ANGLETOFINESHIFT]);
 }
 
-static const lighttable_t* R_ColourMap(int lightlevel)
+CachedBuffer<lighttable_t> R_ColourMap(int lightlevel)
 {
-    if (fixedcolormap)
+    if (!fixedcolormap.isnull())
         return fixedcolormap;
     else
     {
@@ -501,23 +501,26 @@ static const lighttable_t* R_ColourMap(int lightlevel)
         else if(cm < 0)
             cm = 0;
 
-        return fullcolormap + cm*256;
+        return fullcolormap.addOffset(cm*256);
     }
 }
 
 
 //Load a colormap into IWRAM.
-static const lighttable_t* R_LoadColorMap(int lightlevel)
+static CachedBuffer<lighttable_t> R_LoadColorMap(int lightlevel)
 {
-    const lighttable_t* lm = R_ColourMap(lightlevel);
+    current_colormap_ptr = R_ColourMap(lightlevel);
 
+    // Now - we may do this more than necessary as the colormap now can move around in RAM
+    /*
     if(current_colormap_ptr != lm)
     {
         BlockCopy(current_colormap, lm, 256);
         current_colormap_ptr = lm;
     }
+    */
 
-    return current_colormap;
+    return current_colormap_ptr;
 }
 
 //
@@ -554,7 +557,8 @@ static void R_DrawColumn (const draw_column_vars_t *dcvars)
         return;
 
     const byte *source = dcvars->source;
-    const byte *colormap = dcvars->colormap;
+    auto pinnedcolormap = dcvars->colormap.pin();
+    const byte *colormap = pinnedcolormap;
 
     unsigned short* dest = drawvars.byte_topleft + ScreenYToOffset(dcvars->yl) + dcvars->x;
 
@@ -621,7 +625,8 @@ static void R_DrawColumnHiRes(const draw_column_vars_t *dcvars)
         return;
 
     const byte *source = dcvars->source;
-    const byte *colormap = dcvars->colormap;
+    auto pinnedcolormap = dcvars->colormap.pin();
+    const byte *colormap = pinnedcolormap;
 
     volatile unsigned short* dest = drawvars.byte_topleft + ScreenYToOffset(dcvars->yl) + dcvars->x;
 
@@ -699,7 +704,8 @@ static void R_DrawFuzzColumn (const draw_column_vars_t *dcvars)
     if (count <= 0)
         return;
 
-    const byte* colormap = &fullcolormap[6*256];
+    auto pinnedcolormap = fullcolormap.addOffset(6*256).pin();
+    const byte* colormap = pinnedcolormap; //&fullcolormap[6*256];
 
     unsigned short* dest = drawvars.byte_topleft + ScreenYToOffset(dc_yl) + dcvars->x;
 
@@ -789,7 +795,7 @@ static void R_DrawVisSprite(const vissprite_t *vis)
     // killough 4/11/98: rearrange and handle translucent sprites
     // mixed with translucent/non-translucenct 2s normals
 
-    if (!dcvars.colormap)   // NULL colormap = shadow draw
+    if (dcvars.colormap.isnull())   // NULL colormap = shadow draw
         colfunc = R_DrawFuzzColumn;    // killough 3/14/98
     else
     {
@@ -1164,8 +1170,8 @@ static void R_DrawPSprite (pspdef_t *psp, int lightlevel)
     vis->patch = patch;
 
     if (_g->player.powers[pw_invisibility] > 4*32 || _g->player.powers[pw_invisibility] & 8)
-        vis->colormap = NULL;                    // shadow draw
-    else if (fixedcolormap)
+        vis->colormap = CachedBuffer<lighttable_t>();                    // shadow draw
+    else if (!fixedcolormap.isnull())
         vis->colormap = fixedcolormap;           // fixed color
     else if (psp->state->frame & FF_FULLBRIGHT)
         vis->colormap = fullcolormap;            // full bright // killough 3/20/98
@@ -1287,7 +1293,8 @@ static void R_DrawSpan(unsigned int y, unsigned int x1, unsigned int x2, const d
     unsigned int count = (x2 - x1);
 
     const byte *source = dsvars->source;
-    const byte *colormap = dsvars->colormap;
+    auto pinnedcolormap = dsvars->colormap.pin();
+    const byte *colormap = pinnedcolormap;
 
     unsigned short* dest = drawvars.byte_topleft + ScreenYToOffset(y) + x1;
 
@@ -1401,7 +1408,7 @@ static void R_DoDrawPlane(visplane_t *pl)
            * Because of this hack, sky is not affected by INVUL inverse mapping.
            * Until Boom fixed this. Compat option added in MBF. */
 
-            if (!(dcvars.colormap = fixedcolormap))
+            if ((dcvars.colormap = fixedcolormap).isnull())
                 dcvars.colormap = fullcolormap;          // killough 3/20/98
 
             // proff 09/21/98: Changed for high-res
@@ -1607,8 +1614,8 @@ static void R_ProjectSprite (mobj_t* thing, int lightlevel)
 
     // get light level
     if (thing->flags & MF_SHADOW)
-        vis->colormap = NULL;             // shadow draw
-    else if (fixedcolormap)
+        vis->colormap = CachedBuffer<lighttable_t>();             // shadow draw
+    else if (!fixedcolormap.isnull())
         vis->colormap = fixedcolormap;      // fixed map
     else if (thing->frame & FF_FULLBRIGHT)
         vis->colormap = fullcolormap;     // full bright  // killough 3/20/98
