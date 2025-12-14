@@ -824,7 +824,7 @@ static void R_DrawVisSprite(const vissprite_t *vis)
     dcvars.x = vis->x1;
     dcvars.odd_pixel = false;
 
-    auto pinnedpatch = patch.buffer().pin();
+    auto pinnedpatch = patch.pin();
     const patch_t *pinnedpatchptr = pinnedpatch;
 
     while(dcvars.x < SCREENWIDTH)

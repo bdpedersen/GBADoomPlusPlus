@@ -159,7 +159,7 @@ void I_FinishUpdate_e32(const byte* srcBuffer, const byte* pallete, const unsign
 
 //**************************************************************************************
 
-void I_SetPallete_e32(const byte* pallete UNUSED)
+void I_SetPallete_e32(CachedBuffer<byte> pallete UNUSED)
 {
 
 }

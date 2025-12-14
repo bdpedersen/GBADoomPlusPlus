@@ -237,8 +237,8 @@ int basetime;
 //i_video.c
 //******************************************************************************
 
-const unsigned char* current_pallete;
-const unsigned char* pallete_lump;
+CachedBuffer<unsigned char> current_pallete;
+CachedBuffer<unsigned char> pallete_lump;
 int newpal;
 
 //******************************************************************************

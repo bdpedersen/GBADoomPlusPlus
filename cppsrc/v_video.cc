@@ -216,7 +216,7 @@ void V_SetPalLump(int index)
     else
         lumpName[7] = '0' + index;
 
-    _g->pallete_lump = (const byte *)W_CacheLumpName(lumpName);
+    _g->pallete_lump = CachedBuffer<byte>(lumpName);
 }
 
 //

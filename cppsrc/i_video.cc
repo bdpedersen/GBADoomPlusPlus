@@ -119,12 +119,12 @@ static void I_UploadNewPalette(int pal)
   // This is used to replace the current 256 colour cmap with a new one
   // Used by 256 colour PseudoColor modes
   
-    if(!_g->pallete_lump)
+    if(_g->pallete_lump.isnull())
     {
-        _g->pallete_lump = (const unsigned char *)W_CacheLumpName("PLAYPAL");
+        _g->pallete_lump = CachedBuffer<byte>("PLAYPAL");
     }
 
-    _g->current_pallete = &_g->pallete_lump[pal*256*3];
+    _g->current_pallete = _g->pallete_lump.addOffset(pal*256*3);
 
     I_SetPallete_e32(_g->current_pallete);
 }
@@ -156,7 +156,8 @@ void I_FinishUpdate (void)
         _g->newpal = NO_PALETTE_CHANGE;
 	}
 
-    I_FinishUpdate_e32((const byte* )_g->screens[0].data, _g->current_pallete, SCREENWIDTH, SCREENHEIGHT);
+    auto pinnedpallete = _g->current_pallete.pin();
+    I_FinishUpdate_e32((const byte* )_g->screens[0].data, pinnedpallete, SCREENWIDTH, SCREENHEIGHT);
 }
 
 //
