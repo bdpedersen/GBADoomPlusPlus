@@ -222,7 +222,7 @@ int EV_SilentLineTeleport(const line_t *line, int side, mobj_t *thing,
     return 0;
 
   for (i = -1; (i = P_FindLineFromLineTag(line, i)) >= 0;)
-    if ((l=_g->lines[i])->tag != line->tag && LN_BACKSECTOR(l))
+    if ((l=_g->lines[i])->lineno != line->lineno && LN_BACKSECTOR(l))
       {
         // Get the thing's position along the source linedef
         fixed_t pos = D_abs(line->dx) > D_abs(line->dy) ?
