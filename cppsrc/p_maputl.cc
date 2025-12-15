@@ -342,8 +342,8 @@ boolean P_BlockLinesIterator(int x, int y, boolean func(const line_t*))
     if (x<0 || y<0 || x>=_g->bmapwidth || y>=_g->bmapheight)
         return true;
 
-    const int offset = _g->blockmap[y*_g->bmapwidth+x];
-    const short* list = _g->blockmaplump+offset;     // original was reading         // phares
+    const int offset = _g->blockmap[y*_g->bmapwidth+x].value();
+    auto list = _g->blockmaplump.addOffset(offset);     // original was reading         // phares
 
 
     // delmiting 0 as linedef 0     // phares

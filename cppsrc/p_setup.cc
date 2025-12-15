@@ -328,18 +328,18 @@ typedef struct linelist_t        // type used to list lines in each block
 
 static void P_LoadBlockMap (int lump)
 {
-    _g->blockmaplump = (const short *)W_CacheLumpNum(lump);
+    _g->blockmaplump = CachedBuffer<short>(lump);
 
-    _g->bmaporgx = _g->blockmaplump[0]<<FRACBITS;
-    _g->bmaporgy = _g->blockmaplump[1]<<FRACBITS;
-    _g->bmapwidth = _g->blockmaplump[2];
-    _g->bmapheight = _g->blockmaplump[3];
+    _g->bmaporgx = _g->blockmaplump[0].value()<<FRACBITS;
+    _g->bmaporgy = _g->blockmaplump[1].value()<<FRACBITS;
+    _g->bmapwidth = _g->blockmaplump[2].value();
+    _g->bmapheight = _g->blockmaplump[3].value();
 
 
     // clear out mobj chains - CPhipps - use calloc
     _g->blocklinks = (mobj_t **)Z_Calloc (_g->bmapwidth*_g->bmapheight,sizeof(*_g->blocklinks),PU_LEVEL,0);
 
-    _g->blockmap = _g->blockmaplump+4;
+    _g->blockmap = _g->blockmaplump.addOffset(4);
 }
 
 //
