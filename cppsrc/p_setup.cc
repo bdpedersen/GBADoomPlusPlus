@@ -92,20 +92,20 @@ static void P_LoadSegs (int lump)
 static void P_LoadSubsectors (int lump)
 {
   /* cph 2006/07/29 - make data a const mapsubsector_t *, so the loop below is simpler & gives no constness warnings */
-  const mapsubsector_t *data;
+
   int  i;
 
-  _g->numsubsectors = W_LumpLength (lump) / sizeof(mapsubsector_t);
+  auto data = CachedBuffer<mapsubsector_t>(lump);
+  _g->numsubsectors = data.size();
   _g->subsectors = (subsector_t *)Z_Calloc(_g->numsubsectors,sizeof(subsector_t),PU_LEVEL,0);
-  data = (const mapsubsector_t *)W_CacheLumpNum(lump);
 
-  if ((!data) || (!_g->numsubsectors))
+  if ((data.isnull()) || (!_g->numsubsectors))
     I_Error("P_LoadSubsectors: no subsectors in level");
 
   for (i=0; i<_g->numsubsectors; i++)
   {
-    _g->subsectors[i].numlines  = (unsigned short)SHORT(data[i].numsegs );
-    _g->subsectors[i].firstline = (unsigned short)SHORT(data[i].firstseg);
+    _g->subsectors[i].numlines  = (unsigned short)SHORT(data[i]->numsegs );
+    _g->subsectors[i].firstline = (unsigned short)SHORT(data[i]->firstseg);
   }
 }
 
