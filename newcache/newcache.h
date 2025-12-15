@@ -39,7 +39,7 @@ class CachedBuffer {
         CachedBuffer(const char* name) : lumpnum(W_GetNumForName(name)), _byteoffset(0) {}
 
         const Cached<T> operator[](int index) const {
-            return Cached<T>(lumpnum, index*sizeof(T));
+            return Cached<T>(lumpnum, _byteoffset+index*sizeof(T));
         }
         
         int size() const {
