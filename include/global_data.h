@@ -504,7 +504,7 @@ mobj_t    **blocklinks;           // for thing chains
 //
 
 int rejectlump;// cph - store reject lump num if cached
-const byte *rejectmatrix; // cph - const*
+CachedBuffer<byte> rejectmatrix; // cph - const*
 
 // Maintain single and multi player starting spots.
 mapthing_t playerstarts[MAXPLAYERS];

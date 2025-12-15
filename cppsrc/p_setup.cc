@@ -354,7 +354,7 @@ static void P_LoadBlockMap (int lump)
 static void P_LoadReject(int lumpnum)
 {
   _g->rejectlump = lumpnum + ML_REJECT;
-  _g->rejectmatrix = (const byte *)W_CacheLumpNum(_g->rejectlump);
+  _g->rejectmatrix = CachedBuffer<byte>(_g->rejectlump);
 }
 
 //
