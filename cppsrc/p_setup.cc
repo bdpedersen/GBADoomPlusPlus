@@ -264,8 +264,10 @@ static void P_LoadSideDefs (int lump)
 
 static void P_LoadSideDefs2(int lump)
 {
-    const byte *data = (const byte *)W_CacheLumpNum(lump); // cph - const*, wad lump handling updated
+    auto databuf = CachedBuffer<byte>(lump); // cph - const*, wad lump handling updated
     int  i;
+    auto pinned_data = databuf.pin();
+    auto data = (const byte *)pinned_data;
 
     for (i=0; i<_g->numsides; i++)
     {
