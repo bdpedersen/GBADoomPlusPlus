@@ -151,7 +151,7 @@ static byte columnCache[128*128];
 //*****************************************
 
 int numnodes;
-const mapnode_t *nodes;
+CachedBuffer<mapnode_t> nodes;
 
 fixed_t  viewx, viewy, viewz;
 
@@ -358,8 +358,11 @@ subsector_t *R_PointInSubsector(fixed_t x, fixed_t y)
     if (numnodes == 0)
         return _g->subsectors;
 
-    while (!(nodenum & NF_SUBSECTOR))
-        nodenum = nodes[nodenum].children[R_PointOnSide(x, y, nodes+nodenum)];
+    while (!(nodenum & NF_SUBSECTOR)){
+        auto bsp = nodes[nodenum];
+        auto pinnedbsp = bsp.pin();
+        nodenum = nodes[nodenum]->children[R_PointOnSide(x, y, pinnedbsp)];
+    }
     return &_g->subsectors[nodenum & ~NF_SUBSECTOR];
 }
 
@@ -2820,7 +2823,6 @@ static void R_RenderBSPNode(int bspnum)
     int stack[MAX_BSP_DEPTH];
     int sp = 0;
 
-    const mapnode_t* bsp;
     int side = 0;
 
     while(true)
@@ -2831,8 +2833,9 @@ static void R_RenderBSPNode(int bspnum)
             if(sp == MAX_BSP_DEPTH)
                 break;
 
-            bsp = &nodes[bspnum];
-            side = R_PointOnSide (viewx, viewy, bsp);
+            auto bsp = nodes[bspnum];
+            auto pinnedbsp = bsp.pin();
+            side = R_PointOnSide (viewx, viewy, pinnedbsp);
 
             stack[sp++] = bspnum;
             stack[sp++] = side;
@@ -2849,7 +2852,7 @@ static void R_RenderBSPNode(int bspnum)
         //Back sides.
         side = stack[--sp];
         bspnum = stack[--sp];
-        bsp = &nodes[bspnum];
+        auto bsp = nodes[bspnum];
 
         // Possibly divide back space.
         //Walk back up the tree until we find
@@ -2866,7 +2869,7 @@ static void R_RenderBSPNode(int bspnum)
             side = stack[--sp];
             bspnum = stack[--sp];
 
-            bsp = &nodes[bspnum];
+            bsp = nodes[bspnum];
         }
 
         bspnum = bsp->children[side^1];
@@ -3133,7 +3136,7 @@ boolean P_CrossBSPNode(int bspnum)
 {
     while (!(bspnum & NF_SUBSECTOR))
     {
-        const mapnode_t *bsp = nodes + bspnum;
+        auto bsp = nodes[bspnum];
 
         divline_t dl;
         dl.x = ((fixed_t)bsp->x << FRACBITS);

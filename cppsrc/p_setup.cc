@@ -152,10 +152,11 @@ static void P_LoadSectors (int lump)
 
 static void P_LoadNodes (int lump)
 {
-  numnodes = W_LumpLength (lump) / sizeof(mapnode_t);
-  nodes = (const mapnode_t *)W_CacheLumpNum (lump); // cph - wad lump handling updated
+  
+  nodes = CachedBuffer<mapnode_t>(lump); // cph - wad lump handling updated
+  numnodes = nodes.size();
 
-  if ((!nodes) || (!numnodes))
+  if ((nodes.isnull()) || (!numnodes))
   {
     // allow trivial maps
     if (_g->numsubsectors == 1)

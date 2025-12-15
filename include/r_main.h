@@ -73,7 +73,7 @@ extern const fixed_t iprojection;
 //Global vars.
 
 extern int numnodes;
-extern const mapnode_t *nodes;
+extern CachedBuffer<mapnode_t> nodes;
 
 extern fixed_t  viewx, viewy, viewz;
 
