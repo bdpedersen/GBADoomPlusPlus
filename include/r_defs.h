@@ -191,7 +191,6 @@ typedef struct line_s
     short const_special;
     short tag;
     short slopetype; // To aid move clipping.
-
 } line_t;
 
 #define LN_FRONTSECTOR(l) (_g->sides[(l)->sidenum[0]].sector)

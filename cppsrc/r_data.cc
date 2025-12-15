@@ -89,7 +89,7 @@ typedef struct
 
 static const texture_t* R_LoadTexture(int texture_num)
 {
-    const byte* pnames = (const byte *)W_CacheLumpName("PNAMES");
+    auto pnames = CachedBuffer<byte>("PNAMES");
 
     //Skip to list of names.
     pnames += 4;
@@ -156,7 +156,9 @@ static const texture_t* R_LoadTexture(int texture_num)
         patch->originy = mpatch->originy;
 
         char pname[8];
-        strncpy(pname, (const char*)&pnames[mpatch->patch * 8], 8);
+        auto pnames_pin = pnames.pin();
+        const byte* pnames_data = (const byte*)pnames_pin;
+        strncpy(pname, (const char*)&pnames_data[mpatch->patch * 8], 8);
 
         patch->patch = Cached<patch_t>(pname);
     }

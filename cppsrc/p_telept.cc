@@ -222,6 +222,7 @@ int EV_SilentLineTeleport(const line_t *line, int side, mobj_t *thing,
     return 0;
 
   for (i = -1; (i = P_FindLineFromLineTag(line, i)) >= 0;)
+    // Use lineno as UUID instead of pointer comparison
     if ((l=_g->lines[i])->lineno != line->lineno && LN_BACKSECTOR(l))
       {
         // Get the thing's position along the source linedef
