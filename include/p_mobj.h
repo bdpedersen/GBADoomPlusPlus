@@ -118,6 +118,8 @@
 // Misc. mobj flags
 //
 
+#include "../newcache/newcache.h"
+
 // Call P_SpecialThing when touched.
 #define MF_SPECIAL      (unsigned int)(0x0000000000000001)
 // Blocks.
@@ -362,7 +364,7 @@ void    P_SpawnBlood(fixed_t x, fixed_t y, fixed_t z, int damage);
 mobj_t  *P_SpawnMissile(mobj_t *source, mobj_t *dest, mobjtype_t type);
 void    P_SpawnPlayerMissile(mobj_t *source, mobjtype_t type);
 boolean P_IsDoomnumAllowed(int doomnum);
-void    P_SpawnMapThing (const mapthing_t*  mthing);
+void    P_SpawnMapThing (Cached<mapthing_t>  mthing);
 void    P_SpawnPlayer(int n, const mapthing_t *mthing);
 void    P_CheckMissileSpawn(mobj_t*);  // killough 8/2/98
 void    P_ExplodeMissile(mobj_t*);    // killough

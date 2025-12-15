@@ -758,7 +758,7 @@ boolean P_IsDoomnumAllowed(int doomnum)
 // already be in host byte order.
 //
 
-void P_SpawnMapThing (const mapthing_t* mthing)
+void P_SpawnMapThing (Cached<mapthing_t> mthing)
 {
     int     i;
     mobj_t* mobj;
@@ -800,7 +800,7 @@ void P_SpawnMapThing (const mapthing_t* mthing)
     //Only care about start spot for player 1.
     if(mthing->type == 1)
     {
-        _g->playerstarts[0] = *mthing;
+        _g->playerstarts[0] = mthing.value();
         _g->playerstarts[0].options = 1;
         P_SpawnPlayer (0, &_g->playerstarts[0]);
         return;
