@@ -101,12 +101,13 @@ static void P_RecursiveSound(sector_t *sec, int soundblocks,
   for (i=0; i<sec->linecount; i++)
     {
       sector_t *other;
-      const line_t *check = sec->lines[i];
+      auto check = sec->lines[i];
 
       if (!(check->flags & ML_TWOSIDED))
         continue;
 
-      P_LineOpening(check);
+      auto pinned_check = check.pin();
+      P_LineOpening(pinned_check);
 
       if (_g->openrange <= 0)
         continue;       // closed door

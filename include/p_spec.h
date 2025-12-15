@@ -843,7 +843,7 @@ int P_FindMinSurroundingLight
   int max );
 
 sector_t* getNextSector
-( const line_t* line,
+( const Cached<line_t> &line,
   sector_t* sec );
 
 int P_CheckTag

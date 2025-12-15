@@ -113,7 +113,7 @@ typedef struct
   // thinglist is a subset of touching_thinglist
   struct msecnode_s *touching_thinglist;               // phares 3/14/98
 
-  const struct line_s **lines;
+  Cached<struct line_s> *lines;
 
   short linecount;
 

@@ -220,14 +220,14 @@ static void P_LoadLineDefs (int lump)
 {
     int  i;
 
-    _g->numlines = W_LumpLength (lump) / sizeof(line_t);
-    _g->lines = (const line_t *)W_CacheLumpNum (lump);
+    _g->lines = CachedBuffer<line_t>(lump);
+    _g->numlines = _g->lines.size();
 
     _g->linedata = (linedata_t *)Z_Calloc(_g->numlines,sizeof(linedata_t),PU_LEVEL,0);
 
     for (i=0; i<_g->numlines; i++)
     {
-        _g->linedata[i].special = _g->lines[i].const_special;
+        _g->linedata[i].special = _g->lines[i]->const_special;
     }
 }
 
@@ -368,7 +368,7 @@ static void P_LoadReject(int lumpnum)
 // figgi 09/18/00 -- adapted for gl-nodes
 
 // cph - convenient sub-function
-static void P_AddLineToSector(const line_t* li, sector_t* sector)
+static void P_AddLineToSector(Cached<line_t> li, sector_t* sector)
 {
   sector->lines[sector->linecount++] = li;
 }
@@ -376,7 +376,7 @@ static void P_AddLineToSector(const line_t* li, sector_t* sector)
 // modified to return totallines (needed by P_LoadReject)
 static int P_GroupLines (void)
 {
-    const line_t *li;
+    Cached<line_t> li;
     sector_t *sector;
     int i,j, total = _g->numlines;
 
@@ -398,7 +398,7 @@ static int P_GroupLines (void)
     }
 
     // count number of lines in each sector
-    for (i=0,li=_g->lines; i<_g->numlines; i++, li++)
+    for (i=0,li=_g->lines[0]; i<_g->numlines; i++, li++)
     {
         LN_FRONTSECTOR(li)->linecount++;
         if (LN_BACKSECTOR(li) && LN_BACKSECTOR(li) != LN_FRONTSECTOR(li))
@@ -409,7 +409,7 @@ static int P_GroupLines (void)
     }
 
     {  // allocate line tables for each sector
-        const line_t **linebuffer = (const line_t **)Z_Malloc(total*sizeof(line_t *), PU_LEVEL, 0);
+         Cached<line_t> *linebuffer = (Cached<line_t> *)Z_Malloc(total*sizeof(Cached<line_t>), PU_LEVEL, 0);
 
         // e6y: REJECT overrun emulation code
         // moved to P_LoadReject
@@ -423,7 +423,7 @@ static int P_GroupLines (void)
     }
 
     // Enter those lines
-    for (i=0,li=_g->lines; i<_g->numlines; i++, li++)
+    for (i=0,li=_g->lines[0]; i<_g->numlines; i++, li++)
     {
         P_AddLineToSector(li, LN_FRONTSECTOR(li));
         if (LN_BACKSECTOR(li) && LN_BACKSECTOR(li) != LN_FRONTSECTOR(li))

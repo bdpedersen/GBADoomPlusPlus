@@ -246,7 +246,7 @@ int twoSided
 // Note: returns NULL if not two-sided line, or both sides refer to sector
 //
 sector_t* getNextSector
-( const line_t*       line,
+( const Cached<line_t>  &line,
   sector_t*     sec )
 {
 
@@ -271,13 +271,12 @@ sector_t* getNextSector
 fixed_t P_FindLowestFloorSurrounding(sector_t* sec)
 {
   int                 i;
-  const line_t*             check;
   sector_t*           other;
   fixed_t             floor = sec->floorheight;
 
   for (i=0 ;i < sec->linecount ; i++)
   {
-    check = sec->lines[i];
+    auto check = sec->lines[i];
     other = getNextSector(check,sec);
 
     if (!other)
@@ -302,7 +301,6 @@ fixed_t P_FindLowestFloorSurrounding(sector_t* sec)
 fixed_t P_FindHighestFloorSurrounding(sector_t *sec)
 {
   int i;
-  const line_t* check;
   sector_t* other;
   fixed_t floor = -500*FRACUNIT;
 
@@ -312,7 +310,7 @@ fixed_t P_FindHighestFloorSurrounding(sector_t *sec)
 
   for (i=0 ;i < sec->linecount ; i++)
   {
-    check = sec->lines[i];
+    auto check = sec->lines[i];
     other = getNextSector(check,sec);
 
     if (!other)
@@ -465,7 +463,6 @@ fixed_t P_FindNextHighestCeiling(sector_t *sec, int currentheight)
 fixed_t P_FindLowestCeilingSurrounding(sector_t* sec)
 {
   int                 i;
-  const line_t*             check;
   sector_t*           other;
   fixed_t             height = INT_MAX;
 
@@ -474,7 +471,7 @@ fixed_t P_FindLowestCeilingSurrounding(sector_t* sec)
 
   for (i=0 ;i < sec->linecount ; i++)
   {
-    check = sec->lines[i];
+    auto check = sec->lines[i];
     other = getNextSector(check,sec);
 
     if (!other)
@@ -499,7 +496,6 @@ fixed_t P_FindLowestCeilingSurrounding(sector_t* sec)
 fixed_t P_FindHighestCeilingSurrounding(sector_t* sec)
 {
   int             i;
-  const line_t* check;
   sector_t*       other;
   fixed_t height = 0;
 
@@ -510,7 +506,7 @@ fixed_t P_FindHighestCeilingSurrounding(sector_t* sec)
 
   for (i=0 ;i < sec->linecount ; i++)
   {
-    check = sec->lines[i];
+    auto check = sec->lines[i];
     other = getNextSector(check,sec);
 
     if (!other)
@@ -707,7 +703,7 @@ int P_FindLineFromLineTag(const line_t *line, int start)
 
     for (i=start+1; i<_g->numlines; i++)
     {
-        if (_g->lines[i].tag == line->tag)
+        if (_g->lines[i]->tag == line->tag)
             return i;
     }
 
@@ -733,13 +729,12 @@ int P_FindMinSurroundingLight
 {
   int         i;
   int         min;
-  const line_t*     line;
   sector_t*   check;
 
   min = max;
   for (i=0 ; i < sector->linecount ; i++)
   {
-    line = sector->lines[i];
+    auto line = sector->lines[i];
     check = getNextSector(line,sector);
 
     if (!check)
@@ -2458,7 +2453,7 @@ static void Add_Scroller(int affectee)
 static void P_SpawnScrollers(void)
 {
     int i;
-    const line_t *l = _g->lines;
+    auto l = _g->lines[0];
 
     for (i=0;i<_g->numlines;i++,l++)
     {
@@ -2467,7 +2462,7 @@ static void P_SpawnScrollers(void)
         switch (special)
         {
         case 48:                  // scroll first side
-            Add_Scroller(_g->lines[i].sidenum[0]);
+            Add_Scroller(_g->lines[i]->sidenum[0]);
             break;
 
         }

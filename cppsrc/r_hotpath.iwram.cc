@@ -164,7 +164,7 @@ static byte spanstart[MAX_SCREENHEIGHT];                // killough 2/8/98
 
 static const seg_t     *curline;
 static side_t    *sidedef;
-static const line_t    *linedef;
+Cached<line_t> linedef;
 static sector_t  *frontsector;
 static sector_t  *backsector;
 static drawseg_t *ds_p;
@@ -954,7 +954,7 @@ static void R_RenderMaskedSegRange(const drawseg_t *ds, int x1, int x2)
     mceilingclip = ds->sprtopclip;
 
     // find positioning
-    if (_g->lines[curline->linenum].flags & ML_DONTPEGBOTTOM)
+    if (_g->lines[curline->linenum]->flags & ML_DONTPEGBOTTOM)
     {
         dcvars.texturemid = frontsector->floorheight > backsector->floorheight
                 ? frontsector->floorheight : backsector->floorheight;
@@ -2174,7 +2174,7 @@ static void R_StoreWallRange(const int start, const int stop)
     linedata->r_flags |= ML_MAPPED;
 
     sidedef = &_g->sides[curline->sidenum];
-    linedef = &_g->lines[curline->linenum];
+    linedef = _g->lines[curline->linenum];
 
     // calculate rw_distance for scale calculation
     rw_normalangle = curline->angle + ANG90;
@@ -2634,7 +2634,7 @@ static void R_AddLine (const seg_t *line)
     backsector = SG_BACKSECTOR(line);
 
     /* cph - roll up linedef properties in flags */
-    linedef = &_g->lines[curline->linenum];
+    linedef = _g->lines[curline->linenum];
     linedata_t* linedata = &_g->linedata[linedef->lineno];
 
     if (linedata->r_validcount != (_g->gametic & 0xffff))
@@ -3045,7 +3045,7 @@ static boolean P_CrossSubsector(int num)
     { // check lines
         int linenum = seg->linenum;
 
-        const line_t *line = &_g->lines[linenum];
+        auto line = _g->lines[linenum];
         divline_t divl;
 
         // allready checked other side?

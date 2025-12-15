@@ -216,13 +216,13 @@ int EV_SilentLineTeleport(const line_t *line, int side, mobj_t *thing,
                           boolean reverse)
 {
   int i;
-  const line_t *l;
+  Cached<line_t> l;
 
   if (side || thing->flags & MF_MISSILE)
     return 0;
 
   for (i = -1; (i = P_FindLineFromLineTag(line, i)) >= 0;)
-    if ((l=_g->lines+i) != line && LN_BACKSECTOR(l))
+    if ((l=_g->lines[i])->tag != line->tag && LN_BACKSECTOR(l))
       {
         // Get the thing's position along the source linedef
         fixed_t pos = D_abs(line->dx) > D_abs(line->dy) ?
@@ -284,8 +284,9 @@ int EV_SilentLineTeleport(const line_t *line, int side, mobj_t *thing,
 
         int side = reverse || (player && stepdown);
 
+        auto pinned_l = l.pin();
         // Make sure we are on correct side of exit linedef.
-        while (P_PointOnLineSide(x, y, l) != side && --fudge>=0)
+        while (P_PointOnLineSide(x, y, pinned_l) != side && --fudge>=0)
           if (D_abs(l->dx) > D_abs(l->dy))
             y -= l->dx < 0 != side ? -1 : 1;
           else

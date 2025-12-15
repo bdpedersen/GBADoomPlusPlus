@@ -367,7 +367,9 @@ boolean P_BlockLinesIterator(int x, int y, boolean func(const line_t*))
 
         lt->validcount = vcount;
 
-        const line_t *ld = &_g->lines[lineno];
+        auto line = _g->lines[lineno];
+        auto pinnedline = line.pin();
+        const line_t *ld = pinnedline;
 
         if (!func(ld))
             return false;

@@ -773,16 +773,16 @@ static void AM_drawWalls(void)
     // draw the unclipped visible portions of all lines
     for (i=0;i<_g->numlines;i++)
     {
-        l.a.x = _g->lines[i].v1.x >> FRACTOMAPBITS;//e6y
-        l.a.y = _g->lines[i].v1.y >> FRACTOMAPBITS;//e6y
-        l.b.x = _g->lines[i].v2.x >> FRACTOMAPBITS;//e6y
-        l.b.y = _g->lines[i].v2.y >> FRACTOMAPBITS;//e6y
+        l.a.x = _g->lines[i]->v1.x >> FRACTOMAPBITS;//e6y
+        l.a.y = _g->lines[i]->v1.y >> FRACTOMAPBITS;//e6y
+        l.b.x = _g->lines[i]->v2.x >> FRACTOMAPBITS;//e6y
+        l.b.y = _g->lines[i]->v2.y >> FRACTOMAPBITS;//e6y
 
 
-        const sector_t* backsector = LN_BACKSECTOR(&_g->lines[i]);
-        const sector_t* frontsector = LN_FRONTSECTOR(&_g->lines[i]);
+        const sector_t* backsector = LN_BACKSECTOR(_g->lines[i]);
+        const sector_t* frontsector = LN_FRONTSECTOR(_g->lines[i]);
 
-        const unsigned int line_special =  LN_SPECIAL(&_g->lines[i]);
+        const unsigned int line_special =  LN_SPECIAL(_g->lines[i]);
 
         if (_g->automapmode & am_rotate)
         {
@@ -793,12 +793,12 @@ static void AM_drawWalls(void)
         // if line has been seen or IDDT has been used
         if (_g->linedata[i].r_flags & ML_MAPPED)
         {
-            if (_g->lines[i].flags & ML_DONTDRAW)
+            if (_g->lines[i]->flags & ML_DONTDRAW)
                 continue;
             {
                 /* cph - show keyed doors and lines */
                 int amd;
-                if (!(_g->lines[i].flags & ML_SECRET) && (amd = AM_DoorColor(line_special)) != -1)
+                if (!(_g->lines[i]->flags & ML_SECRET) && (amd = AM_DoorColor(line_special)) != -1)
                 {
                     {
                         switch (amd) /* closed keyed door */
@@ -865,21 +865,21 @@ static void AM_drawWalls(void)
                 // jff 1/10/98 add color change for all teleporter types
                 if
                         (
-                         mapcolor_tele && !(_g->lines[i].flags & ML_SECRET) &&
+                         mapcolor_tele && !(_g->lines[i]->flags & ML_SECRET) &&
                          (line_special == 39 || line_special == 97 ||
                           line_special == 125 || line_special == 126)
                          )
                 { // teleporters
                     AM_drawMline(&l, mapcolor_tele);
                 }
-                else if (_g->lines[i].flags & ML_SECRET)    // secret door
+                else if (_g->lines[i]->flags & ML_SECRET)    // secret door
                 {
                     AM_drawMline(&l, mapcolor_wall);      // wall color
                 }
                 else if
                         (
                          mapcolor_clsd &&
-                         !(_g->lines[i].flags & ML_SECRET) &&    // non-secret closed door
+                         !(_g->lines[i]->flags & ML_SECRET) &&    // non-secret closed door
                          ((backsector->floorheight==backsector->ceilingheight) ||
                           (frontsector->floorheight==frontsector->ceilingheight))
                          )
@@ -923,7 +923,7 @@ static void AM_drawWalls(void)
         } // now draw the lines only visible because the player has computermap
         else if (_g->player.powers[pw_allmap]) // computermap visible lines
         {
-            if (!(_g->lines[i].flags & ML_DONTDRAW)) // invisible flag lines do not show
+            if (!(_g->lines[i]->flags & ML_DONTDRAW)) // invisible flag lines do not show
             {
                 if
                         (

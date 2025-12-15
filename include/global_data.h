@@ -466,7 +466,7 @@ subsector_t *subsectors;
 
 
 int      numlines;
-const line_t   *lines;
+CachedBuffer<line_t>   lines;
 linedata_t* linedata;
 
 
