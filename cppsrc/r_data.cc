@@ -94,47 +94,47 @@ static const texture_t* R_LoadTexture(int texture_num)
     //Skip to list of names.
     pnames += 4;
 
-    const int  *maptex1, *maptex2;
     int  numtextures1, numtextures2;
-    const int *directory1, *directory2;
 
 
-    maptex1 = (const int *)W_CacheLumpName("TEXTURE1");
+    auto maptex1 = CachedBuffer<int>("TEXTURE1");
     numtextures1 = *maptex1;
-    directory1 = maptex1+1;
+    auto directory1 = maptex1.addOffset(1);
 
+    CachedBuffer<int> maptex2, directory2;
 
     if (W_CheckNumForName("TEXTURE2") != -1)
     {
-        maptex2 = (const int *)W_CacheLumpName("TEXTURE2");
+        maptex2 = CachedBuffer<int>("TEXTURE2");
         numtextures2 = *maptex2;
-        directory2 = maptex2+1;
+        directory2 = maptex2.addOffset(1);
     }
     else
     {
-        maptex2 = NULL;
+        maptex2 = CachedBuffer<int>();
         numtextures2 = 0;
-        directory2 = NULL;
+        directory2 = CachedBuffer<int>();
     }
 
     int offset = 0;
-    const int  *maptex = maptex1;
+    auto maptex = maptex1;
 
     if(texture_num < numtextures1)
     {
-        offset = directory1[texture_num];
+        offset = directory1[texture_num].value();
     }
-    else if(maptex2 && ((texture_num-numtextures1) < numtextures2) )
+    else if(maptex2.isvalid() && ((texture_num-numtextures1) < numtextures2) )
     {
         maptex = maptex2;
-        offset = directory2[texture_num-numtextures1];
+        offset = directory2[texture_num-numtextures1].value();
     }
     else
     {
         I_Error("R_LoadTexture: Texture %d not in range.", texture_num);
     }
 
-    const maptexture_t *mtexture = (const maptexture_t *) ((const byte *)maptex + offset);
+    //const maptexture_t *mtexture = (const maptexture_t *) ((const byte *)maptex + offset);
+    auto mtexture = maptex[0].transmuteToObjectAtByteOffset<maptexture_t>(offset);
 
     texture_t* texture = (texture_t *)Z_Malloc(sizeof(const texture_t) + sizeof(const texpatch_t)*(mtexture->patchcount-1), PU_LEVEL, (void**)&textures[texture_num]);
 
