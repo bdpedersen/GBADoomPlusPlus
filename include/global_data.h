@@ -680,26 +680,25 @@ boolean mus_paused;
 unsigned int st_needrefresh;
 
 // 0-9, tall numbers
-const patch_t* tallnum[10];
+Cached<patch_t> tallnum[10];
 
 // 0-9, short, yellow (,different!) numbers
-const patch_t* shortnum[10];
+Cached<patch_t> shortnum[10];
 
 // tall % sign
-const patch_t* tallpercent;
-
-const patch_t* keys[NUMCARDS];
+Cached<patch_t> tallpercent;
+Cached<patch_t> keys[NUMCARDS];
 
 // face status patches
-const patch_t* faces[ST_NUMFACES];
+Cached<patch_t> faces[ST_NUMFACES];
 
 //e6y: status bar background
-const patch_t* stbarbg;
+Cached<patch_t> stbarbg;
 unsigned int stbar_len;
 
 
 // weapon ownership patches
-const patch_t* arms[6][2];
+Cached<patch_t> arms[6][2];
 
 // ready-weapon widget
 st_number_t w_ready;

@@ -9,6 +9,9 @@ int W_CheckNumForName(const char *name);
 template <typename T>
 class Cached;
 
+extern unsigned char gfx_stbar[];
+
+
 template <typename T>
 class Pinned {
     public:
@@ -56,8 +59,7 @@ class CachedBuffer {
         }
 
         Pinned<T> pin() const {
-            const char * base = (const char*)W_CacheLumpNum(lumpnum);
-            return Pinned<T>((const T*)(base + _byteoffset), lumpnum);
+            return Pinned<T>((const T*)(base() + _byteoffset), lumpnum);
         }   
 
         bool isnull() const {
@@ -79,8 +81,7 @@ class CachedBuffer {
         }
 
         T operator*() const {
-            const char * base = (const char*)W_CacheLumpNum(lumpnum);
-            return *(T*)(base + _byteoffset);
+            return *(T*)(base() + _byteoffset);
         }
 
         CachedBuffer<T>& operator+=(int count) {
@@ -89,6 +90,10 @@ class CachedBuffer {
         }
 
     private:
+        const char * base() const {
+            return (const char *)W_CacheLumpNum(lumpnum);
+        }
+
         short lumpnum;
         unsigned int _byteoffset;
 };
@@ -120,18 +125,15 @@ class Cached {
 
         const Sentinel<T> operator->() const {
             
-            const char * base = (const char*)W_CacheLumpNum(lumpnum);
-            return Sentinel<T>((const T*)(base + byteoffset), lumpnum);
+            return Sentinel<T>((const T*)(base() + byteoffset), lumpnum);
         }
 
         T value() const {
-            const char * base = (const char*)W_CacheLumpNum(lumpnum);
-            return *(T*)(base + byteoffset);
+            return *(T*)(base() + byteoffset);
         }
 
         const Pinned<T> pin() const {
-            const char * base = (const char*)W_CacheLumpNum(lumpnum);
-            return Pinned<T>((const T*)(base + byteoffset), lumpnum);
+            return Pinned<T>((const T*)(base() + byteoffset), lumpnum);
         }
 
         template <typename U>
@@ -150,6 +152,13 @@ class Cached {
         }   
 
     private:
+        const char * base() const {
+            // TODO: Address this by pemanently pinning an entry in the cache for this
+            if (lumpnum == -2){
+                return (const char *)gfx_stbar; // Violent hack !
+            }
+            return (const char *)W_CacheLumpNum(lumpnum);
+        }
         short lumpnum;
         unsigned int byteoffset;
 };

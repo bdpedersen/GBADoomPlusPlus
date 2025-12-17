@@ -483,21 +483,21 @@ static void ST_loadGraphics(boolean doload UNUSED)
     {
         //sprintf(namebuf, "STTNUM%d", i);
 		snprintf(namebuf, sizeof(namebuf),"STGANUM%d", i); //Special GBA Doom II Red Numbers ~Kippykip
-        _g->tallnum[i] = (const patch_t *) W_CacheLumpName(namebuf);
+        _g->tallnum[i] = Cached<patch_t>(namebuf);
 
         snprintf(namebuf, sizeof(namebuf), "STYSNUM%d", i);
-        _g->shortnum[i] = (const patch_t *) W_CacheLumpName(namebuf);
+        _g->shortnum[i] = Cached<patch_t>(namebuf);
     }
 
     // Load percent key.
     //Note: why not load STMINUS here, too?
-    _g->tallpercent = (const patch_t*) W_CacheLumpName("STTPRCNT");
+    _g->tallpercent = Cached<patch_t>("STTPRCNT");
 
     // key cards
     for (i=0;i<NUMCARDS;i++)
     {
         snprintf(namebuf, sizeof(namebuf), "STKEYS%d", i);
-        _g->keys[i] = (const patch_t *) W_CacheLumpName(namebuf);
+        _g->keys[i] = Cached<patch_t>(namebuf);
     }
 
     // arms ownership widgets
@@ -506,14 +506,14 @@ static void ST_loadGraphics(boolean doload UNUSED)
         snprintf(namebuf, sizeof(namebuf), "STGNUM%d", i+2);
 
         // gray #
-        _g->arms[i][0] = (const patch_t *) W_CacheLumpName(namebuf);
+        _g->arms[i][0] =  Cached<patch_t>(namebuf);
 
         // yellow #
-        _g->arms[i][1] = (const patch_t *) _g->shortnum[i+2];
+        _g->arms[i][1] =  _g->shortnum[i+2];
     }
 
     // status bar background bits
-    _g->stbarbg = (const patch_t *) gfx_stbar;
+    _g->stbarbg = Cached<patch_t>(-2); // HACK special lump for status bar bg
     _g->stbar_len = gfx_stbar_len;
 
     // face states
@@ -524,21 +524,21 @@ static void ST_loadGraphics(boolean doload UNUSED)
         for (int j=0;j<ST_NUMSTRAIGHTFACES;j++)
         {
             snprintf(namebuf, sizeof(namebuf), "STFST%d%d", i, j);
-            _g->faces[facenum++] = (const patch_t *)W_CacheLumpName(namebuf);
+            _g->faces[facenum++] = Cached<patch_t>(namebuf);
         }
         snprintf(namebuf, sizeof(namebuf), "STFTR%d0", i);	// turn right
-        _g->faces[facenum++] = (const patch_t *)W_CacheLumpName(namebuf);
+        _g->faces[facenum++] = Cached<patch_t>(namebuf);
         snprintf(namebuf, sizeof(namebuf), "STFTL%d0", i);	// turn left
-        _g->faces[facenum++] = (const patch_t *)W_CacheLumpName(namebuf);
+        _g->faces[facenum++] = Cached<patch_t>(namebuf);
         snprintf(namebuf, sizeof(namebuf), "STFOUCH%d", i);	// ouch!
-        _g->faces[facenum++] = (const patch_t *)W_CacheLumpName(namebuf);
+        _g->faces[facenum++] = Cached<patch_t>(namebuf);
         snprintf(namebuf, sizeof(namebuf), "STFEVL%d", i);	// evil grin ;)
-        _g->faces[facenum++] = (const patch_t *)W_CacheLumpName(namebuf);
+        _g->faces[facenum++] = Cached<patch_t>(namebuf);
         snprintf(namebuf, sizeof(namebuf), "STFKILL%d", i);	// pissed off
-        _g->faces[facenum++] = (const patch_t *)W_CacheLumpName(namebuf);
+        _g->faces[facenum++] = Cached<patch_t>(namebuf);
     }
-    _g->faces[facenum++] = (const patch_t *)W_CacheLumpName("STFGOD0");
-    _g->faces[facenum++] = (const patch_t *)W_CacheLumpName("STFDEAD0");
+    _g->faces[facenum++] = Cached<patch_t>("STFGOD0");
+    _g->faces[facenum++] = Cached<patch_t>("STFDEAD0");
 }
 
 static void ST_loadData(void)

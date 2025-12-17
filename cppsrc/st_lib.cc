@@ -65,7 +65,7 @@ void STlib_initNum
 (st_number_t* n,
   int x,
   int y,
-  const patch_t **pl,
+  Cached<patch_t> *pl,
   int* num,
   boolean* on,
   int     width )
@@ -128,9 +128,11 @@ static void STlib_drawNum
 
   //jff 2/16/98 add color translation to digit output
   // in the special case of 0, you draw 0
-  if (!num)
+  if (!num) {
     // CPhipps - patch drawing updated, reformatted
-    V_DrawPatchNoScale(x - w, n->y, n->p[0]);
+    auto pinned_num = n->p[0].pin();
+    V_DrawPatchNoScale(x - w, n->y, pinned_num);
+  }
 
   // draw the new number
   //jff 2/16/98 add color translation to digit output
@@ -138,7 +140,8 @@ static void STlib_drawNum
   {
     // CPhipps - patch drawing updated, reformatted
     x -= w;
-    V_DrawPatchNoScale(x, n->y, n->p[num % 10]);
+    auto pinned_num = n->p[num % 10].pin();
+    V_DrawPatchNoScale(x, n->y, pinned_num);
     num /= 10;
   }
 }
@@ -176,10 +179,10 @@ void STlib_initPercent
 (st_percent_t* p,
   int x,
   int y,
-  const patch_t** pl,
+  Cached<patch_t> *pl,
   int* num,
   boolean* on,
-  const patch_t *percent )
+  Cached<patch_t> percent )
 {
   STlib_initNum(&p->n, x, y, pl, num, on, 3);
   p->p = percent;
@@ -217,7 +220,7 @@ void STlib_initMultIcon
 (st_multicon_t* i,
   int x,
   int y,
-  const patch_t **il,
+  const Cached<patch_t> *il,
   int* inum,
   boolean* on )
 {
@@ -247,7 +250,10 @@ void STlib_updateMultIcon
         return;
 
     if (*mi->inum != -1)  // killough 2/16/98: redraw only if != -1
-		V_DrawPatchNoScale(mi->x, mi->y, mi->p[*mi->inum]);
+    {
+      auto pinned_icon = mi->p[*mi->inum].pin();
+		  V_DrawPatchNoScale(mi->x, mi->y, pinned_icon);
+    }
 
     mi->oldinum = *mi->inum;
 
@@ -310,7 +316,7 @@ void ST_refreshBackground(void)
     if (_g->st_statusbaron)
     {
         const unsigned int st_offset = ((SCREENHEIGHT-ST_SCALED_HEIGHT)*120);
-
-        CpuBlockCopy(&_g->screens[0].data[st_offset], _g->stbarbg, _g->stbar_len);
+        auto pinned_stbarbg = _g->stbarbg.pin();
+        CpuBlockCopy(&_g->screens[0].data[st_offset], pinned_stbarbg, _g->stbar_len);
     }
 }

@@ -71,7 +71,7 @@ typedef struct
   boolean*  on;
 
   // list of patches for 0-9
-  const patch_t** p;
+  Cached<patch_t> *p;
 
 } st_number_t;
 
@@ -83,7 +83,7 @@ typedef struct
   st_number_t   n;
 
   // percent sign graphic
-  const patch_t*    p;
+  Cached<patch_t>    p;
 } st_percent_t;
 
 // Multiple Icon widget
@@ -104,7 +104,7 @@ typedef struct
   boolean*    on;
 
   // list of icons
-  const patch_t**   p;
+  const Cached<patch_t> *p;
 
 } st_multicon_t;
 
@@ -145,7 +145,7 @@ void STlib_initNum
 (st_number_t* n,
   int x,
   int y,
-  const patch_t **pl,
+  Cached<patch_t> *pl,
   int* num,
   boolean* on,
   int width );
@@ -161,10 +161,10 @@ void STlib_initPercent
 ( st_percent_t* p,
   int x,
   int y,
-  const patch_t** pl,
+  Cached<patch_t> *pl,
   int* num,
   boolean* on,
-  const patch_t* percent );
+  Cached<patch_t> percent );
 
 
 void STlib_updatePercent
@@ -178,7 +178,7 @@ void STlib_initMultIcon
 ( st_multicon_t* mi,
   int x,
   int y,
-  const patch_t**   il,
+  const Cached<patch_t> *il,
   int* inum,
   boolean* on );
 
