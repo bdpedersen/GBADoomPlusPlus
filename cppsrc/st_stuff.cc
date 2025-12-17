@@ -513,7 +513,7 @@ static void ST_loadGraphics(boolean doload UNUSED)
     }
 
     // status bar background bits
-    _g->stbarbg = Cached<patch_t>(-2); // HACK special lump for status bar bg
+    _g->stbarbg = Cached<patch_t>(STBAR_LUMP_NUM); // HACK special lump for status bar bg
     _g->stbar_len = gfx_stbar_len;
 
     // face states

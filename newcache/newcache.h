@@ -9,6 +9,8 @@ int W_CheckNumForName(const char *name);
 template <typename T>
 class Cached;
 
+#define STBAR_LUMP_NUM -2
+
 extern unsigned char gfx_stbar[];
 
 
@@ -154,7 +156,7 @@ class Cached {
     private:
         const char * base() const {
             // TODO: Address this by pemanently pinning an entry in the cache for this
-            if (lumpnum == -2){
+            if (lumpnum == STBAR_LUMP_NUM){
                 return (const char *)gfx_stbar; // Violent hack !
             }
             return (const char *)W_CacheLumpNum(lumpnum);
