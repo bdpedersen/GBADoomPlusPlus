@@ -238,9 +238,9 @@ char* strupr(char* str) {
 
 static int R_GetTextureNumForName(const char* tex_name)
 {
-    const int  *maptex1, *maptex2;
+    CachedBuffer<int> maptex1, maptex2;
     int  numtextures1;
-    const int *directory1, *directory2;
+    CachedBuffer<int> directory1, directory2;
 
 
     //Convert name to uppercase for comparison.
@@ -256,24 +256,24 @@ static int R_GetTextureNumForName(const char* tex_name)
         return _g->tex_lookup_last_num;
     }
 
-    maptex1 = (const int *)W_CacheLumpName("TEXTURE1");
+    maptex1 = CachedBuffer<int>("TEXTURE1");
     numtextures1 = *maptex1;
-    directory1 = maptex1+1;
+    directory1 = maptex1.addOffset(1);
 
 
     if (W_CheckNumForName("TEXTURE2") != -1)
     {
-        maptex2 = (const int *)W_CacheLumpName("TEXTURE2");
-        directory2 = maptex2+1;
+        maptex2 = CachedBuffer<int>("TEXTURE2");
+        directory2 = maptex2.addOffset(1);
     }
     else
     {
-        maptex2 = NULL;
-        directory2 = NULL;
+        maptex2 = CachedBuffer<int>();
+        directory2 = CachedBuffer<int>();
     }
 
-    const int *directory = directory1;
-    const int *maptex = maptex1;
+    auto directory = directory1;
+    auto maptex = maptex1;
 
     for (int i=0 ; i<_g->numtextures ; i++, directory++)
     {
@@ -286,7 +286,8 @@ static int R_GetTextureNumForName(const char* tex_name)
 
         int offset = *directory;
 
-        const maptexture_t* mtexture = (const maptexture_t *) ( (const byte *)maptex + offset);
+        //const maptexture_t* mtexture = (const maptexture_t *) ( (const byte *)maptex + offset);
+        auto mtexture = maptex[0].transmuteToObjectAtByteOffset<maptexture_t>(offset);
 
         if(!strncmp(tex_name_upper, mtexture->name, 8))
         {
