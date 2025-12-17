@@ -328,14 +328,14 @@ int R_LoadTextureByName(const char* tex_name)
 
 static void R_InitTextures()
 {
-    const int* mtex1 = (const int *)W_CacheLumpName("TEXTURE1");
+    auto mtex1 = CachedBuffer<int>("TEXTURE1");
     int numtextures1 = *mtex1;
 
     int numtextures2 = 0;
 
     if (W_CheckNumForName("TEXTURE2") != -1)
     {
-        const int* mtex2 = (const int *)W_CacheLumpName("TEXTURE2");
+        auto mtex2 = CachedBuffer<int>("TEXTURE2");
         numtextures2 = *mtex2;
     }
 
