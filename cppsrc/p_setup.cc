@@ -330,10 +330,10 @@ static void P_LoadBlockMap (int lump)
 {
     _g->blockmaplump = CachedBuffer<short>(lump);
 
-    _g->bmaporgx = _g->blockmaplump[0].value()<<FRACBITS;
-    _g->bmaporgy = _g->blockmaplump[1].value()<<FRACBITS;
-    _g->bmapwidth = _g->blockmaplump[2].value();
-    _g->bmapheight = _g->blockmaplump[3].value();
+    _g->bmaporgx = *_g->blockmaplump[0]<<FRACBITS;
+    _g->bmaporgy = *_g->blockmaplump[1]<<FRACBITS;
+    _g->bmapwidth = *_g->blockmaplump[2];
+    _g->bmapheight = *_g->blockmaplump[3];
 
 
     // clear out mobj chains - CPhipps - use calloc

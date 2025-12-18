@@ -800,7 +800,7 @@ void P_SpawnMapThing (Cached<mapthing_t> mthing)
     //Only care about start spot for player 1.
     if(mthing->type == 1)
     {
-        _g->playerstarts[0] = mthing.value();
+        _g->playerstarts[0] = *mthing;
         _g->playerstarts[0].options = 1;
         P_SpawnPlayer (0, &_g->playerstarts[0]);
         return;

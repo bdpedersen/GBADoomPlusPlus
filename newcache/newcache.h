@@ -130,7 +130,7 @@ class Cached {
             return Sentinel<T>((const T*)(base() + byteoffset), lumpnum);
         }
 
-        T value() const {
+        T operator*() const {
             return *(T*)(base() + byteoffset);
         }
 
@@ -146,13 +146,11 @@ class Cached {
         CachedBuffer<byte> bytebuffer() {
             return CachedBuffer<byte>(lumpnum,byteoffset);
         }
-
         Cached operator++(int) {
             Cached<T> old = *this;
             byteoffset += sizeof(T);
             return old;
         }   
-
     private:
         const char * base() const {
             // TODO: Address this by pemanently pinning an entry in the cache for this

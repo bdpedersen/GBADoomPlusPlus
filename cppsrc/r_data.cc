@@ -121,12 +121,12 @@ static const texture_t* R_LoadTexture(int texture_num)
 
     if(texture_num < numtextures1)
     {
-        offset = directory1[texture_num].value();
+        offset = *directory1[texture_num];
     }
     else if(maptex2.isvalid() && ((texture_num-numtextures1) < numtextures2) )
     {
         maptex = maptex2;
-        offset = directory2[texture_num-numtextures1].value();
+        offset = *directory2[texture_num-numtextures1];
     }
     else
     {
