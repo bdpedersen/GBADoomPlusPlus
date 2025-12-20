@@ -4,14 +4,15 @@ LDFLAGS :=
 
 # Build directory
 BUILD_DIR := build
+TEST_DIR := test
 
 # Source files
 GUARDMALLOC_SRC := guardmalloc.cc
-CORRECTUSE_SRC := gmalloc_correctuse.cc
-USEAFTERFREE_SRC := gmalloc_useafterfree.cc
-BUFFEROVERFLOW_SRC := gmalloc_bufferoverflow.cc
-BUFFERUNDERFLOW_SRC := gmalloc_bufferunderflow.cc
-TEST_SRC := gmalloc_test.cc
+CORRECTUSE_SRC := $(TEST_DIR)/gmalloc_correctuse.cc
+USEAFTERFREE_SRC := $(TEST_DIR)/gmalloc_useafterfree.cc
+BUFFEROVERFLOW_SRC := $(TEST_DIR)/gmalloc_bufferoverflow.cc
+BUFFERUNDERFLOW_SRC := $(TEST_DIR)/gmalloc_bufferunderflow.cc
+TEST_SRC := $(TEST_DIR)/gmalloc_test.cc
 
 # Object files
 GUARDMALLOC_OBJ := $(BUILD_DIR)/guardmalloc.o
