@@ -12,7 +12,15 @@ OBJ_DIR     := cppbuild
 CPP_SOURCES := $(wildcard $(SRC_DIR)/*.cc)
 
 SRCS        := $(CPP_SOURCES)
-OBJS        := $(patsubst $(SRC_DIR)/%.cc,$(OBJ_DIR)/%.o,$(CPP_SOURCES))
+
+# ---- Original Doom Sources --------------------------------------------
+SRCS += gamedata/original/doom_iwad.cc
+SRCS += gamedata/original/w_wad.cc
+vpath %.cc $(SRC_DIR) gamedata/original
+
+
+# ---- Objects -----------------------------------------------------
+OBJS        := $(patsubst %.cc,$(OBJ_DIR)/%.o,$(notdir $(SRCS)))
 
 # ---- Toolchain ---------------------------------------------------
 
@@ -58,10 +66,8 @@ $(OBJ_DIR):
 	$(MKDIR_P) $(OBJ_DIR)
 
 
-# C compilation rule
-
-# C++ compilation rule
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cc
+# C++ compilation rule - works for .cc files from any directory in vpath
+$(OBJ_DIR)/%.o: %.cc
 	$(MKDIR_P) $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
