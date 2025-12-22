@@ -82,6 +82,8 @@ const char* NC_GetNameForNum(int lump)
 void NC_Init(void)
 {
     W_Init();
+    pinned_allocations[STBAR_LUMP_NUM]=gfx_stbar;
+    pincount[STBAR_LUMP_NUM]=1;
 }
 
 void NC_ExtractFileBase(const char* path, char* dest)
@@ -91,6 +93,8 @@ void NC_ExtractFileBase(const char* path, char* dest)
 
 const uint8_t * NC_Pin(int lumpnum)
 {
+    if (lumpnum==-1) return nullptr;
+
     if (pincount.count(lumpnum)){
         pincount[lumpnum]+=1;
         printf("\nRepinning lump %d, pincount now: %d\n",lumpnum,pincount[lumpnum]);
@@ -113,6 +117,7 @@ const uint8_t * NC_Pin(int lumpnum)
 
 void NC_Unpin(int lumpnum)
 {
+    if (lumpnum == -1) return;
     if (pincount.count(lumpnum) == 0){
         printf("Error: Lump %d is not pinned\n", lumpnum);
         exit(-1);

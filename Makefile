@@ -14,17 +14,17 @@ CPP_SOURCES := $(wildcard $(SRC_DIR)/*.cc)
 SRCS        := $(CPP_SOURCES)
 
 # ---- Original Doom Sources --------------------------------------------
-SRCS += gamedata/original/doom_iwad.cc
-SRCS += gamedata/original/w_wad.cc
-SRCS += gamedata/original/w_nc.cc
-vpath %.cc $(SRC_DIR) gamedata/original
-
-# ---- Guardmalloc Sources ----------------------------------------
 #SRCS += gamedata/original/doom_iwad.cc
 #SRCS += gamedata/original/w_wad.cc
-#SRCS += gamedata/guard/w_nc.cc
-#SRCS += guardmalloc/guardmalloc.cc
-#vpath %.cc guardmalloc gamedata/guard gamedata/original $(SRC_DIR)
+#SRCS += gamedata/original/w_nc.cc
+#vpath %.cc $(SRC_DIR) gamedata/original
+
+# ---- Guardmalloc Sources ----------------------------------------
+SRCS += gamedata/original/doom_iwad.cc
+SRCS += gamedata/original/w_wad.cc
+SRCS += gamedata/guard/w_nc.cc
+SRCS += guardmalloc/guardmalloc.cc
+vpath %.cc guardmalloc gamedata/guard gamedata/original $(SRC_DIR)
 
 
 # ---- Objects -----------------------------------------------------
