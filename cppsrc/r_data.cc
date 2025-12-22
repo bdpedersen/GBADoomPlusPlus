@@ -144,7 +144,8 @@ static const texture_t* R_LoadTexture(int texture_num)
     texture->name = mtexture->name;
 
     texpatch_t* patch = texture->patches;
-    const mappatch_t* mpatch = mtexture->patches;
+    auto pinned_mtexture = mtexture.pin();
+    const mappatch_t* mpatch = pinned_mtexture->patches;
 
     texture->overlapped = 0;
 
@@ -251,7 +252,7 @@ static int R_GetTextureNumForName(const char* tex_name)
 
     strupr(tex_name_upper);
 
-    if(_g->tex_lookup_last_name && (!strncmp(_g->tex_lookup_last_name, tex_name_upper, 8)))
+    if(/*_g->tex_lookup_last_name &&*/ (!strncmp(_g->tex_lookup_last_name, tex_name_upper, 8)))
     {
         return _g->tex_lookup_last_num;
     }
@@ -291,7 +292,8 @@ static int R_GetTextureNumForName(const char* tex_name)
 
         if(!strncmp(tex_name_upper, mtexture->name, 8))
         {
-            _g->tex_lookup_last_name = mtexture->name;
+            strncpy(&_g->tex_lookup_last_name[0],mtexture->name,8);
+            //_g->tex_lookup_last_name = mtexture->name;
             _g->tex_lookup_last_num = i;
             return i;
         }

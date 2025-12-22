@@ -20,20 +20,19 @@ void W_Init(void);
 void ExtractFileBase(const char* path, char* dest);
 
 int cachedlump = -1;
-const void *cacheddata = nullptr;
+const uint8_t *cacheddata = nullptr;
 
-std::map<int,const void *> pinned_allocations;
+std::map<int,const uint8_t *> pinned_allocations;
+std::map<int,int> pincount;
 
 // Simple wrappers mapping to W_ functions in the newcache namespace
-const void * NC_CacheLumpNum(int lumpnum)
+const uint8_t * NC_CacheLumpNum(int lumpnum)
 {
     if (lumpnum == STBAR_LUMP_NUM){
-        return (const char *)gfx_stbar; // Violent hack !
+        return (const uint8_t *)gfx_stbar; // Violent hack !
     }
 
-    if (cachedlump == lumpnum){
-        return cacheddata;
-    } else {
+    if (cachedlump != lumpnum){
         // Free previous cache
         if (cacheddata){
             // Don't free pinned allocations
@@ -45,21 +44,19 @@ const void * NC_CacheLumpNum(int lumpnum)
         }
         // Allocate new cache
         int len = W_LumpLength(lumpnum);
-        void *data = GMALLOC(len);
+        uint8_t *data = (uint8_t *)GMALLOC(len);
         if (!data){
             printf("NC_CacheLumpNum: Failed to allocate %d bytes for lump %d\n", len, lumpnum);
             exit(-1);
         }
-        const void *lumpdata = W_CacheLumpNum(lumpnum);
+        const uint8_t *lumpdata = (const uint8_t *)W_CacheLumpNum(lumpnum);
         memcpy(data, lumpdata, len);
         cacheddata = data;
         cachedlump = lumpnum;
-        printf(".");
-        fflush(stdout);
-        return cacheddata;
+        //printf(".");
+        //fflush(stdout);
     }
-
-    return W_CacheLumpNum(lumpnum);
+    return cacheddata;
 }  
 
 int NC_LumpLength(int lumpnum)
@@ -92,37 +89,43 @@ void NC_ExtractFileBase(const char* path, char* dest)
     ExtractFileBase(path, dest);
 }
 
-const void* NC_Pin(int lumpnum)
+const uint8_t * NC_Pin(int lumpnum)
 {
-    if (pinned_allocations.count(lumpnum)){
-        printf("Error: Lump %d is already pinned\n", lumpnum);
-        exit(-1);
+    if (pincount.count(lumpnum)){
+        pincount[lumpnum]+=1;
+        printf("\nRepinning lump %d, pincount now: %d\n",lumpnum,pincount[lumpnum]);
+        return pinned_allocations[lumpnum];
     }
 
     // Pin the current cached data if it matches
     if (cachedlump == lumpnum && cacheddata){
         pinned_allocations[lumpnum] = cacheddata;
+        pincount[lumpnum]=1;
         return cacheddata;
     }
 
     // Else cache it anew
-    const void *data = NC_CacheLumpNum(lumpnum);
+    auto data = NC_CacheLumpNum(lumpnum);
     pinned_allocations[lumpnum] = data;
+    pincount[lumpnum]=1;
     return data;
 }
 
 void NC_Unpin(int lumpnum)
 {
-    if (pinned_allocations.count(lumpnum) == 0){
+    if (pincount.count(lumpnum) == 0){
         printf("Error: Lump %d is not pinned\n", lumpnum);
         exit(-1);
     }
 
+    if (--pincount[lumpnum]) return; // Nested pin - not time to unpin yet
+
     // If the pinned allocation is not the cached one, free it
-    if (cachedlump != lumpnum || cacheddata != pinned_allocations[lumpnum]){
+    if (cachedlump != lumpnum){
         GFREE((void *)pinned_allocations[lumpnum]);
     }
 
     pinned_allocations.erase(lumpnum);
+    pincount.erase(lumpnum);
 }   
 

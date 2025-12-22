@@ -567,7 +567,7 @@ int       firstspritelump, lastspritelump, numspritelumps;
 int       numtextures;
 
 //Store last lookup and return that if they match.
-const char* tex_lookup_last_name;
+char tex_lookup_last_name[8];
 int tex_lookup_last_num;
 
 

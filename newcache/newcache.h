@@ -85,6 +85,10 @@ class Pinned {
             return ptr;
         }
 
+        const T* operator->() const {
+            return ptr;
+        }
+
         bool isnull() const {
             return ptr == nullptr;
         }
