@@ -39,13 +39,15 @@
 #include <stdint.h>
 
 
-const void * NC_CacheLumpNum(int lumpnum);
+const uint8_t * NC_CacheLumpNum(int lumpnum);
 int NC_GetNumForName (const char* name);
 int NC_CheckNumForName(const char *name);
 const char* NC_GetNameForNum(int lump);
 int NC_LumpLength(int lumpnum);
 void NC_Init(void);
 void NC_ExtractFileBase(const char* path, char* dest);
+const uint8_t* NC_Pin(int lumpnum);
+void NC_Unpin(int lumpnum);
 
 // WAD parser types
 typedef struct
@@ -76,8 +78,8 @@ class Pinned {
     public:
     // TODO: implement pinning mechanism
         Pinned() : ptr(nullptr), lumpnum(-1) {}
-        Pinned(const T* ptr, short lumpnum) : ptr(ptr), lumpnum(lumpnum) {}
-        ~Pinned() {}
+        Pinned(short lumpnum, int _byteoffset) : ptr((T*)(NC_Pin(lumpnum) + _byteoffset)), lumpnum(lumpnum) {}
+        ~Pinned() {NC_Unpin(lumpnum);}
 
         operator const T*() const {
             return ptr;
@@ -118,7 +120,7 @@ class CachedBuffer {
         }
 
         Pinned<T> pin() const {
-            return Pinned<T>((const T*)(base() + _byteoffset), lumpnum);
+            return Pinned<T>(lumpnum, _byteoffset);
         }   
 
         bool isnull() const {
@@ -162,8 +164,8 @@ class Sentinel {
     public:
     // TODO: implement pinning mechanism
         Sentinel() : ptr(nullptr), lumpnum(-1) {}
-        Sentinel(const T* ptr, short lumpnum) : ptr(ptr), lumpnum(lumpnum) {}
-        ~Sentinel() {}
+        Sentinel(short lumpnum, int _byteoffset) : ptr((T*)(NC_Pin(lumpnum)+_byteoffset)), lumpnum(lumpnum) {}
+        ~Sentinel() {NC_Unpin(lumpnum);}
 
         const T* operator->() const {
             return ptr;
@@ -184,7 +186,7 @@ class Cached {
 
         const Sentinel<T> operator->() const {
             
-            return Sentinel<T>((const T*)(base() + byteoffset), lumpnum);
+            return Sentinel<T>(lumpnum, byteoffset);
         }
 
         T operator*() const {
@@ -192,7 +194,7 @@ class Cached {
         }
 
         const Pinned<T> pin() const {
-            return Pinned<T>((const T*)(base() + byteoffset), lumpnum);
+            return Pinned<T>(lumpnum, byteoffset);
         }
 
         template <typename U>
@@ -211,9 +213,6 @@ class Cached {
     private:
         const char * base() const {
             // TODO: Address this by pemanently pinning an entry in the cache for this
-            if (lumpnum == STBAR_LUMP_NUM){
-                return (const char *)gfx_stbar; // Violent hack !
-            }
             return (const char *)NC_CacheLumpNum(lumpnum);
         }
         short lumpnum;
