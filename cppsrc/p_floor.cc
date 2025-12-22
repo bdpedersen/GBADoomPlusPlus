@@ -388,7 +388,7 @@ void T_MoveElevator(elevator_t* elevator)
 // Returns true if a thinker was created.
 //
 int EV_DoFloor
-( const line_t*       line,
+( Cached<line_t>       line,
   floor_e       floortype )
 {
   int           secnum;
@@ -608,7 +608,7 @@ int EV_DoFloor
 // jff 3/15/98 added to better support generalized sector types
 //
 int EV_DoChange
-( const line_t*       line,
+( Cached<line_t>       line,
   change_e      changetype )
 {
   int                   secnum;
@@ -673,7 +673,7 @@ int EV_DoChange
  * - Boom fixed the bug, and MBF/PrBoom without comp_stairs work right
  */
 static inline int P_FindSectorFromLineTagWithLowerBound
-(const line_t* l, int start, int min)
+(Cached<line_t> l, int start, int min)
 {
   /* Emulate original Doom's linear lower-bounded P_FindSectorFromLineTag
    * as needed */
@@ -684,7 +684,7 @@ static inline int P_FindSectorFromLineTagWithLowerBound
 }
 
 int EV_BuildStairs
-( const line_t*       line,
+( Cached<line_t>       line,
   stair_e       type )
 {
   /* cph 2001/09/22 - cleaned up this function to save my sanity. A separate
@@ -811,7 +811,7 @@ int EV_BuildStairs
 // Passed the linedef that triggered the donut
 // Returns whether a thinker was created
 //
-int EV_DoDonut(const line_t*  line)
+int EV_DoDonut(Cached<line_t>  line)
 {
   sector_t* s1;
   sector_t* s2;
@@ -896,7 +896,7 @@ int EV_DoDonut(const line_t*  line)
 // jff 2/22/98 new type to move floor and ceiling in parallel
 //
 int EV_DoElevator
-( const line_t*       line,
+( Cached<line_t>       line,
   elevator_e    elevtype )
 {
   int                   secnum;

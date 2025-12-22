@@ -344,16 +344,16 @@ fixed_t   tmdropoffz; // dropoff on other side of line you're crossing
 // keep track of the line that lowers the ceiling,
 // so missiles don't explode against sky hack walls
 
-const line_t    *ceilingline;
-const line_t        *blockline;    /* killough 8/11/98: blocking linedef */
-const line_t        *floorline;    /* killough 8/1/98: Highest touched floor */
+Cached<line_t>    ceilingline;
+Cached<line_t>        blockline;    /* killough 8/11/98: blocking linedef */
+Cached<line_t>        floorline;    /* killough 8/1/98: Highest touched floor */
 int         tmunstuck;     /* killough 8/1/98: whether to allow unsticking */
 
 // keep track of special lines as they are hit,
 // but don't process them until the move is proven valid
 
 // 1/11/98 killough: removed limit on special lines crossed
-const line_t *spechit[4];                // new code -- killough
+Cached<line_t> spechit[4];                // new code -- killough
 
 int numspechit;
 
@@ -362,7 +362,7 @@ msecnode_t* sector_list;                             // phares 3/16/98
 
 /* killough 8/2/98: make variables static */
 fixed_t   bestslidefrac;
-const line_t*   bestslideline;
+Cached<line_t>   bestslideline;
 mobj_t*   slidemo;
 fixed_t   tmxmove;
 fixed_t   tmymove;

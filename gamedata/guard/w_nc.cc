@@ -134,3 +134,17 @@ void NC_Unpin(int lumpnum)
     pincount.erase(lumpnum);
 }   
 
+int NC_Register(const uint8_t *ptr) {
+    int lumpnum = -2;
+    // Find next unused lumpnum
+    for (; pincount.count(lumpnum)>0; lumpnum--);
+    pinned_allocations[lumpnum]=ptr;
+    pincount[lumpnum]=1;
+    return lumpnum;
+}
+
+void NC_Unregister(int lumpnum) {
+    pinned_allocations.erase(lumpnum);
+    pincount.erase(lumpnum);
+}
+

@@ -60,7 +60,7 @@
 // floor movers using bit fields in the line special type.
 //
 int EV_DoGenFloor
-( const line_t*       line )
+( Cached<line_t>       line )
 {
   int                   secnum;
   int                   rtn;
@@ -263,7 +263,7 @@ manual_floor:
 // floor movers using bit fields in the line special type.
 //
 int EV_DoGenCeiling
-( const line_t*       line )
+( Cached<line_t>       line )
 {
   int                   secnum;
   int                   rtn;
@@ -469,7 +469,7 @@ manual_ceiling:
 // Returns true if a thinker is created
 //
 int EV_DoGenLift
-( const line_t*       line )
+( Cached<line_t>       line )
 {
   plat_t*         plat;
   int             secnum;
@@ -619,7 +619,7 @@ manual_lift:
 // Returns true if a thinker is created
 //
 int EV_DoGenStairs
-( const line_t*       line )
+( Cached<line_t>       line )
 {
   int                   secnum;
   int                   osecnum; //jff 3/4/98 preserve loop index
@@ -805,7 +805,7 @@ manual_stair:
 // Returns true if a thinker created
 //
 int EV_DoGenCrusher
-( const line_t*       line )
+( Cached<line_t>       line )
 {
   int                   secnum;
   int                   rtn;
@@ -903,7 +903,7 @@ manual_crusher:
 // Returns true if a thinker created
 //
 int EV_DoGenLockedDoor
-( const line_t* line )
+( Cached<line_t> line )
 {
   int   secnum,rtn;
   sector_t* sec;
@@ -1010,7 +1010,7 @@ manual_locked:
 // Returns true if a thinker created
 //
 int EV_DoGenDoor
-( const line_t* line )
+( Cached<line_t> line )
 {
   int   secnum,rtn;
   sector_t* sec;

@@ -63,7 +63,7 @@ fixed_t CONSTFUNC P_AproxDistance(fixed_t dx, fixed_t dy)
 //
 // killough 5/3/98: reformatted, cleaned up
 
-int PUREFUNC P_PointOnLineSide(fixed_t x, fixed_t y, const line_t *line)
+int PUREFUNC P_PointOnLineSide(fixed_t x, fixed_t y, Cached<line_t> line)
 {
   return
     !line->dx ? x <= line->v1.x ? line->dy > 0 : line->dy < 0 :
@@ -79,7 +79,7 @@ int PUREFUNC P_PointOnLineSide(fixed_t x, fixed_t y, const line_t *line)
 //
 // killough 5/3/98: reformatted, cleaned up
 
-int PUREFUNC P_BoxOnLineSide(const fixed_t *tmbox, const line_t *ld)
+int PUREFUNC P_BoxOnLineSide(const fixed_t *tmbox, Cached<line_t> ld)
 {
     int p;
     switch (ld->slopetype)
@@ -124,7 +124,7 @@ static int PUREFUNC P_PointOnDivlineSide(fixed_t x, fixed_t y, const divline_t *
 // P_MakeDivline
 //
 
-static void P_MakeDivline(const line_t *li, divline_t *dl)
+static void P_MakeDivline(Cached<line_t> li, divline_t *dl)
 {
   dl->x = li->v1.x;
   dl->y = li->v1.y;
@@ -159,7 +159,7 @@ fixed_t PUREFUNC P_InterceptVector2(const divline_t *v2, const divline_t *v1)
 //
 
 
-void P_LineOpening(const line_t *linedef)
+void P_LineOpening(Cached<line_t> linedef)
 {
     if (linedef->sidenum[1] == NO_INDEX)      // single sided line
     {
@@ -336,7 +336,7 @@ void P_SetThingPosition(mobj_t *thing)
 //
 // killough 5/3/98: reformatted, cleaned up
 
-boolean P_BlockLinesIterator(int x, int y, boolean func(const line_t*))
+boolean P_BlockLinesIterator(int x, int y, boolean func(Cached<line_t>))
 {
 
     if (x<0 || y<0 || x>=_g->bmapwidth || y>=_g->bmapheight)
@@ -368,10 +368,8 @@ boolean P_BlockLinesIterator(int x, int y, boolean func(const line_t*))
         lt->validcount = vcount;
 
         auto line = _g->lines[lineno];
-        auto pinnedline = line.pin();
-        const line_t *ld = pinnedline;
 
-        if (!func(ld))
+        if (!func(line))
             return false;
     }
 
@@ -416,7 +414,7 @@ static boolean check_intercept(void)
 //
 // killough 5/3/98: reformatted, cleaned up
 
-boolean PIT_AddLineIntercepts(const line_t *ld)
+boolean PIT_AddLineIntercepts(Cached<line_t> ld)
 {
   int       s1;
   int       s2;

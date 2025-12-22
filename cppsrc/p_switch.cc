@@ -141,7 +141,7 @@ void P_InitSwitchList(void)
 // No return.
 //
 static void P_StartButton
-( const line_t*       line,
+( Cached<line_t>       line,
   bwhere_e      w,
   int           texture,
   int           time )
@@ -150,7 +150,7 @@ static void P_StartButton
 
   // See if button is already pressed
   for (i = 0;i < MAXBUTTONS;i++)
-    if (_g->buttonlist[i].btimer && _g->buttonlist[i].line == line)
+    if (_g->buttonlist[i].btimer && _g->buttonlist[i].line->lineno == line->lineno)
       return;
 
   for (i = 0;i < MAXBUTTONS;i++)
@@ -179,7 +179,7 @@ static void P_StartButton
 //
 // No return
 //
-void P_ChangeSwitchTexture (const line_t* line, int useAgain)
+void P_ChangeSwitchTexture (Cached<line_t> line, int useAgain)
 {
     /* Rearranged a bit to avoid too much code duplication */
     int     i, sound;
@@ -263,7 +263,7 @@ void P_ChangeSwitchTexture (const line_t* line, int useAgain)
 boolean
 P_UseSpecialLine
 ( mobj_t*       thing,
-  const line_t*       line,
+  Cached<line_t>       line,
   int           side )
 {
 
@@ -277,7 +277,7 @@ P_UseSpecialLine
   {
     // pointer to line function is NULL by default, set non-null if
     // line special is push or switch generalized linedef type
-    int (*linefunc)(const line_t *line)=NULL;
+    int (*linefunc)(Cached<line_t> line)=NULL;
 
     // check each range of generalized linedefs
     if ((unsigned)LN_SPECIAL(line) >= GenEnd)

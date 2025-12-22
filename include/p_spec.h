@@ -35,6 +35,7 @@
 
 #include "r_defs.h"
 #include "d_player.h"
+#include "../newcache/newcache.h"
 
 //      Define values for map objects
 #define MO_TELEPORTMAN  14
@@ -534,7 +535,7 @@ typedef struct
 
 typedef struct
 {
-  const line_t* line;
+  Cached<line_t> line;
   bwhere_e where;
   int   btexture;
   int   btimer;
@@ -635,7 +636,7 @@ typedef struct vldoor_s
   int topcountdown;
 
   //jff 1/31/98 keep track of line door is triggered by
-  const line_t *line;
+  Cached<line_t> line;
 
   /* killough 10/98: sector tag for gradual lighting effects */
   int lighttag;
@@ -831,11 +832,11 @@ sector_t* P_FindModelCeilingSector
   int secnum ); //jff 02/04/98
 
 int P_FindSectorFromLineTag
-( const line_t *line,
+( Cached<line_t> line,
   int start ); // killough 4/17/98
 
 int P_FindLineFromLineTag
-( const line_t *line,
+( Cached<line_t> line,
   int start );   // killough 4/17/98
 
 int P_FindMinSurroundingLight
@@ -847,10 +848,10 @@ sector_t* getNextSector
   sector_t* sec );
 
 int P_CheckTag
-(const line_t *line); // jff 2/27/98
+(Cached<line_t> line); // jff 2/27/98
 
 boolean P_CanUnlockGenDoor
-( const line_t* line,
+( Cached<line_t> line,
   player_t* player);
 
 boolean P_SectorActive
@@ -864,7 +865,7 @@ boolean P_WasSecret
 ( const sector_t *sec );
 
 void P_ChangeSwitchTexture
-( const line_t* line,
+( Cached<line_t> line,
   int useAgain );
 
 ////////////////////////////////////////////////////////////////
@@ -933,19 +934,19 @@ void T_Scroll
 // p_telept
 
 int EV_Teleport
-( const line_t* line,
+( Cached<line_t> line,
   int side,
   mobj_t* thing );
 
 // killough 2/14/98: Add silent teleporter
 int EV_SilentTeleport
-( const line_t* line,
+( Cached<line_t> line,
   int side,
   mobj_t* thing );
 
 // killough 1/31/98: Add silent line teleporter
 int EV_SilentLineTeleport
-( const line_t* line,
+( Cached<line_t> line,
   int side,
   mobj_t* thing,
   boolean reverse);
@@ -954,96 +955,96 @@ int EV_SilentLineTeleport
 
 int
 EV_DoElevator
-( const line_t* line,
+( Cached<line_t> line,
   elevator_e type );
 
 int EV_BuildStairs
-( const line_t* line,
+( Cached<line_t> line,
   stair_e type );
 
 int EV_DoFloor
-( const line_t* line,
+( Cached<line_t> line,
   floor_e floortype );
 
 // p_ceilng
 
 int EV_DoCeiling
-( const line_t* line,
+( Cached<line_t> line,
   ceiling_e type );
 
 int EV_CeilingCrushStop
-( const line_t* line );
+( Cached<line_t> line );
 
 // p_doors
 
 int EV_VerticalDoor
-( const line_t* line,
+( Cached<line_t> line,
   mobj_t* thing );
 
 int EV_DoDoor
-( const line_t* line,
+( Cached<line_t> line,
   vldoor_e type );
 
 int EV_DoLockedDoor
-( const line_t* line,
+( Cached<line_t> line,
   vldoor_e type,
   mobj_t* thing );
 
 // p_lights
 
 int EV_StartLightStrobing
-( const line_t* line );
+( Cached<line_t> line );
 
 int EV_TurnTagLightsOff
-( const line_t* line );
+( Cached<line_t> line );
 
 int EV_LightTurnOn
-( const line_t* line,
+( Cached<line_t> line,
   int   bright );
 
-int EV_LightTurnOnPartway(const line_t* line, fixed_t level); // killough 10/10/98
+int EV_LightTurnOnPartway(Cached<line_t> line, fixed_t level); // killough 10/10/98
 
 // p_floor
 
 int EV_DoChange
-( const line_t* line,
+( Cached<line_t> line,
   change_e changetype );
 
 int EV_DoDonut
-( const line_t* line );
+( Cached<line_t> line );
 
 // p_plats
 
 int EV_DoPlat
-( const line_t* line,
+( Cached<line_t> line,
   plattype_e  type,
   int amount );
 
 int EV_StopPlat
-( const line_t* line );
+( Cached<line_t> line );
 
 // p_genlin
 
 int EV_DoGenFloor
-( const line_t* line );
+( Cached<line_t> line );
 
 int EV_DoGenCeiling
-( const line_t* line );
+( Cached<line_t> line );
 
 int EV_DoGenLift
-( const line_t* line );
+( Cached<line_t> line );
 
 int EV_DoGenStairs
-( const line_t* line );
+( Cached<line_t> line );
 
 int EV_DoGenCrusher
-( const line_t* line );
+( Cached<line_t> line );
 
 int EV_DoGenDoor
-( const line_t* line );
+( Cached<line_t> line );
 
 int EV_DoGenLockedDoor
-( const line_t* line );
+( Cached<line_t> line );
 
 ////////////////////////////////////////////////////////////////
 //
@@ -1069,14 +1070,14 @@ void P_UpdateSpecials
 // when needed
 boolean P_UseSpecialLine
 ( mobj_t* thing,
-  const line_t* line,
+  Cached<line_t> line,
   int   side );
 
 void P_ShootSpecialLine
 ( mobj_t* thing,
-  const line_t* line );
+  Cached<line_t> line );
 
-void P_CrossSpecialLine(const line_t *line, int side, mobj_t *thing);
+void P_CrossSpecialLine(Cached<line_t> line, int side, mobj_t *thing);
 
 void P_PlayerInSpecialSector
 ( player_t* player );
@@ -1132,6 +1133,6 @@ void P_AddActiveCeiling
 ( ceiling_t* c );
 
 int P_ActivateInStasisCeiling
-( const line_t* line );
+( Cached<line_t> line );
 
 #endif

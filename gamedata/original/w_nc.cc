@@ -1,6 +1,10 @@
 #include "../newcache/newcache.h"
 #include "../include/annontations.h"
 
+#include <map>
+
+std::map <int,const uint8_t *>tempptrs;
+
 const void * W_CacheLumpNum(int lumpnum);
 int W_LumpLength(int lumpnum);
 int W_GetNumForName (const char* name);
@@ -12,6 +16,8 @@ void ExtractFileBase(const char* path, char* dest);
 // Simple wrappers mapping to W_ functions in the newcache namespace
 const uint8_t * NC_CacheLumpNum(int lumpnum)
 {
+    if (tempptrs.count(lumpnum) > 0) return tempptrs[lumpnum];
+    
     if (lumpnum == STBAR_LUMP_NUM){
         return (const uint8_t *)gfx_stbar; // Violent hack !
     }
@@ -55,4 +61,16 @@ const uint8_t* NC_Pin(int lumpnum)
 void NC_Unpin(int lumpnum UNUSED)
 {
     // No-op for this simple cache
+}
+
+int NC_Register(const uint8_t * ptr) {
+    int lumpnum = -2;
+    // Find next unused lumpnum
+    for (; tempptrs.count(lumpnum)>0; lumpnum--);
+    tempptrs[lumpnum]=ptr;
+    return lumpnum;
+}
+
+void NC_Unregister(int lumpnum) {
+    tempptrs.erase(lumpnum);
 }

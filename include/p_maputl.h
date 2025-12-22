@@ -63,7 +63,7 @@ typedef struct {
   union
   {
     mobj_t* thing;
-    const line_t* line;
+    Cached<line_t> line;
   } d;
 } intercept_t;
 
@@ -78,15 +78,15 @@ typedef struct {
 typedef boolean (*traverser_t)(intercept_t *in);
 
 fixed_t CONSTFUNC P_AproxDistance (fixed_t dx, fixed_t dy);
-int     P_PointOnLineSide (fixed_t x, fixed_t y, const line_t *line);
-int     P_BoxOnLineSide (const fixed_t *tmbox, const line_t *ld);
+int     P_PointOnLineSide (fixed_t x, fixed_t y, Cached<line_t> line);
+int     P_BoxOnLineSide (const fixed_t *tmbox, Cached<line_t> ld);
 /* cph - old compatibility version below */
 fixed_t P_InterceptVector2(const divline_t *v2, const divline_t *v1);
 
-void    P_LineOpening (const line_t *linedef);
+void    P_LineOpening (Cached<line_t> linedef);
 void    P_UnsetThingPosition(mobj_t *thing);
 void    P_SetThingPosition(mobj_t *thing);
-boolean P_BlockLinesIterator (int x, int y, boolean func(const line_t *));
+boolean P_BlockLinesIterator (int x, int y, boolean func(Cached<line_t>));
 boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t *));
 boolean P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
                        int flags, boolean trav(intercept_t *));

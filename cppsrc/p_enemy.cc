@@ -106,8 +106,7 @@ static void P_RecursiveSound(sector_t *sec, int soundblocks,
       if (!(check->flags & ML_TWOSIDED))
         continue;
 
-      auto pinned_check = check.pin();
-      P_LineOpening(pinned_check);
+      P_LineOpening(check);
 
       if (_g->openrange <= 0)
         continue;       // closed door
@@ -356,7 +355,7 @@ static boolean P_Move(mobj_t *actor, boolean dropoff) /* killough 9/12/98 */
 
       for (good = false; _g->numspechit--; )
         if (P_UseSpecialLine(actor, _g->spechit[_g->numspechit], 0))
-    good |= _g->spechit[_g->numspechit] == _g->blockline ? 1 : 2;
+    good |= _g->spechit[_g->numspechit]->lineno == _g->blockline->lineno ? 1 : 2;
 
       /* cph - compatibility maze here
        * Boom v2.01 and orig. Doom return "good"
@@ -510,7 +509,7 @@ static void P_DoNewChaseDir(mobj_t *actor, fixed_t deltax, fixed_t deltay)
 // monsters to free themselves without making them tend to
 // hang over dropoffs.
 
-static boolean PIT_AvoidDropoff(const line_t *line)
+static boolean PIT_AvoidDropoff(Cached<line_t> line)
 {
   if (LN_BACKSECTOR(line)                          && // Ignore one-sided linedefs
       _g->tmbbox[BOXRIGHT]  > line->bbox[BOXLEFT]   &&
@@ -711,7 +710,8 @@ void A_KeenDie(mobj_t* mo)
       }
 
   junk.tag = 666;
-  EV_DoDoor(&junk,dopen);
+  auto cjunk = Cached<line_t>(&junk);
+  EV_DoDoor(cjunk,dopen);
 }
 
 
@@ -1846,7 +1846,8 @@ void A_BossDeath(mobj_t *mo)
             if (mo->type == MT_BABY)
             {
                 junk.tag = 667;
-                EV_DoFloor(&junk,raiseToTexture);
+                auto cjunk = Cached<line_t>(&junk);
+                EV_DoFloor(cjunk,raiseToTexture);
                 return;
             }
         }

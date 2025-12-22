@@ -680,7 +680,7 @@ sector_t *P_FindModelCeilingSector(fixed_t ceildestheight,int secnum)
 //
 // RETURN NEXT SECTOR # THAT LINE TAG REFERS TO
 //
-int P_FindSectorFromLineTag(const line_t* line, int start)
+int P_FindSectorFromLineTag(Cached<line_t> line, int start)
 {
     int	i;
 
@@ -696,7 +696,7 @@ int P_FindSectorFromLineTag(const line_t* line, int start)
 
 // killough 4/16/98: Same thing, only for linedefs
 
-int P_FindLineFromLineTag(const line_t *line, int start)
+int P_FindLineFromLineTag(Cached<line_t> line, int start)
 {
 
     int	i;
@@ -760,7 +760,7 @@ int P_FindMinSurroundingLight
 //  generalized locked doors
 //
 boolean P_CanUnlockGenDoor
-( const line_t* line,
+( Cached<line_t> line,
   player_t* player)
 {
   // does this line special distinguish between skulls and keys?
@@ -936,7 +936,7 @@ boolean PUREFUNC P_SectorActive(special_e t, const sector_t *sec)
 //
 // jff 2/27/98 Added to check for zero tag allowed for regular special types
 //
-int P_CheckTag(const line_t *line)
+int P_CheckTag(Cached<line_t> line)
 {
   /* tag not zero, allowed, or
    * killough 11/98: compatibility option */
@@ -1057,7 +1057,7 @@ boolean PUREFUNC P_WasSecret(const sector_t *sec)
 //  crossed. Change is qualified by demo_compatibility.
 //
 // CPhipps - take a line_t pointer instead of a line number, as in MBF
-void P_CrossSpecialLine(const line_t *line, int side, mobj_t *thing)
+void P_CrossSpecialLine(Cached<line_t> line, int side, mobj_t *thing)
 {
   int         ok;
 
@@ -1082,7 +1082,7 @@ void P_CrossSpecialLine(const line_t *line, int side, mobj_t *thing)
 
     // pointer to line function is NULL by default, set non-null if
     // line special is walkover generalized linedef type
-    int (*linefunc)(const line_t *line)=NULL;
+    int (*linefunc)(Cached<line_t> line)=NULL;
 
     // check each range of generalized linedefs
     if ((unsigned)LN_SPECIAL(line) >= GenEnd)
@@ -1940,11 +1940,11 @@ void P_CrossSpecialLine(const line_t *line, int side, mobj_t *thing)
 //
 void P_ShootSpecialLine
 ( mobj_t*       thing,
-  const line_t*       line )
+  Cached<line_t>       line )
 {
     // pointer to line function is NULL by default, set non-null if
     // line special is gun triggered generalized linedef type
-    int (*linefunc)(const line_t *line)=NULL;
+    int (*linefunc)(Cached<line_t> line)=NULL;
 
     // check each range of generalized linedefs
     if ((unsigned)LN_SPECIAL(line) >= GenEnd)

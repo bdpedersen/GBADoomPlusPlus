@@ -120,7 +120,7 @@ boolean P_TeleportMove (mobj_t* thing,fixed_t x,fixed_t y, boolean boss)
   _g->tmbbox[BOXLEFT] = x - _g->tmthing->radius;
 
   newsubsec = R_PointInSubsector (x,y);
-  _g->ceilingline = NULL;
+  _g->ceilingline = Cached<line_t>();
 
   // The base floor/ceiling is from the subsector
   // that contains the point.
@@ -190,7 +190,7 @@ boolean P_TeleportMove (mobj_t* thing,fixed_t x,fixed_t y, boolean boss)
 //
 
 static // killough 3/26/98: make static
-boolean PIT_CrossLine (const line_t* ld)
+boolean PIT_CrossLine (Cached<line_t> ld)
   {
   if (!(ld->flags & ML_TWOSIDED) ||
       (ld->flags & (ML_BLOCKING|ML_BLOCKMONSTERS)))
@@ -208,7 +208,7 @@ boolean PIT_CrossLine (const line_t* ld)
  * assuming NO movement occurs -- used to avoid sticky situations.
  */
 
-static int untouched(const line_t *ld)
+static int untouched(Cached<line_t> ld)
 {
   fixed_t x, y, tmbbox[4];
   return
@@ -225,7 +225,7 @@ static int untouched(const line_t *ld)
 //
 
 static // killough 3/26/98: make static
-boolean PIT_CheckLine (const line_t* ld)
+boolean PIT_CheckLine (Cached<line_t> ld)
 {
   if (_g->tmbbox[BOXRIGHT] <= ld->bbox[BOXLEFT]
    || _g->tmbbox[BOXLEFT] >= ld->bbox[BOXRIGHT]
@@ -523,7 +523,7 @@ boolean P_CheckPosition (mobj_t* thing,fixed_t x,fixed_t y)
   _g->tmbbox[BOXLEFT] = x - _g->tmthing->radius;
 
   newsubsec = R_PointInSubsector (x,y);
-  _g->floorline = _g->blockline = _g->ceilingline = NULL; // killough 8/1/98
+  _g->floorline = _g->blockline = _g->ceilingline = Cached<line_t>(); // killough 8/1/98
 
   // Whether object can get out of a sticky situation:
   _g->tmunstuck = P_MobjIsPlayer(thing) &&          /* only players */
@@ -604,8 +604,8 @@ boolean P_TryMove(mobj_t* thing,fixed_t x,fixed_t y,
                 (!(thing->flags & MF_TELEPORT) &&
                  _g->tmfloorz - thing->z > 24*FRACUNIT))
             return _g->tmunstuck
-                    && !(_g->ceilingline && untouched(_g->ceilingline))
-                    && !(  _g->floorline && untouched(  _g->floorline));
+                    && !(_g->ceilingline.isvalid() && untouched(_g->ceilingline))
+                    && !(  _g->floorline.isvalid() && untouched(  _g->floorline));
 
         /* killough 3/15/98: Allow certain objects to drop off
        * killough 7/24/98, 8/1/98:
@@ -720,7 +720,7 @@ boolean P_ThingHeightClip (mobj_t* thing)
 // If the floor is icy, then you can bounce off a wall.             // phares
 //
 
-void P_HitSlideLine (const line_t* ld)
+void P_HitSlideLine (Cached<line_t> ld)
 {
     int     side;
     angle_t lineangle;
@@ -792,7 +792,7 @@ void P_HitSlideLine (const line_t* ld)
 
 boolean PTR_SlideTraverse (intercept_t* in)
   {
-  const line_t* li;
+  Cached<line_t> li;
 
   if (!in->isaline)
     I_Error ("PTR_SlideTraverse: not a line?");
@@ -967,7 +967,7 @@ void P_SlideMove(mobj_t *mo)
 //
 boolean PTR_AimTraverse (intercept_t* in)
 {
-    const line_t* li;
+    Cached<line_t> li;
     mobj_t* th;
     fixed_t slope;
     fixed_t thingtopslope;
@@ -1075,7 +1075,7 @@ boolean PTR_ShootTraverse (intercept_t* in)
 
   if (in->isaline)
     {
-    const line_t *li = in->d.line;
+    auto li = in->d.line;
 
     if (LN_SPECIAL(li))
       P_ShootSpecialLine (_g->shootthing, li);
@@ -1293,7 +1293,7 @@ boolean PTR_UseTraverse (intercept_t* in)
 
 boolean PTR_NoWayTraverse(intercept_t* in)
   {
-  const line_t *ld = in->d.line;
+  auto ld = in->d.line;
                                            // This linedef
   return LN_SPECIAL(ld) || !(                 // Ignore specials
    ld->flags & ML_BLOCKING || (            // Always blocking
@@ -1675,7 +1675,7 @@ void P_DelSeclist(msecnode_t* node)
 // at this location, so don't bother with checking impassable or
 // blocking lines.
 
-boolean PIT_GetSectors(const line_t* ld)
+boolean PIT_GetSectors(Cached<line_t> ld)
   {
   if (_g->tmbbox[BOXRIGHT]  <= ld->bbox[BOXLEFT]   ||
       _g->tmbbox[BOXLEFT]   >= ld->bbox[BOXRIGHT]  ||

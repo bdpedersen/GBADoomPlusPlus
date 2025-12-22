@@ -48,6 +48,8 @@ void NC_Init(void);
 void NC_ExtractFileBase(const char* path, char* dest);
 const uint8_t* NC_Pin(int lumpnum);
 void NC_Unpin(int lumpnum);
+int NC_Register(const uint8_t* pointer);
+void NC_Unregister(int lumpnum);
 
 // WAD parser types
 typedef struct
@@ -187,6 +189,10 @@ class Cached {
         Cached(short lumpnum) : lumpnum(lumpnum), byteoffset(0) {}
         Cached(short lumpnum, int offset) : lumpnum(lumpnum), byteoffset(offset) {}
         Cached(const char* name) : lumpnum(NC_GetNumForName(name)), byteoffset(0) {}
+        Cached(T* data) : lumpnum(NC_Register((const uint8_t *)data)), byteoffset(0) {}
+        ~Cached() {
+            NC_Unregister(lumpnum);
+        }
 
         const Sentinel<T> operator->() const {
             

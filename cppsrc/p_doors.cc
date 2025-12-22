@@ -280,7 +280,7 @@ void T_VerticalDoor (vldoor_t* door)
 // Returns true if a thinker created
 //
 int EV_DoLockedDoor
-( const line_t* line,
+( Cached<line_t> line,
   vldoor_e  type,
   mobj_t* thing )
 {
@@ -340,7 +340,7 @@ int EV_DoLockedDoor
 // Returns true if a thinker created
 //
 int EV_DoDoor
-( const line_t* line,
+( Cached<line_t> line,
   vldoor_e  type )
 {
   int   secnum,rtn;
@@ -435,7 +435,7 @@ int EV_DoDoor
 // jff 2/12/98 added int return value, fixed all returns
 //
 int EV_VerticalDoor
-( const line_t* line,
+( Cached<line_t> line,
   mobj_t* thing )
 {
   player_t* player;
@@ -655,7 +655,7 @@ void P_SpawnDoorCloseIn30 (sector_t* sec)
   door->type = normal;
   door->speed = VDOORSPEED;
   door->topcountdown = 30 * 35;
-  door->line = NULL; // jff 1/31/98 remember line that triggered us
+  door->line = Cached<line_t>(); // jff 1/31/98 remember line that triggered us
   door->lighttag = 0; /* killough 10/98: no lighting changes */
 }
 
@@ -690,6 +690,6 @@ void P_SpawnDoorRaiseIn5Mins
   door->topheight -= 4*FRACUNIT;
   door->topwait = VDOORWAIT;
   door->topcountdown = 5 * 60 * 35;
-  door->line = NULL; // jff 1/31/98 remember line that triggered us
+  door->line = Cached<line_t>(); // jff 1/31/98 remember line that triggered us
   door->lighttag = 0; /* killough 10/98: no lighting changes */
 }

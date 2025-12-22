@@ -153,7 +153,7 @@ void P_XYMovement (mobj_t* mo)
                 {
                     // explode a missile
 
-                    if (_g->ceilingline)
+                    if (_g->ceilingline.isvalid())
                     {
                         const sector_t* ceilingBackSector = LN_BACKSECTOR(_g->ceilingline);
 

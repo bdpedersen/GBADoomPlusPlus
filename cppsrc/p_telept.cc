@@ -44,7 +44,7 @@
 
 #include "global_data.h"
 
-static mobj_t* P_TeleportDestination(const line_t* line)
+static mobj_t* P_TeleportDestination(Cached<line_t> line)
 {
   int i;
   for (i = -1; (i = P_FindSectorFromLineTag(line, i)) >= 0;) {
@@ -64,7 +64,7 @@ static mobj_t* P_TeleportDestination(const line_t* line)
 //
 // killough 5/3/98: reformatted, cleaned up
 
-int EV_Teleport(const line_t *line, int side, mobj_t *thing)
+int EV_Teleport(Cached<line_t> line, int side, mobj_t *thing)
 {
   mobj_t    *m;
 
@@ -130,7 +130,7 @@ int EV_Teleport(const line_t *line, int side, mobj_t *thing)
 // Primarily for rooms-over-rooms etc.
 //
 
-int EV_SilentTeleport(const line_t *line, int side, mobj_t *thing)
+int EV_SilentTeleport(Cached<line_t> line, int side, mobj_t *thing)
 {
   mobj_t    *m;
 
@@ -212,7 +212,7 @@ int EV_SilentTeleport(const line_t *line, int side, mobj_t *thing)
 // maximum fixed_t units to move object to avoid hiccups
 #define FUDGEFACTOR 10
 
-int EV_SilentLineTeleport(const line_t *line, int side, mobj_t *thing,
+int EV_SilentLineTeleport(Cached<line_t> line, int side, mobj_t *thing,
                           boolean reverse)
 {
   int i;
@@ -285,9 +285,8 @@ int EV_SilentLineTeleport(const line_t *line, int side, mobj_t *thing,
 
         int side = reverse || (player && stepdown);
 
-        auto pinned_l = l.pin();
         // Make sure we are on correct side of exit linedef.
-        while (P_PointOnLineSide(x, y, pinned_l) != side && --fudge>=0)
+        while (P_PointOnLineSide(x, y, l) != side && --fudge>=0)
           if (D_abs(l->dx) > D_abs(l->dy))
             y -= l->dx < 0 != side ? -1 : 1;
           else
