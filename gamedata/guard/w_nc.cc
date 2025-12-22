@@ -97,7 +97,6 @@ const uint8_t * NC_Pin(int lumpnum)
 
     if (pincount.count(lumpnum)){
         pincount[lumpnum]+=1;
-        printf("\nRepinning lump %d, pincount now: %d\n",lumpnum,pincount[lumpnum]);
         return pinned_allocations[lumpnum];
     }
 
@@ -126,7 +125,7 @@ void NC_Unpin(int lumpnum)
     if (--pincount[lumpnum]) return; // Nested pin - not time to unpin yet
 
     // If the pinned allocation is not the cached one, free it
-    if (cachedlump != lumpnum){
+    if (cachedlump != lumpnum && lumpnum > -2){
         GFREE((void *)pinned_allocations[lumpnum]);
     }
 
@@ -144,6 +143,7 @@ int NC_Register(const uint8_t *ptr) {
 }
 
 void NC_Unregister(int lumpnum) {
+    if (lumpnum > -2) return;
     pinned_allocations.erase(lumpnum);
     pincount.erase(lumpnum);
 }
