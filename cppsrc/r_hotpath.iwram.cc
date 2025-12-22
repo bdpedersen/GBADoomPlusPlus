@@ -162,7 +162,7 @@ static byte solidcol[MAX_SCREENWIDTH];
 static byte spanstart[MAX_SCREENHEIGHT];                // killough 2/8/98
 
 
-static const seg_t     *curline;
+static Cached<seg_t>     curline;
 static side_t    *sidedef;
 Cached<line_t> linedef;
 static sector_t  *frontsector;
@@ -487,7 +487,7 @@ CachedBuffer<lighttable_t> R_ColourMap(int lightlevel)
         return fixedcolormap;
     else
     {
-        if (curline)
+        if (curline.isvalid())
         {
             if (curline->v1.y == curline->v2.y)
                 lightlevel -= 1 << LIGHTSEGSHIFT;
@@ -994,13 +994,13 @@ static void R_RenderMaskedSegRange(const drawseg_t *ds, int x1, int x2)
         }
     }
 
-    curline = NULL; /* cph 2001/11/18 - must clear curline now we're done with it, so R_ColourMap doesn't try using it for other things */
+    curline = Cached<seg_t>(); /* cph 2001/11/18 - must clear curline now we're done with it, so R_ColourMap doesn't try using it for other things */
 }
 
 
 // killough 5/2/98: reformatted
 
-static PUREFUNC int R_PointOnSegSide(fixed_t x, fixed_t y, const seg_t *line)
+static PUREFUNC int R_PointOnSegSide(fixed_t x, fixed_t y, Cached<seg_t> line)
 {
     const fixed_t lx = line->v1.x;
     const fixed_t ly = line->v1.y;
@@ -2568,7 +2568,7 @@ static void R_ClipWallSegment(int first, int last, boolean solid)
 // and adds any visible pieces to the line list.
 //
 
-static void R_AddLine (const seg_t *line)
+static void R_AddLine (Cached<seg_t> line)
 {
     int      x1;
     int      x2;
@@ -2695,10 +2695,10 @@ static void R_Subsector(int num)
     R_AddSprites(sub, frontsector->lightlevel);
     while (count--)
     {
-        auto pinnedline = line.pin();
-        R_AddLine (pinnedline);
+        // TODO: Line is stolen further down, so we need to fix this
+        R_AddLine (line);
         line++;
-        curline = NULL; /* cph 2001/11/18 - must clear curline now we're done with it, so R_ColourMap doesn't try using it for other things */
+        curline = Cached<seg_t>(); /* cph 2001/11/18 - must clear curline now we're done with it, so R_ColourMap doesn't try using it for other things */
     }
 }
 

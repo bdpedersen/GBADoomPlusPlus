@@ -304,7 +304,7 @@ typedef byte  lighttable_t;
 
 typedef struct drawseg_s
 {
-  const seg_t *curline;
+  Cached<seg_t> curline;
   short x1, x2;
   fixed_t scale1, scale2, scalestep;
   int silhouette;                       // 0=none, 1=bottom, 2=top, 3=both

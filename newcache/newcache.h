@@ -214,6 +214,10 @@ class Cached {
             byteoffset += sizeof(T);
             return old;
         }   
+
+        bool isvalid() {
+            return lumpnum != -1;
+        }
     private:
         const char * base() const {
             // TODO: Address this by pemanently pinning an entry in the cache for this
