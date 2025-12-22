@@ -1,10 +1,67 @@
 #ifndef __NEWCACHE_H__
 #define __NEWCACHE_H__  
 
-const void * W_CacheLumpNum(int lumpnum);
-int W_LumpLength(int lumpnum);
-int W_GetNumForName (const char* name);
-int W_CheckNumForName(const char *name);
+ /* Emacs style mode select   -*- C++ -*-
+ *-----------------------------------------------------------------------------
+ *
+ *
+ *  PrBoom: a Doom port merged with LxDoom and LSDLDoom
+ *  based on BOOM, a modified and improved DOOM engine
+ *  Copyright (C) 1999 by
+ *  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+ *  Copyright (C) 1999-2000 by
+ *  Jess Haas, Nicolas Kalkhof, Colin Phipps, Florian Schulze
+ *  Copyright 2005, 2006 by
+ *  Florian Schulze, Colin Phipps, Neil Stevens, Andrey Budko
+ *  Copyright 2025 by
+ *  Brian Dam Pedersen
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  as published by the Free Software Foundation; either version 2
+ *  of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ *  02111-1307, USA.
+ *
+ * DESCRIPTION:
+ *      New caching system interface. Portions from original w_wad.h
+ *
+ *-----------------------------------------------------------------------------*/
+
+#include <stdint.h>
+
+
+const void * NC_CacheLumpNum(int lumpnum);
+int NC_GetNumForName (const char* name);
+int NC_CheckNumForName(const char *name);
+const char* NC_GetNameForNum(int lump);
+int NC_LumpLength(int lumpnum);
+void NC_Init(void);
+void NC_ExtractFileBase(const char* path, char* dest);
+
+// WAD parser types
+typedef struct
+{
+  char identification[4];                  // Should be "IWAD" or "PWAD".
+  int  numlumps;
+  int  infotableofs;
+} wadinfo_t;
+
+typedef struct
+{
+  int  filepos;
+  int  size;
+  char name[8];
+} filelump_t;
+
 
 template <typename T>
 class Cached;
@@ -41,14 +98,14 @@ class CachedBuffer {
         CachedBuffer() : lumpnum(-1), _byteoffset(0) {}
         CachedBuffer(short lumpnum) : lumpnum(lumpnum), _byteoffset(0) {} 
         CachedBuffer(short lumpnum, unsigned int byteoffset) : lumpnum(lumpnum), _byteoffset(byteoffset) {}
-        CachedBuffer(const char* name) : lumpnum(W_GetNumForName(name)), _byteoffset(0) {}
+        CachedBuffer(const char* name) : lumpnum(NC_GetNumForName(name)), _byteoffset(0) {}
 
         const Cached<T> operator[](int index) const {
             return Cached<T>(lumpnum, _byteoffset+index*sizeof(T));
         }
         
         int size() const {
-            return (W_LumpLength(lumpnum)-_byteoffset) / sizeof(T);
+            return (NC_LumpLength(lumpnum)-_byteoffset) / sizeof(T);
         }
 
         template <typename U>
@@ -93,7 +150,7 @@ class CachedBuffer {
 
     private:
         const char * base() const {
-            return (const char *)W_CacheLumpNum(lumpnum);
+            return (const char *)NC_CacheLumpNum(lumpnum);
         }
 
         short lumpnum;
@@ -123,7 +180,7 @@ class Cached {
         Cached() : lumpnum(-1), byteoffset(0) {}
         Cached(short lumpnum) : lumpnum(lumpnum), byteoffset(0) {}
         Cached(short lumpnum, int offset) : lumpnum(lumpnum), byteoffset(offset) {}
-        Cached(const char* name) : lumpnum(W_GetNumForName(name)), byteoffset(0) {}
+        Cached(const char* name) : lumpnum(NC_GetNumForName(name)), byteoffset(0) {}
 
         const Sentinel<T> operator->() const {
             
@@ -143,8 +200,8 @@ class Cached {
             return Cached<U>(lumpnum, byteoffset+extrabyteoffset);
         }
 
-        CachedBuffer<byte> bytebuffer() {
-            return CachedBuffer<byte>(lumpnum,byteoffset);
+        CachedBuffer<uint8_t> bytebuffer() {
+            return CachedBuffer<uint8_t>(lumpnum,byteoffset);
         }
         Cached operator++(int) {
             Cached<T> old = *this;
@@ -157,7 +214,7 @@ class Cached {
             if (lumpnum == STBAR_LUMP_NUM){
                 return (const char *)gfx_stbar; // Violent hack !
             }
-            return (const char *)W_CacheLumpNum(lumpnum);
+            return (const char *)NC_CacheLumpNum(lumpnum);
         }
         short lumpnum;
         unsigned int byteoffset;

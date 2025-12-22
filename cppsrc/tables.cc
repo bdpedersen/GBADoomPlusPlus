@@ -50,7 +50,7 @@
 #endif
 
 #include <stddef.h>
-#include "w_wad.h"
+
 #include "tables.h"
 
 

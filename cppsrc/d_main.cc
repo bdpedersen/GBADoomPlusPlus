@@ -48,7 +48,7 @@
 #include "dstrings.h"
 #include "sounds.h"
 #include "z_zone.h"
-#include "w_wad.h"
+
 #include "s_sound.h"
 #include "v_video.h"
 #include "f_finale.h"
@@ -361,7 +361,7 @@ void D_AdvanceDemo (void)
 
 static void D_SetPageName(const char *name)
 {
-    _g->pagelump = W_GetNumForName(name);
+    _g->pagelump = NC_GetNumForName(name);
 }
 
 static void D_DrawTitle1(const char *name)
@@ -687,8 +687,8 @@ static void D_DoomMainSetup(void)
     D_InitNetGame();
 
     //jff 9/3/98 use logical output routine
-    lprintf(LO_INFO,"W_Init: Init WADfiles.");
-    W_Init(); // CPhipps - handling of wadfiles init changed
+    lprintf(LO_INFO,"NC_Init: Init WADfiles.");
+    NC_Init(); // CPhipps - handling of wadfiles init changed
 
     //jff 9/3/98 use logical output routine
     lprintf(LO_INFO,"M_Init: Init misc info.");
@@ -774,7 +774,7 @@ void GetFirstMap(int *ep, int *map)
             for (i=1;!done && i<33;i++)  // Ty 09/13/98 - add use of !done
             {
                 snprintf(test,sizeof(test),"MAP%02d",i);
-                ix = W_CheckNumForName(test);
+                ix = NC_CheckNumForName(test);
                 if (ix != -1)  // Ty 10/04/98 avoid -1 subscript
                 {
                         if (!*name)  // found one, not pwad.  First default.
@@ -790,7 +790,7 @@ void GetFirstMap(int *ep, int *map)
                 for (j=1;!done && j<10;j++)  // Ty 09/13/98 - add use of !done
                 {
                     snprintf(test,sizeof(test),"E%dM%d",i,j);
-                    ix = W_CheckNumForName(test);
+                    ix = NC_CheckNumForName(test);
                     if (ix != -1)  // Ty 10/04/98 avoid -1 subscript
                     {
 

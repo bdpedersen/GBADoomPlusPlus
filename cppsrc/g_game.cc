@@ -57,7 +57,7 @@
 #include "hu_stuff.h"
 #include "st_stuff.h"
 #include "am_map.h"
-#include "w_wad.h"
+
 #include "r_main.h"
 #include "r_draw.h"
 #include "p_map.h"
@@ -1381,11 +1381,11 @@ void G_DoPlayDemo(void)
 {
     char basename[9];
 
-    ExtractFileBase(defdemoname,basename);           // killough
+    NC_ExtractFileBase(defdemoname,basename);           // killough
     basename[8] = 0;
 
     /* cph - store lump number for unlocking later */
-    demolumpnum = W_GetNumForName(basename);
+    demolumpnum = NC_GetNumForName(basename);
     _g->demobuffer = CachedBuffer<byte>(demolumpnum);
     _g->demolength = _g->demobuffer.size();
     _g->demo_p = G_ReadDemoHeader(_g->demobuffer, _g->demolength, true);

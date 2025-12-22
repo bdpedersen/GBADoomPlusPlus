@@ -30,7 +30,7 @@
 
 #include "z_zone.h"
 #include "doomstat.h"
-#include "w_wad.h"
+
 #include "r_main.h"
 #include "r_sky.h"
 #include "r_things.h"

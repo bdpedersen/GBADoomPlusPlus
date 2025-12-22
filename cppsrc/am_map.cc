@@ -41,7 +41,7 @@
 #include "r_main.h"
 #include "p_setup.h"
 #include "p_maputl.h"
-#include "w_wad.h"
+
 #include "v_video.h"
 #include "p_spec.h"
 #include "am_map.h"

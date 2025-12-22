@@ -47,7 +47,7 @@
 #include "m_swap.h"
 #include "i_sound.h"
 #include "m_misc.h"
-#include "w_wad.h"
+
 #include "lprintf.h"
 #include "s_sound.h"
 

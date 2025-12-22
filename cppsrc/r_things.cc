@@ -32,7 +32,7 @@
  *-----------------------------------------------------------------------------*/
 
 #include "doomstat.h"
-#include "w_wad.h"
+
 #include "r_main.h"
 #include "r_segs.h"
 #include "r_draw.h"
@@ -164,7 +164,7 @@ static void R_InitSpriteDefs(const char * const * namelist)
 
   for (i=0; (size_t)i<numentries; i++)             // Prepend each sprite to hash chain
     {                                      // prepend so that later ones win
-      const char* sn = W_GetNameForNum(i+_g->firstspritelump);
+      const char* sn = NC_GetNameForNum(i+_g->firstspritelump);
 
       int j = R_SpriteNameHash(sn) % numentries;
       hash[i].next = hash[j].index;
@@ -185,7 +185,7 @@ static void R_InitSpriteDefs(const char * const * namelist)
           _g->maxframe = -1;
           do
             {
-              const char* sn = W_GetNameForNum(j + _g->firstspritelump);
+              const char* sn = NC_GetNameForNum(j + _g->firstspritelump);
 
               // Fast portable comparison -- killough
               // (using int pointer cast is nonportable):

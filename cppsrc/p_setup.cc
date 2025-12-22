@@ -37,7 +37,7 @@
 #include "doomstat.h"
 #include "m_bbox.h"
 #include "g_game.h"
-#include "w_wad.h"
+
 #include "r_main.h"
 #include "r_things.h"
 #include "p_maputl.h"
@@ -61,11 +61,9 @@
 static void P_LoadVertexes (int lump)
 {
   // Determine number of lumps:
-  //  total lump length / vertex record length.
-  _g->numvertexes = W_LumpLength(lump) / sizeof(vertex_t);
-
   // Allocate zone memory for buffer.
   _g->vertexes = CachedBuffer<vertex_t>(lump);
+  _g->numvertexes = _g->vertexes.size();
 
 }
 
@@ -118,7 +116,8 @@ static void P_LoadSectors (int lump)
 {
   int  i;
 
-  _g->numsectors = W_LumpLength (lump) / sizeof(mapsector_t);
+  auto sectors = CachedBuffer<mapsector_t>(lump);
+  _g->numsectors = sectors.size();
   _g->sectors = (sector_t *)Z_Calloc (_g->numsectors,sizeof(sector_t),PU_LEVEL,0);
   auto databuffer = CachedBuffer<byte>(lump); // cph - wad lump handling updated
   auto pinneddata = databuffer.pin();
@@ -254,7 +253,8 @@ static void P_LoadLineDefs2(int lump UNUSED)
 
 static void P_LoadSideDefs (int lump)
 {
-  _g->numsides = W_LumpLength(lump) / sizeof(mapsidedef_t);
+  auto sides = CachedBuffer<mapsidedef_t>(lump); 
+  _g->numsides = sides.size();
   _g->sides = (side_t *)Z_Calloc(_g->numsides,sizeof(side_t),PU_LEVEL,0);
 }
 
@@ -510,7 +510,7 @@ void P_SetupLevel(int episode, int map, int playermask UNUSED, skill_t skill UNU
         snprintf(lumpname, sizeof(lumpname)-1, "E%dM%d", episode, map);   // killough 1/24/98: simplify
     }
 
-    lumpnum = W_GetNumForName(lumpname);
+    lumpnum = NC_GetNumForName(lumpname);
 
     _g->leveltime = 0; _g->totallive = 0;
 

@@ -43,7 +43,7 @@
 #include "dstrings.h"
 #include "d_main.h"
 #include "v_video.h"
-#include "w_wad.h"
+
 #include "r_main.h"
 #include "hu_stuff.h"
 #include "g_game.h"
@@ -1182,7 +1182,7 @@ void M_DrawThermo(int x,int y,int thermWidth,int thermDot )
     horizScaler = (thermWidth > 23) ? (200 / thermWidth) : 8; //Dynamic range
     xx = x;
 
-    int thermm_lump = W_GetNumForName("M_THERMM");
+    int thermm_lump = NC_GetNumForName("M_THERMM");
 
     V_DrawNamePatch(xx, y, 0, "M_THERML", CR_DEFAULT, VPT_STRETCH);
 

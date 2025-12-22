@@ -44,7 +44,7 @@
 #include "d_main.h"
 #include "r_main.h"
 #include "m_random.h"
-#include "w_wad.h"
+
 #include "lprintf.h"
 
 #include "global_data.h"

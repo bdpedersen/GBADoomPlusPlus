@@ -35,7 +35,7 @@
 // Size query funcs
 int R_NumPatchWidth(int lump) ;
 int R_NumPatchHeight(int lump);
-#define R_NamePatchWidth(name) R_NumPatchWidth(W_GetNumForName(name))
-#define R_NamePatchHeight(name) R_NumPatchHeight(W_GetNumForName(name))
+#define R_NamePatchWidth(name) R_NumPatchWidth(NC_GetNumForName(name))
+#define R_NamePatchHeight(name) R_NumPatchHeight(NC_GetNumForName(name))
 
 #endif

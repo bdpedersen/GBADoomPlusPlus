@@ -31,7 +31,7 @@
 
 #include "v_video.h"
 
-#include "w_wad.h"
+
 
 #include "wi_stuff.h"
 

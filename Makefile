@@ -16,6 +16,7 @@ SRCS        := $(CPP_SOURCES)
 # ---- Original Doom Sources --------------------------------------------
 SRCS += gamedata/original/doom_iwad.cc
 SRCS += gamedata/original/w_wad.cc
+SRCS += gamedata/original/w_nc.cc
 vpath %.cc $(SRC_DIR) gamedata/original
 
 

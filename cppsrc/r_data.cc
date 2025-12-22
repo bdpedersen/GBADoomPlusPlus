@@ -33,7 +33,7 @@
  *-----------------------------------------------------------------------------*/
 
 #include "doomstat.h"
-#include "w_wad.h"
+
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_sky.h"
@@ -103,7 +103,7 @@ static const texture_t* R_LoadTexture(int texture_num)
 
     CachedBuffer<int> maptex2, directory2;
 
-    if (W_CheckNumForName("TEXTURE2") != -1)
+    if (NC_CheckNumForName("TEXTURE2") != -1)
     {
         maptex2 = CachedBuffer<int>("TEXTURE2");
         numtextures2 = *maptex2;
@@ -261,7 +261,7 @@ static int R_GetTextureNumForName(const char* tex_name)
     directory1 = maptex1.addOffset(1);
 
 
-    if (W_CheckNumForName("TEXTURE2") != -1)
+    if (NC_CheckNumForName("TEXTURE2") != -1)
     {
         maptex2 = CachedBuffer<int>("TEXTURE2");
         directory2 = maptex2.addOffset(1);
@@ -333,7 +333,7 @@ static void R_InitTextures()
 
     int numtextures2 = 0;
 
-    if (W_CheckNumForName("TEXTURE2") != -1)
+    if (NC_CheckNumForName("TEXTURE2") != -1)
     {
         auto mtex2 = CachedBuffer<int>("TEXTURE2");
         numtextures2 = *mtex2;
@@ -360,8 +360,8 @@ static void R_InitFlats(void)
 {
   int i;
 
-  _g->firstflat = W_GetNumForName("F_START") + 1;
-  int lastflat  = W_GetNumForName("F_END") - 1;
+  _g->firstflat = NC_GetNumForName("F_START") + 1;
+  int lastflat  = NC_GetNumForName("F_END") - 1;
   _g->numflats  = lastflat - _g->firstflat + 1;
 
   // Create translation table for global animation.
@@ -383,8 +383,8 @@ static void R_InitFlats(void)
 //
 static void R_InitSpriteLumps(void)
 {
-  _g->firstspritelump = W_GetNumForName("S_START") + 1;
-  _g->lastspritelump = W_GetNumForName("S_END") - 1;
+  _g->firstspritelump = NC_GetNumForName("S_START") + 1;
+  _g->lastspritelump = NC_GetNumForName("S_END") - 1;
   _g->numspritelumps = _g->lastspritelump - _g->firstspritelump + 1;
 }
 
@@ -393,7 +393,7 @@ static void R_InitSpriteLumps(void)
 //
 void R_InitColormaps (void)
 {
-    int lump = W_GetNumForName("COLORMAP");
+    int lump = NC_GetNumForName("COLORMAP");
     colormaps = CachedBuffer<lighttable_t>(lump);
 }
 
@@ -425,7 +425,7 @@ void R_InitData(void)
 
 int R_FlatNumForName(const char *name)    // killough -- const added
 {
-  int i = W_CheckNumForName(name);
+  int i = NC_CheckNumForName(name);
 
   if (i == -1)
     I_Error("R_FlatNumForName: %.8s not found", name);

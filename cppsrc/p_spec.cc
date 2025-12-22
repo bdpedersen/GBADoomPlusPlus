@@ -45,7 +45,7 @@
 #include "p_setup.h"
 #include "m_random.h"
 #include "d_englsh.h"
-#include "w_wad.h"
+
 #include "r_main.h"
 #include "r_data.h"
 #include "p_maputl.h"
@@ -154,7 +154,7 @@ void P_InitPicAnims (void)
         }
         else
         {
-            if (W_CheckNumForName(animdefs[i].startname) == -1)
+            if (NC_CheckNumForName(animdefs[i].startname) == -1)
                 continue;
 
             _g->lastanim->picnum = R_FlatNumForName (animdefs[i].endname);

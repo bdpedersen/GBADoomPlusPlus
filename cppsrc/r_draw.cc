@@ -34,7 +34,7 @@
  *-----------------------------------------------------------------------------*/
 
 #include "doomstat.h"
-#include "w_wad.h"
+
 #include "r_main.h"
 #include "r_draw.h"
 #include "v_video.h"

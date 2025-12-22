@@ -51,7 +51,7 @@
 #include "z_zone.h"  /* memory allocation wrappers -- killough */
 
 #include "doomstat.h"
-#include "w_wad.h"
+
 #include "r_main.h"
 #include "r_draw.h"
 #include "r_things.h"

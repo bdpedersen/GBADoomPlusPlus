@@ -34,7 +34,7 @@
 
 #include "doomstat.h"
 #include "m_random.h"
-#include "w_wad.h"
+
 #include "g_game.h"
 #include "r_main.h"
 #include "v_video.h"

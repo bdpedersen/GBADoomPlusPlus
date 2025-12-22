@@ -32,7 +32,7 @@
  *-----------------------------------------------------------------------------*/
 
 #include "doomstat.h"
-#include "w_wad.h"
+
 #include "r_main.h"
 #include "p_spec.h"
 #include "g_game.h"

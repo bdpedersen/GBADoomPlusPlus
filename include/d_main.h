@@ -35,7 +35,7 @@
 #define __D_MAIN__
 
 #include "d_event.h"
-#include "w_wad.h"
+
 
 #ifdef __GNUG__
 #pragma interface
