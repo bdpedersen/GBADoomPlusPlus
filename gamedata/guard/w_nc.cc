@@ -1,9 +1,13 @@
 #include "../newcache/newcache.h"
 #include "../guardmalloc/guardmalloc.h"
+#include "../include/r_defs.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <map>
+
+extern unsigned char gfx_stbar[];
+extern line_t junk;
 
 /**
  * This file contains a simple cache that uses guardmalloc to allocate memory and 
@@ -84,6 +88,8 @@ void NC_Init(void)
     W_Init();
     pinned_allocations[STBAR_LUMP_NUM]=gfx_stbar;
     pincount[STBAR_LUMP_NUM]=1;
+    pinned_allocations[JUNK_LUMP_NUM]=(const uint8_t *)&junk;
+    pincount[JUNK_LUMP_NUM]=1;
 }
 
 void NC_ExtractFileBase(const char* path, char* dest)
@@ -133,18 +139,4 @@ void NC_Unpin(int lumpnum)
     pincount.erase(lumpnum);
 }   
 
-int NC_Register(const uint8_t *ptr) {
-    int lumpnum = -2;
-    // Find next unused lumpnum
-    for (; pincount.count(lumpnum)>0; lumpnum--);
-    pinned_allocations[lumpnum]=ptr;
-    pincount[lumpnum]=1;
-    return lumpnum;
-}
-
-void NC_Unregister(int lumpnum) {
-    if (lumpnum > -2) return;
-    pinned_allocations.erase(lumpnum);
-    pincount.erase(lumpnum);
-}
 

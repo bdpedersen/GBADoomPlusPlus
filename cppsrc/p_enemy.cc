@@ -53,7 +53,7 @@
 #include "annontations.h"
 
 const int distfriend = 128;
-
+line_t   junk;
 typedef enum {
   DI_EAST,
   DI_NORTHEAST,
@@ -695,7 +695,7 @@ static boolean P_LookForTargets(mobj_t *actor, int allaround)
 void A_KeenDie(mobj_t* mo)
 {
   thinker_t *th;
-  line_t   junk;
+  
 
   A_Fall(mo);
 
@@ -710,7 +710,7 @@ void A_KeenDie(mobj_t* mo)
       }
 
   junk.tag = 666;
-  auto cjunk = Cached<line_t>(&junk);
+  auto cjunk = Cached<line_t>(JUNK_LUMP_NUM);
   EV_DoDoor(cjunk,dopen);
 }
 
@@ -1750,7 +1750,6 @@ void A_Explode(mobj_t *thingy)
 void A_BossDeath(mobj_t *mo)
 {
     thinker_t *th;
-    line_t    junk;
 
     if (_g->gamemode == commercial)
     {
@@ -1839,14 +1838,15 @@ void A_BossDeath(mobj_t *mo)
             if (mo->type == MT_FATSO)
             {
                 junk.tag = 666;
-                EV_DoFloor(&junk,lowerFloorToLowest);
+                auto cjunk = Cached<line_t>(JUNK_LUMP_NUM);
+                EV_DoFloor(cjunk,lowerFloorToLowest);
                 return;
             }
 
             if (mo->type == MT_BABY)
             {
                 junk.tag = 667;
-                auto cjunk = Cached<line_t>(&junk);
+                auto cjunk = Cached<line_t>(JUNK_LUMP_NUM);
                 EV_DoFloor(cjunk,raiseToTexture);
                 return;
             }
@@ -1857,22 +1857,29 @@ void A_BossDeath(mobj_t *mo)
         switch(_g->gameepisode)
         {
         case 1:
+        {
             junk.tag = 666;
-            EV_DoFloor(&junk, lowerFloorToLowest);
+            auto cjunk = Cached<line_t>(JUNK_LUMP_NUM);  
+            EV_DoFloor(cjunk, lowerFloorToLowest);
             return;
-
+        }
         case 4:
             switch(_g->gamemap)
             {
             case 6:
+            {
                 junk.tag = 666;
-                EV_DoDoor(&junk, blazeOpen);
+                auto cjunk = Cached<line_t>(JUNK_LUMP_NUM);
+                EV_DoDoor(cjunk, blazeOpen);
                 return;
-
+            }
             case 8:
-                junk.tag = 666;
-                EV_DoFloor(&junk, lowerFloorToLowest);
+            {
+                junk.tag = 666;                
+                auto cjunk = Cached<line_t>(JUNK_LUMP_NUM);
+                EV_DoFloor(cjunk, lowerFloorToLowest);
                 return;
+            }
             }
         }
     }

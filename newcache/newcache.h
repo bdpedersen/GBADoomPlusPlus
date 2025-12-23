@@ -38,7 +38,6 @@
 
 #include <stdint.h>
 
-
 const uint8_t * NC_CacheLumpNum(int lumpnum);
 int NC_GetNumForName (const char* name);
 int NC_CheckNumForName(const char *name);
@@ -48,8 +47,6 @@ void NC_Init(void);
 void NC_ExtractFileBase(const char* path, char* dest);
 const uint8_t* NC_Pin(int lumpnum);
 void NC_Unpin(int lumpnum);
-int NC_Register(const uint8_t* pointer);
-void NC_Unregister(int lumpnum);
 
 // WAD parser types
 typedef struct
@@ -71,9 +68,7 @@ template <typename T>
 class Cached;
 
 #define STBAR_LUMP_NUM -2
-
-extern unsigned char gfx_stbar[];
-
+#define JUNK_LUMP_NUM -3
 
 template <typename T>
 class Pinned {
@@ -189,10 +184,6 @@ class Cached {
         Cached(short lumpnum) : lumpnum(lumpnum), byteoffset(0) {}
         Cached(short lumpnum, int offset) : lumpnum(lumpnum), byteoffset(offset) {}
         Cached(const char* name) : lumpnum(NC_GetNumForName(name)), byteoffset(0) {}
-        Cached(T* data) : lumpnum(NC_Register((const uint8_t *)data)), byteoffset(0) {}
-        ~Cached() {
-            NC_Unregister(lumpnum);
-        }
 
         const Sentinel<T> operator->() const {
             
