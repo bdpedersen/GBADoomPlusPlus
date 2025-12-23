@@ -253,6 +253,10 @@ void W_Init(void)
     // CPhipps - start with nothing
 
     W_AddFile();
+
+    const wadinfo_t *header = (const wadinfo_t *)doom_iwad;
+
+    printf("*** Number of lumps in file: %d ***\n",header->numlumps);
 }
 
 //

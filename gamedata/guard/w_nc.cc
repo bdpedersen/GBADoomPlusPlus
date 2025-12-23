@@ -78,14 +78,17 @@ int NC_CheckNumForName(const char *name)
     return W_CheckNumForName(name);
 }
 
-const char* NC_GetNameForNum(int lump)
+const char* NC_GetNameForNum(int lump, char buffer[8])
 {
-    return W_GetNameForNum(lump);
+    const char* name = W_GetNameForNum(lump);
+    strncpy(buffer,name,8);
+    return buffer;
 }
 
 void NC_Init(void)
 {
     W_Init();
+    // Permanently pin lumps that are allocated in normal RAM
     pinned_allocations[STBAR_LUMP_NUM]=gfx_stbar;
     pincount[STBAR_LUMP_NUM]=1;
     pinned_allocations[JUNK_LUMP_NUM]=(const uint8_t *)&junk;

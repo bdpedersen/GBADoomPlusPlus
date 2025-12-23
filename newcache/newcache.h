@@ -41,7 +41,7 @@
 const uint8_t * NC_CacheLumpNum(int lumpnum);
 int NC_GetNumForName (const char* name);
 int NC_CheckNumForName(const char *name);
-const char* NC_GetNameForNum(int lump);
+const char* NC_GetNameForNum(int lump, char buffer[8]);
 int NC_LumpLength(int lumpnum);
 void NC_Init(void);
 void NC_ExtractFileBase(const char* path, char* dest);
@@ -63,12 +63,14 @@ typedef struct
   char name[8];
 } filelump_t;
 
+#define WADLUMPS 1158
+#define MAXLUMPS 1160
 
 template <typename T>
 class Cached;
 
-#define STBAR_LUMP_NUM -2
-#define JUNK_LUMP_NUM -3
+#define STBAR_LUMP_NUM WADLUMPS
+#define JUNK_LUMP_NUM (WADLUMPS+1)
 
 template <typename T>
 class Pinned {
