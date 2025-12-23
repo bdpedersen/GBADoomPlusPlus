@@ -484,6 +484,7 @@ void D_StartTitle (void)
 // the gamemode from it. Also note if DOOM II, whether secret levels exist
 // CPhipps - const char* for iwadname, made static
 
+/* BDP: Hardcoded values below, so this is unused
 static void CheckIWAD2(const unsigned char* iwad_data, const unsigned int iwad_len UNUSED, GameMode_t *gmode,boolean *hassec)
 {
     const wadinfo_t* header = (const wadinfo_t*)iwad_data;
@@ -560,6 +561,8 @@ static void CheckIWAD2(const unsigned char* iwad_data, const unsigned int iwad_l
         *gmode = shareware;
 }
 
+*/
+
 //
 // IdentifyVersion
 //
@@ -584,8 +587,10 @@ static void CheckIWAD2(const unsigned char* iwad_data, const unsigned int iwad_l
 
 static void IdentifyVersion()
 {
-    CheckIWAD2(doom_iwad, doom_iwad_len, &_g->gamemode, &_g->haswolflevels);
-
+    //CheckIWAD2(doom_iwad, doom_iwad_len, &_g->gamemode, &_g->haswolflevels);
+    // BDP: Hardcoded values corresponding to gbadoom1.wad
+    _g->gamemode = shareware;
+    _g->haswolflevels = false;
     /* jff 8/23/98 set gamemission global appropriately in all cases
      * cphipps 12/1999 - no version output here, leave that to the caller
      */

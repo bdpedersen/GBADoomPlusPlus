@@ -60,7 +60,10 @@ typedef struct
 {
   int  filepos;
   int  size;
-  char name[8];
+  union {
+    char name[8];
+    uint64_t nname;
+  };
 } filelump_t;
 
 #define WADLUMPS 1158

@@ -16,13 +16,6 @@ extern line_t junk;
  * pointers are stolen from the cache functions. 
  */ 
 
-const void * W_CacheLumpNum(int lumpnum);
-int W_LumpLength(int lumpnum);
-int W_GetNumForName (const char* name);
-int W_CheckNumForName(const char *name);
-const char *W_GetNameForNum(int lumpnum);
-void W_Init(void);
-void ExtractFileBase(const char* path, char* dest);
 
 static wadinfo_t header;
 
@@ -31,6 +24,13 @@ static const uint8_t *cacheddata = nullptr;
 
 std::map<int,const uint8_t *> pinned_allocations;
 std::map<int,int> pincount;
+
+static filelump_t LumpForNum(int lumpnum){
+    int offset = header.infotableofs+lumpnum*sizeof(filelump_t);
+    filelump_t data;
+    WR_Read((uint8_t*)&data,offset,sizeof(filelump_t));
+    return data;
+}
 
 // Simple wrappers mapping to W_ functions in the newcache namespace
 const uint8_t * NC_CacheLumpNum(int lumpnum)
@@ -49,15 +49,15 @@ const uint8_t * NC_CacheLumpNum(int lumpnum)
             cacheddata = nullptr;
             cachedlump = -1;
         }
-        // Allocate new cache
-        int len = W_LumpLength(lumpnum);
-        uint8_t *data = (uint8_t *)GMALLOC(len);
+        // Allocate new cache entry and load it from file
+        auto lump = LumpForNum(lumpnum);
+        uint8_t *data = (uint8_t *)GMALLOC(lump.size);
         if (!data){
-            printf("NC_CacheLumpNum: Failed to allocate %d bytes for lump %d\n", len, lumpnum);
+            printf("NC_CacheLumpNum: Failed to allocate %d bytes for lump %d\n", lump.size, lumpnum);
             exit(-1);
         }
-        const uint8_t *lumpdata = (const uint8_t *)W_CacheLumpNum(lumpnum);
-        memcpy(data, lumpdata, len);
+        // Read the header
+        WR_Read(data,lump.filepos,lump.size);
         cacheddata = data;
         cachedlump = lumpnum;
         //printf(".");
@@ -69,38 +69,54 @@ const uint8_t * NC_CacheLumpNum(int lumpnum)
 int NC_LumpLength(int lumpnum)
 {
     // TODO: Grab length from cache if the element is already cached.
+    auto data = LumpForNum(lumpnum);
 
-    int reflen=W_LumpLength(lumpnum);
-
-    int offset = header.infotableofs+lumpnum*sizeof(filelump_t);
-    filelump_t data;
-    WR_Read((uint8_t*)&data,offset,sizeof(filelump_t));
-    int len = data.size;
-    assert(reflen==len);
-    return len;
+    return data.size;
 }
 
 int NC_GetNumForName (const char* name)
 {
-    return W_GetNumForName(name);
+    int i = NC_CheckNumForName(name);
+    if (i==-1) {
+        printf("lump %s not found\n",name);
+    }
+    return i;
 }
 
 int NC_CheckNumForName(const char *name)
 {
-    return W_CheckNumForName(name);
+    uint64_t nname=0;
+    strncpy((char *)&nname,name,8);
+    int n = 0;
+    while (n < header.numlumps) {
+        int remaining_lumps = header.numlumps-n;
+        int maxlumps = (remaining_lumps > 16) ? 16 : remaining_lumps;
+        filelump_t lumps[16]; // 256 bytes
+        // Read the lumps
+        WR_Read((uint8_t *)lumps,header.infotableofs+n*sizeof(filelump_t),maxlumps*sizeof(filelump_t));
+        for (int j=0; j < maxlumps;  j++) {
+            if (nname == lumps[j].nname) {
+                return n+j;
+            }
+        }
+        n+=16;
+    }
+    
+    return -1;
 }
 
 const char* NC_GetNameForNum(int lump, char buffer[8])
 {
-    const char* name = W_GetNameForNum(lump);
-    strncpy(buffer,name,8);
+    // This is never cached so ...
+    uint64_t *nbuf = (uint64_t *)buffer;
+    auto thelump = LumpForNum(lump);
+    *nbuf = thelump.nname;
     return buffer;
 }
 
 void NC_Init(void)
 {
     WR_Init();
-    W_Init();
     // Permanently pin lumps that are allocated in normal RAM
     pinned_allocations[STBAR_LUMP_NUM]=gfx_stbar;
     pincount[STBAR_LUMP_NUM]=1;
@@ -113,7 +129,30 @@ void NC_Init(void)
 
 void NC_ExtractFileBase(const char* path, char* dest)
 {
-    ExtractFileBase(path, dest);
+    // BDP: Lifted directly from w_wad
+     const char *src = path + strlen(path) - 1;
+    int length;
+
+    // back up until a \ or the start
+    while (src != path && src[-1] != ':' // killough 3/22/98: allow c:filename
+           && *(src-1) != '\\'
+           && *(src-1) != '/')
+    {
+        src--;
+    }
+
+    // copy up to eight characters
+    memset(dest,0,8);
+    length = 0;
+
+    while ((*src) && (*src != '.') && (++length<9))
+    {
+        *dest++ = toupper(*src);
+        src++;
+    }
+    /* cph - length check removed, just truncate at 8 chars.
+   * If there are 8 or more chars, we'll copy 8, and no zero termination
+   */
 }
 
 const uint8_t * NC_Pin(int lumpnum)
