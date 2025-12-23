@@ -1946,7 +1946,7 @@ void P_SpawnBrainTargets(void)  // killough 3/26/98: renamed old function
             if (_g->numbraintargets >= _g->numbraintargets_alloc)
               _g->braintargets = (mobj_t **)Z_Realloc(_g->braintargets,
                       (_g->numbraintargets_alloc = _g->numbraintargets_alloc ?
-                       _g->numbraintargets_alloc*2 : 32) *sizeof *_g->braintargets, PU_STATIC, NULL);
+                       _g->numbraintargets_alloc*2 : 32) *sizeof *_g->braintargets, PU_LEVEL, NULL);
             _g->braintargets[_g->numbraintargets++] = m;
           }
       }

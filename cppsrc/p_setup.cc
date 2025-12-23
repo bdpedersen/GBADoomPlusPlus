@@ -457,7 +457,7 @@ void P_FreeLevelData()
 
     Z_FreeTags(PU_LEVEL, PU_PURGELEVEL-1);
 
-    Z_Free(_g->braintargets);
+    //Z_Free(_g->braintargets);
     _g->braintargets = NULL;
     _g->numbraintargets_alloc = _g->numbraintargets = 0;
 }
