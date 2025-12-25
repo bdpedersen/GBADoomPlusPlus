@@ -27,18 +27,22 @@
  * 
  */
 
+
+// Heap size in 32-bit words
 #ifndef TH_HEAPSIZE4
-#define TH_HEAPSIZE4 256000
+#define TH_HEAPSIZE4 75000 // Must be smaller than 65530*TH_MIN_ALLOCSIZE 
 #endif
 
-#define TH_FREE_TAG 0xffff
+
+
+#define TH_FREE_TAG 0x7fff
 
 typedef bool (*defrag_cb_t)(short tag, uint32_t *proposed_newptr);
 
 uint32_t *TH_alloc(int bytesize, uint16_t tag);
 void TH_freetags(uint16_t tag_low, uint16_t tag_high);
 // Return the amount of bytes freed by this free (including headers)
-int TH_free(uint8_t *ptr);
+int TH_free(uint32_t *ptr);
 void TH_defrag(defrag_cb_t callback);
 void TH_init();
 // Count how many bytes are free for allocation into head.
