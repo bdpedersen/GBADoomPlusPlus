@@ -625,6 +625,7 @@ static void IdentifyVersion()
 
 static void D_DoomMainSetup(void)
 {
+
     IdentifyVersion();
 
     // jff 1/24/98 end of set to both working and command line value
@@ -693,7 +694,6 @@ static void D_DoomMainSetup(void)
 
     //jff 9/3/98 use logical output routine
     lprintf(LO_INFO,"NC_Init: Init WADfiles.");
-    NC_Init(); // CPhipps - handling of wadfiles init changed
 
     //jff 9/3/98 use logical output routine
     lprintf(LO_INFO,"M_Init: Init misc info.");
@@ -749,6 +749,8 @@ static void D_DoomMainSetup(void)
 
 void D_DoomMain(void)
 {
+    NC_Init(); 
+
     D_DoomMainSetup(); // CPhipps - setup out of main execution stack
 
     D_DoomLoop ();  // never returns

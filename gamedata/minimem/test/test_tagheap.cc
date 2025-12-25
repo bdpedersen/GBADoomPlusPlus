@@ -2,21 +2,22 @@
 #include <cstdlib>
 #include <cstring>
 #include <cassert>
+#include <cstdint>
 #include "../tagheap.h"
 
 // Expose internal structures and macros for testing
 typedef struct memblock_s {
     struct memblock_s *prev;
     struct memblock_s *next;
-    uint32_t tag : 15;   // Tag of this block
-    uint32_t size : 17;  // Size in dwords (4 bytes)
+    uint32_t tag;   // Tag of this block
+    uint32_t size;  // Size in bytes
 } memblock_t;
 
-#define SZ_MEMBLOCK (sizeof(memblock_t)/4)
+#define SZ_MEMBLOCK sizeof(memblock_t)
 
-extern uint32_t heap[TH_HEAPSIZE4];
+extern uint8_t heap[TH_HEAPSIZE];
 #define FIRSTBLOCK ((memblock_t *)&heap[0])
-#define LASTBLOCK ((memblock_t *)&heap[TH_HEAPSIZE4-SZ_MEMBLOCK])
+#define LASTBLOCK ((memblock_t *)&heap[TH_HEAPSIZE-SZ_MEMBLOCK])
 
 // Color codes for test output
 #define GREEN "\033[0;32m"
@@ -126,15 +127,14 @@ void print_heap_state() {
         const char *tag_name;
         if (block->tag == TH_FREE_TAG) {
             tag_name = "FREE";
-        } else if (block->tag & 0x4000) {
+        } else if (block->tag & 0x80000000) {
             tag_name = "TAIL";
         } else {
             tag_name = "HEAD";
         }
         
-        printf("Block %d: tag=0x%04x (%s), size=%u (%u bytes), addr=%p\n",
-               block_num, block->tag, tag_name, block->size, 
-               block->size * 4, (void *)block);
+        printf("Block %d: tag=0x%08x (%s), size=%u bytes, addr=%p\n",
+               block_num, block->tag, tag_name, block->size, (void *)block);
         
         if (block == LASTBLOCK) {
             printf("         (LASTBLOCK sentinel)\n");
@@ -147,10 +147,10 @@ void print_heap_state() {
 }
 
 // Forward declare the actual implementation signature (different from header)
-extern int TH_free(uint32_t *ptr);
+extern int TH_free(uint8_t *ptr);
 
 // Helper to cast uint32_t* to call the actual TH_free
-inline int free_block(uint32_t *ptr) {
+inline int free_block(uint8_t *ptr) {
     return TH_free(ptr);
 }
 
@@ -162,7 +162,7 @@ struct DefragState {
 int DefragState::moves_count = 0;
 
 // Defrag callback that counts all moves
-bool defrag_count_all_moves(short tag, uint32_t *proposed_newptr) {
+bool defrag_count_all_moves(short tag, uint8_t *proposed_newptr) {
     (void)tag;
     (void)proposed_newptr;
     DefragState::moves_count++;
@@ -170,7 +170,7 @@ bool defrag_count_all_moves(short tag, uint32_t *proposed_newptr) {
 }
 
 // Defrag callback that allows all moves
-bool defrag_allow_all(short tag, uint32_t *proposed_newptr) {
+bool defrag_allow_all(short tag, uint8_t *proposed_newptr) {
     (void)tag;
     (void)proposed_newptr;
     return true;
@@ -178,7 +178,7 @@ bool defrag_allow_all(short tag, uint32_t *proposed_newptr) {
 
 // Defrag callback that vetos moves of specific tag
 uint16_t veto_tag = 0;
-bool defrag_veto_tag(short tag, uint32_t *proposed_newptr) {
+bool defrag_veto_tag(short tag, uint8_t *proposed_newptr) {
     (void)proposed_newptr;
     if ((uint16_t)tag == veto_tag) {
         return false;
@@ -210,12 +210,12 @@ void test_simple_head_allocation() {
     TH_init();
     
     // Allocate a small block
-    uint32_t *ptr1 = TH_alloc(16, 0x1001);
+    uint8_t *ptr1 = TH_alloc(16, 0x1001);
     TEST_ASSERT_NEQ(ptr1, NULL, "First head allocation succeeds");
     TEST_ASSERT(validate_block_chain(), "Block chain valid after allocation");
     
     // Allocate another block
-    uint32_t *ptr2 = TH_alloc(32, 0x1002);
+    uint8_t *ptr2 = TH_alloc(32, 0x1002);
     TEST_ASSERT_NEQ(ptr2, NULL, "Second head allocation succeeds");
     TEST_ASSERT(validate_block_chain(), "Block chain valid after second allocation");
     
@@ -228,11 +228,11 @@ void test_simple_tail_allocation() {
     printf(YELLOW "\n--- Test: Simple Tail Allocation ---\n" RESET);
     TH_init();
     
-    uint32_t *ptr1 = TH_alloc(16, 0x8001);  // Tail tag (MSB set)
+    uint8_t *ptr1 = TH_alloc(16, 0x80000001);  // Tail tag (MSB set)
     TEST_ASSERT_NEQ(ptr1, NULL, "First tail allocation succeeds");
     TEST_ASSERT(validate_block_chain(), "Block chain valid after tail allocation");
     
-    uint32_t *ptr2 = TH_alloc(32, 0x8002);
+    uint8_t *ptr2 = TH_alloc(32, 0x80000002);
     TEST_ASSERT_NEQ(ptr2, NULL, "Second tail allocation succeeds");
     TEST_ASSERT(validate_block_chain(), "Block chain valid after second tail allocation");
     
@@ -243,10 +243,10 @@ void test_mixed_head_tail_allocation() {
     printf(YELLOW "\n--- Test: Mixed Head and Tail Allocation ---\n" RESET);
     TH_init();
     
-    uint32_t *head1 = TH_alloc(16, 0x1001);
-    uint32_t *head2 = TH_alloc(16, 0x1002);
-    uint32_t *tail1 = TH_alloc(16, 0x8001);
-    uint32_t *tail2 = TH_alloc(16, 0x8002);
+    uint8_t *head1 = TH_alloc(16, 0x1001);
+    uint8_t *head2 = TH_alloc(16, 0x1002);
+    uint8_t *tail1 = TH_alloc(16, 0x80000001);
+    uint8_t *tail2 = TH_alloc(16, 0x80000002);
     
     TEST_ASSERT_NEQ(head1, NULL, "Head allocation 1 succeeds");
     TEST_ASSERT_NEQ(head2, NULL, "Head allocation 2 succeeds");
@@ -262,13 +262,13 @@ void test_freeblock_case_0_isolated_free() {
     TH_init();
     
     // Allocate three blocks: A (free) B (allocated) C (free)
-    uint32_t *ptrA = TH_alloc(16, 0x1001);
-    uint32_t *ptrB = TH_alloc(16, 0x1002);
-    uint32_t *ptrC = TH_alloc(16, 0x1003);
+    uint8_t *ptrA = TH_alloc(16, 0x1001);
+    uint8_t *ptrB = TH_alloc(16, 0x1002);
+    uint8_t *ptrC = TH_alloc(16, 0x1003);
     (void)ptrB; (void)ptrC;  // Not used in this test, just for heap setup
     
     // Free A - should be case 0 (no adjacent free blocks)
-    TH_free(((uint32_t*)ptrA));
+    TH_free((ptrA));
     TEST_ASSERT(validate_block_chain(), "Block chain valid after freeing isolated block");
     
     print_heap_state();
@@ -279,29 +279,29 @@ void test_freeblock_case_1_merge_with_next() {
     TH_init();
     
     // Allocate: A (free) B (allocated) C (free)
-    uint32_t *ptrA = TH_alloc(16, 0x1001);
-    uint32_t *ptrB = TH_alloc(16, 0x1002);
+    uint8_t *ptrA = TH_alloc(16, 0x1001);
+    uint8_t *ptrB = TH_alloc(16, 0x1002);
     (void)ptrB;  // Not used in this test, just for heap setup
     
     // Free A to create a free block
-    TH_free(((uint32_t*)ptrA));
+    TH_free((ptrA));
     
     // Free B - should merge with the free block after it (case 1)
     // This requires some careful setup; let's allocate then free strategically
     TH_init();  // Reset
     
-    uint32_t *ptr1 = TH_alloc(16, 0x1001);
-    uint32_t *ptr2 = TH_alloc(16, 0x1002);
-    uint32_t *ptr3 = TH_alloc(16, 0x1003);
+    uint8_t *ptr1 = TH_alloc(16, 0x1001);
+    uint8_t *ptr2 = TH_alloc(16, 0x1002);
+    uint8_t *ptr3 = TH_alloc(16, 0x1003);
     (void)ptr3;  // Not used in this test, just for heap setup
     
     // Free ptr2 first (case 0 - isolated)
-    TH_free(((uint32_t*)ptr2));
+    TH_free((ptr2));
     print_heap_state();
     
     // Free ptr1, which is adjacent to the free block from ptr2
     // This should be case 1 (merge with next)
-    TH_free(((uint32_t*)ptr1));
+    TH_free((ptr1));
     TEST_ASSERT(validate_block_chain(), "Block chain valid after case 1 merge");
     
     print_heap_state();
@@ -311,18 +311,18 @@ void test_freeblock_case_2_merge_with_prev() {
     printf(YELLOW "\n--- Test: Freeblock Case 2 (Merge with Previous) ---\n" RESET);
     TH_init();
     
-    uint32_t *ptr1 = TH_alloc(16, 0x1001);
-    uint32_t *ptr2 = TH_alloc(16, 0x1002);
-    uint32_t *ptr3 = TH_alloc(16, 0x1003);
+    uint8_t *ptr1 = TH_alloc(16, 0x1001);
+    uint8_t *ptr2 = TH_alloc(16, 0x1002);
+    uint8_t *ptr3 = TH_alloc(16, 0x1003);
     (void)ptr3;  // Not used in this test, just for heap setup
     
     // Free ptr1 first (case 0 - isolated)
-    TH_free(((uint32_t*)ptr1));
+    TH_free((ptr1));
     print_heap_state();
     
     // Free ptr2, which is adjacent to the free block before it
     // This should be case 2 (merge with previous)
-    TH_free(((uint32_t*)ptr2));
+    TH_free((ptr2));
     TEST_ASSERT(validate_block_chain(), "Block chain valid after case 2 merge");
     
     print_heap_state();
@@ -332,19 +332,19 @@ void test_freeblock_case_3_merge_both() {
     printf(YELLOW "\n--- Test: Freeblock Case 3 (Merge Both Directions) ---\n" RESET);
     TH_init();
     
-    uint32_t *ptr1 = TH_alloc(16, 0x1001);
-    uint32_t *ptr2 = TH_alloc(16, 0x1002);
-    uint32_t *ptr3 = TH_alloc(16, 0x1003);
-    uint32_t *ptr4 = TH_alloc(16, 0x1004);
+    uint8_t *ptr1 = TH_alloc(16, 0x1001);
+    uint8_t *ptr2 = TH_alloc(16, 0x1002);
+    uint8_t *ptr3 = TH_alloc(16, 0x1003);
+    uint8_t *ptr4 = TH_alloc(16, 0x1004);
     (void)ptr4;  // Not used in this test, just for heap setup
     
     // Free ptr1 and ptr3 to create free blocks on both sides of ptr2
-    TH_free(((uint32_t*)ptr1));
-    TH_free(((uint32_t*)ptr3));
+    TH_free((ptr1));
+    TH_free((ptr3));
     print_heap_state();
     
     // Free ptr2, which should merge with both neighbors (case 3)
-    TH_free(((uint32_t*)ptr2));
+    TH_free((ptr2));
     TEST_ASSERT(validate_block_chain(), "Block chain valid after case 3 merge");
     
     print_heap_state();
@@ -355,20 +355,20 @@ void test_cascade_merges() {
     TH_init();
     
     // Create a series of allocations
-    uint32_t *ptrs[10];
+    uint8_t *ptrs[10];
     for (int i = 0; i < 10; i++) {
         ptrs[i] = TH_alloc(16, 0x1001 + i);
     }
     
     // Free alternating blocks to create multiple small free regions
     for (int i = 0; i < 10; i += 2) {
-        TH_free(((uint32_t*)ptrs[i]));
+        TH_free((ptrs[i]));
     }
     print_heap_state();
     
     // Now free the remaining blocks, which should trigger cascading merges
     for (int i = 1; i < 10; i += 2) {
-        TH_free(((uint32_t*)ptrs[i]));
+        TH_free((ptrs[i]));
     }
     TEST_ASSERT(validate_block_chain(), "Block chain valid after cascade merges");
     
@@ -380,10 +380,10 @@ void test_freetags_range() {
     TH_init();
     
     // Allocate blocks with various tags
-    uint32_t *ptr1 = TH_alloc(16, 0x1001);
-    uint32_t *ptr2 = TH_alloc(16, 0x1002);
-    uint32_t *ptr3 = TH_alloc(16, 0x1003);
-    uint32_t *ptr4 = TH_alloc(16, 0x1004);
+    uint8_t *ptr1 = TH_alloc(16, 0x1001);
+    uint8_t *ptr2 = TH_alloc(16, 0x1002);
+    uint8_t *ptr3 = TH_alloc(16, 0x1003);
+    uint8_t *ptr4 = TH_alloc(16, 0x1004);
     (void)ptr1; (void)ptr2; (void)ptr3; (void)ptr4;  // Not used in this test, just for heap setup
     
     TEST_ASSERT_NEQ(ptr1, NULL, "Allocations succeed");
@@ -400,23 +400,26 @@ void test_defragmentation() {
     TH_init();
     
     // Allocate and fragment the heap
-    uint32_t *ptr1 = TH_alloc(64, 0x1001);
-    uint32_t *ptr2 = TH_alloc(64, 0x1002);
-    uint32_t *ptr3 = TH_alloc(64, 0x1003);
+    uint8_t *ptr1 = TH_alloc(64, 0x1001);
+    uint8_t *ptr2 = TH_alloc(64, 0x1002);
+    uint8_t *ptr3 = TH_alloc(64, 0x1003);
     
     // Write pattern to verify data preservation
     if (ptr1 && ptr2 && ptr3) {
-        for (int i = 0; i < 16; i++) {
-            ptr1[i] = 0x11110000 + i;
-            ptr2[i] = 0x22220000 + i;
-            ptr3[i] = 0x33330000 + i;
+        uint32_t *data1 = (uint32_t*)ptr1;
+        uint32_t *data2 = (uint32_t*)ptr2;
+        uint32_t *data3 = (uint32_t*)ptr3;
+        for (int i = 0; i < 4; i++) {  // 16 bytes = 4 dwords
+            data1[i] = 0x11110000 + i;
+            data2[i] = 0x22220000 + i;
+            data3[i] = 0x33330000 + i;
         }
     }
     
     print_heap_state();
     
     // Create fragmentation by freeing middle block
-    TH_free(((uint32_t*)ptr2));
+    TH_free((ptr2));
     printf(BLUE "\n--- After freeing ptr2 ---\n" RESET);
     print_heap_state();
     
@@ -430,8 +433,9 @@ void test_defragmentation() {
     // Verify data integrity
     if (ptr1) {
         bool data_ok = true;
-        for (int i = 0; i < 16; i++) {
-            if (ptr1[i] != (uint32_t)(0x11110000 + i)) {
+        uint32_t *data1 = (uint32_t*)ptr1;
+        for (int i = 0; i < 4; i++) {  // 16 bytes = 4 dwords
+            if (data1[i] != (uint32_t)(0x11110000 + i)) {
                 data_ok = false;
                 break;
             }
@@ -449,13 +453,13 @@ void test_countfreehead() {
     printf(BLUE "Initial free: %d bytes\n" RESET, initial_free);
     
     // Allocate some memory
-    uint32_t *ptr1 = TH_alloc(256, 0x1001);
+    uint8_t *ptr1 = TH_alloc(256, 0x1001);
     int after_alloc = TH_countfreehead();
     TEST_ASSERT(after_alloc < initial_free, "Free space decreases after allocation");
     printf(BLUE "After allocating 256 bytes: %d bytes free\n" RESET, after_alloc);
     
     // Free the memory
-    TH_free(((uint32_t*)ptr1));
+    TH_free((ptr1));
     int after_free = TH_countfreehead();
     TEST_ASSERT(after_free >= initial_free - 256, "Free space increases after deallocation");
     printf(BLUE "After freeing: %d bytes free\n" RESET, after_free);
@@ -466,15 +470,15 @@ void test_alloc_at_capacity() {
     TH_init();
     
     // Try to allocate extremely large block
-    uint32_t *ptr = TH_alloc(10000000, 0x1001);
+    uint8_t *ptr = TH_alloc(10000000, 0x1001);
     TEST_ASSERT(ptr == NULL, "Over-capacity allocation returns NULL");
     
     // Allocate a very large but valid block
     int free_space = TH_countfreehead();
-    uint32_t *large_ptr = TH_alloc(free_space - 1024, 0x1002);  // Leave some margin
+    uint8_t *large_ptr = TH_alloc(free_space - 1024, 0x1002);  // Leave some margin
     TEST_ASSERT_NEQ(large_ptr, NULL, "Large valid allocation succeeds");
     
-    TH_free(((uint32_t*)large_ptr));
+    TH_free((large_ptr));
 }
 
 void test_rapid_alloc_free_cycles() {
@@ -485,7 +489,7 @@ void test_rapid_alloc_free_cycles() {
     const int ALLOCS_PER_CYCLE = 10;
     
     for (int cycle = 0; cycle < CYCLES; cycle++) {
-        uint32_t *ptrs[ALLOCS_PER_CYCLE];
+        uint8_t *ptrs[ALLOCS_PER_CYCLE];
         
         // Allocate
         for (int i = 0; i < ALLOCS_PER_CYCLE; i++) {
@@ -495,7 +499,7 @@ void test_rapid_alloc_free_cycles() {
         // Free in random order
         for (int i = ALLOCS_PER_CYCLE - 1; i >= 0; i--) {
             if (ptrs[i]) {
-                TH_free(((uint32_t*)ptrs[i]));
+                TH_free((ptrs[i]));
             }
         }
         
@@ -515,7 +519,7 @@ void test_complex_fragmentation_and_defrag() {
     TH_init();
     
     // Create a complex fragmentation pattern
-    uint32_t *ptrs[20];
+    uint8_t *ptrs[20];
     for (int i = 0; i < 20; i++) {
         ptrs[i] = TH_alloc(128, 0x1000 + i);
     }
@@ -523,7 +527,7 @@ void test_complex_fragmentation_and_defrag() {
     // Free every 3rd block to create scattered free space
     for (int i = 0; i < 20; i += 3) {
         if (ptrs[i]) {
-            TH_free(((uint32_t*)ptrs[i]));
+            TH_free((ptrs[i]));
         }
     }
     
@@ -546,7 +550,7 @@ void test_complex_fragmentation_and_defrag() {
     // Clean up
     for (int i = 0; i < 20; i++) {
         if (ptrs[i]) {
-            TH_free(((uint32_t*)ptrs[i]));
+            TH_free((ptrs[i]));
         }
     }
 }
@@ -555,13 +559,13 @@ void test_defrag_with_pinned_blocks() {
     printf(YELLOW "\n--- Test: Defragmentation with Pinned Blocks ---\n" RESET);
     TH_init();
     
-    uint32_t *ptr1 = TH_alloc(128, 0x1001);
-    uint32_t *ptr2 = TH_alloc(128, 0x1002);
-    uint32_t *ptr3 = TH_alloc(128, 0x1003);
+    uint8_t *ptr1 = TH_alloc(128, 0x1001);
+    uint8_t *ptr2 = TH_alloc(128, 0x1002);
+    uint8_t *ptr3 = TH_alloc(128, 0x1003);
     (void)ptr1; (void)ptr3;  // Not used in this test, just for heap setup
     
     // Free ptr2 to create fragmentation
-    TH_free(((uint32_t*)ptr2));
+    TH_free((ptr2));
     print_heap_state();
     
     // Defragment but veto moves of tag 0x1001 (pinned)
@@ -570,6 +574,43 @@ void test_defrag_with_pinned_blocks() {
     TH_defrag(defrag_veto_tag);
     TEST_ASSERT(validate_block_chain(), "Block chain valid with pinned blocks");
     printf(BLUE "Moves: %d (ptr1 should have been pinned)\n" RESET, DefragState::moves_count);
+    
+    print_heap_state();
+}
+
+void test_allocation_alignment() {
+    printf(YELLOW "\n--- Test: Allocation 4-Byte Alignment ---\n" RESET);
+    TH_init();
+    
+    // Test various allocation sizes to ensure all return 4-byte aligned pointers
+    int test_sizes[] = {1, 2, 3, 4, 5, 7, 8, 15, 16, 17, 33, 100, 256, 1000};
+    int num_sizes = sizeof(test_sizes) / sizeof(test_sizes[0]);
+    
+    uint8_t *ptrs[14];
+    bool all_aligned = true;
+    
+    for (int i = 0; i < num_sizes; i++) {
+        ptrs[i] = TH_alloc(test_sizes[i], 0x1000 + i);
+        
+        // Check if pointer is 4-byte aligned
+        if (ptrs[i]) {
+            uintptr_t addr = (uintptr_t)ptrs[i];
+            if (addr % 4 != 0) {
+                printf(RED "✗" RESET " Allocation of %d bytes returned unaligned pointer: %p\n",
+                       test_sizes[i], (void*)ptrs[i]);
+                all_aligned = false;
+            } else {
+                printf(GREEN "✓" RESET " Allocation of %d bytes: %p (aligned)\n",
+                       test_sizes[i], (void*)ptrs[i]);
+            }
+        } else {
+            printf(RED "✗" RESET " Allocation of %d bytes returned NULL\n", test_sizes[i]);
+            all_aligned = false;
+        }
+    }
+    
+    TEST_ASSERT(all_aligned, "All allocations are 4-byte aligned");
+    TEST_ASSERT(validate_block_chain(), "Block chain valid after alignment test");
     
     print_heap_state();
 }
@@ -595,6 +636,7 @@ void run_all_tests() {
     test_defrag_with_pinned_blocks();
     test_complex_fragmentation_and_defrag();
     test_rapid_alloc_free_cycles();
+    test_allocation_alignment();
     
     // Print summary
     printf(BLUE "\n╔════════════════════════════════════════════╗\n");

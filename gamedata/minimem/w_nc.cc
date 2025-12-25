@@ -5,25 +5,29 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <map>
+#include "tagheap.h"
 
 extern unsigned char gfx_stbar[];
 extern line_t junk;
 
 /**
- * This file contains a simple cache that uses guardmalloc to allocate memory and 
- * agressively disposes memory to trigger guardmalloc's leak detection in case some 
- * pointers are stolen from the cache functions. 
+ * This file contains a simple cache that uses TH_malloc to allocate memory and 
+ * just keep it in memory until flushed.
  */ 
 
+static uint8_t *cache[MAXLUMPS];
 
+static bool didinit = false;
 static wadinfo_t header;
 
-static int cachedlump = -1;
-static const uint8_t *cacheddata = nullptr;
+static int allocated = 0;
 
-std::map<int,const uint8_t *> pinned_allocations;
-std::map<int,int> pincount;
+static void InitCache() {
+    for (int i=0;i<MAXLUMPS;i++)
+        cache[i]=nullptr;
+    cache[STBAR_LUMP_NUM]=gfx_stbar;
+    cache[JUNK_LUMP_NUM]=(uint8_t *)&junk;
+}
 
 static filelump_t LumpForNum(int lumpnum){
     int offset = header.infotableofs+lumpnum*sizeof(filelump_t);
@@ -35,35 +39,25 @@ static filelump_t LumpForNum(int lumpnum){
 // Simple wrappers mapping to W_ functions in the newcache namespace
 const uint8_t * NC_CacheLumpNum(int lumpnum)
 {
-    if (lumpnum == STBAR_LUMP_NUM){
-        return (const uint8_t *)gfx_stbar; // Violent hack !
-    }
-
-    if (cachedlump != lumpnum){
-        // Free previous cache
-        if (cacheddata){
-            // Don't free pinned allocations
-            if (pinned_allocations.count(cachedlump) == 0){
-                GFREE((void *)cacheddata);
-            }
-            cacheddata = nullptr;
-            cachedlump = -1;
-        }
+    assert(didinit);
+    if (cache[lumpnum]==nullptr){
         // Allocate new cache entry and load it from file
         auto lump = LumpForNum(lumpnum);
-        uint8_t *data = (uint8_t *)GMALLOC(lump.size);
+        uint8_t *data = (uint8_t *)TH_alloc(lump.size,lumpnum);
+        allocated += lump.size;
         if (!data){
             printf("NC_CacheLumpNum: Failed to allocate %d bytes for lump %d\n", lump.size, lumpnum);
             exit(-1);
+        }else {
+            printf("Allocated %d bytes for lump %d (#%d bytes)\n", lump.size, lumpnum, allocated);
         }
         // Read the header
         WR_Read(data,lump.filepos,lump.size);
-        cacheddata = data;
-        cachedlump = lumpnum;
-        //printf(".");
-        //fflush(stdout);
+        cache[lumpnum]=data;
+        return cache[lumpnum];
+    } else {
+        return cache[lumpnum];
     }
-    return cacheddata;
 }  
 
 int NC_LumpLength(int lumpnum)
@@ -116,13 +110,11 @@ const char* NC_GetNameForNum(int lump, char buffer[8])
 
 void NC_Init(void)
 {
+    didinit = true;
     WR_Init();
+    TH_init();
     // Permanently pin lumps that are allocated in normal RAM
-    pinned_allocations[STBAR_LUMP_NUM]=gfx_stbar;
-    pincount[STBAR_LUMP_NUM]=1;
-    pinned_allocations[JUNK_LUMP_NUM]=(const uint8_t *)&junk;
-    pincount[JUNK_LUMP_NUM]=1;
-
+    InitCache();
     // Read the header
     WR_Read((uint8_t *)&header,0,sizeof(header));
 }
@@ -157,6 +149,7 @@ void NC_ExtractFileBase(const char* path, char* dest)
 
 const uint8_t * NC_Pin(int lumpnum)
 {
+    /*
     if (lumpnum==-1) return nullptr;
 
     if (pincount.count(lumpnum)){
@@ -176,10 +169,14 @@ const uint8_t * NC_Pin(int lumpnum)
     pinned_allocations[lumpnum] = data;
     pincount[lumpnum]=1;
     return data;
+    */
+    auto data = NC_CacheLumpNum(lumpnum);
+    return data;
 }
 
-void NC_Unpin(int lumpnum)
+void NC_Unpin(int lumpnum UNUSED)
 {
+    /*
     if (lumpnum == -1) return;
     if (pincount.count(lumpnum) == 0){
         printf("Error: Lump %d is not pinned\n", lumpnum);
@@ -195,6 +192,15 @@ void NC_Unpin(int lumpnum)
 
     pinned_allocations.erase(lumpnum);
     pincount.erase(lumpnum);
+    */
 }   
+
+void NC_FlushCache(void)
+{
+    printf("Flushing cache with %d bytes in it\n",allocated);
+    allocated = 0;
+    TH_freetags(0, MAXLUMPS);
+    InitCache();
+}
 
 

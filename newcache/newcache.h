@@ -47,6 +47,7 @@ void NC_Init(void);
 void NC_ExtractFileBase(const char* path, char* dest);
 const uint8_t* NC_Pin(int lumpnum);
 void NC_Unpin(int lumpnum);
+void NC_FlushCache(void);
 
 // WAD parser types
 typedef struct
@@ -66,6 +67,7 @@ typedef struct
   };
 } filelump_t;
 
+// Matches WADLUMPS in gbadoom1.wad
 #define WADLUMPS 1158
 #define MAXLUMPS 1160
 
@@ -92,7 +94,7 @@ class Pinned {
         }
 
         bool isnull() const {
-            return ptr == nullptr;
+            return lumpnum == -1;
         }
 
     private:

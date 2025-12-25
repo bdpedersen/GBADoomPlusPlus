@@ -8,16 +8,16 @@
 typedef struct memblock_s {
     struct memblock_s *prev;
     struct memblock_s *next;
-    uint32_t tag : 15;   // Tag of this block
-    uint32_t size : 17;  // Size in dwords (4 bytes)
+    uint32_t tag;   // Tag of this block
+    uint32_t size;  // Size in bytes
 } memblock_t;
 
-#define SZ_MEMBLOCK (sizeof(memblock_t)/4)
+#define SZ_MEMBLOCK sizeof(memblock_t)
 
-uint32_t heap[TH_HEAPSIZE4];
+uint8_t heap[TH_HEAPSIZE];
 
 #define FIRSTBLOCK ((memblock_t *)&heap[0])
-#define LASTBLOCK ((memblock_t *)&heap[TH_HEAPSIZE4-SZ_MEMBLOCK])
+#define LASTBLOCK ((memblock_t *)&heap[TH_HEAPSIZE-SZ_MEMBLOCK])
 
 // Init the heap with start and end markers indicating the free space
 void TH_init() {
@@ -25,7 +25,7 @@ void TH_init() {
     FIRSTBLOCK->next = LASTBLOCK;
     FIRSTBLOCK->prev = NULL;
     FIRSTBLOCK->tag = TH_FREE_TAG;
-    FIRSTBLOCK->size = TH_HEAPSIZE4-2*SZ_MEMBLOCK;
+    FIRSTBLOCK->size = TH_HEAPSIZE-2*SZ_MEMBLOCK;
     LASTBLOCK->next = NULL;
     LASTBLOCK->prev = FIRSTBLOCK;
     LASTBLOCK->tag = TH_FREE_TAG;
@@ -42,25 +42,19 @@ constexpr int log2ceil(int x) {
     return r;
 }
 
-static inline int bytesize2size(int bytesize) {
-    int lminalloc = 2;
-    int roundup = bytesize;
-    for (int i=1; i<lminalloc; i++) {
-        roundup |= (roundup >> i);
-    }
-    roundup &= (1<<lminalloc)-1;
-    return (bytesize >> lminalloc) + roundup;
+static inline bool is_tail_or_free(uint32_t tag) {
+    return (tag & 0x80000000);
 }
 
-static inline bool is_tail_or_free(uint16_t tag) {
-    return (tag & 0x4000);
+static inline unsigned nearest4up(int x) {
+    return (x + 3) & ~3;
 }
 
 // Allocate *size* bytes and give them the given tag. Start search in head
-static uint32_t *alloc_head(int bytesize, uint16_t tag){
+static uint8_t *alloc_head(int bytesize, uint32_t tag){
     // Find first block txhat can hold the requested size starting from bottom
-    int size = bytesize2size(bytesize);
-    int searchsize = size + SZ_MEMBLOCK; // Make sure to have space for a block header
+    unsigned size = nearest4up(bytesize); // Align to 4 bytes
+    unsigned searchsize = size + SZ_MEMBLOCK; // Make sure to have space for a block header
     auto block = FIRSTBLOCK;
     while (block && 
         ((block->tag==TH_FREE_TAG && block->size < searchsize) 
@@ -72,7 +66,7 @@ static uint32_t *alloc_head(int bytesize, uint16_t tag){
         // Insert a new header above the block and make room for <<size>> bytes
         // Mark the new header as free memory 
         int newsize = block->size-SZ_MEMBLOCK-size;
-        uint32_t *newptr = (uint32_t *)block + SZ_MEMBLOCK + size;
+        uint8_t *newptr = (uint8_t *)block + SZ_MEMBLOCK + size;
         memblock_t *newblock = (memblock_t *)newptr;
         block->next->prev = newblock;
         newblock->next = block->next;
@@ -82,17 +76,17 @@ static uint32_t *alloc_head(int bytesize, uint16_t tag){
         // The data is south of the new block
         newblock->tag = TH_FREE_TAG;
         block->tag=tag;
-        block->size = size;
-        return (uint32_t *)(block+1);
+        block->size = bytesize; // may be overallocated
+        return (uint8_t *)(block+1);
     }
     return NULL;
 }
 
 // Allocate *size* bytes and give them the given tag. Start search in tail
-static uint32_t *alloc_tail(int bytesize, short tag){
+static uint8_t *alloc_tail(int bytesize, uint32_t tag){
     // Find first block txhat can hold the requested size starting from bottom
-    int size = bytesize2size(bytesize);
-    int searchsize = size + SZ_MEMBLOCK; // Make sure to have space for a block header
+    unsigned size = nearest4up(bytesize); // Align to 4 bytes
+    unsigned searchsize = size + SZ_MEMBLOCK; // Make sure to have space for a block header
      auto block = LASTBLOCK;
     while (block && 
         ((block->tag==TH_FREE_TAG && block->size < searchsize) 
@@ -103,26 +97,82 @@ static uint32_t *alloc_tail(int bytesize, short tag){
     if (block && block->tag == TH_FREE_TAG) {
         // Insert a new header above the block and make room for <<size>> bytes
         // Mark the new header as free memory 
-        int newsize4 = block->size-SZ_MEMBLOCK-size;
+        int newsize = block->size-SZ_MEMBLOCK-size;
         // Put the new block right below the next block
-        uint32_t *newptr = (uint32_t *)block->next - SZ_MEMBLOCK - size;
+        uint8_t *newptr = (uint8_t *)block->next - SZ_MEMBLOCK - size;
         memblock_t *newblock = (memblock_t *)newptr;
         block->next->prev = newblock;
         newblock->next = block->next;
         newblock->prev = block;
         block->next=newblock;
         // The data area is north of newblock
-        block->size = newsize4;
+        block->size = newsize; 
         block->tag = TH_FREE_TAG;
         newblock->tag=tag;
-        newblock->size = size;
-        return (uint32_t *)(newblock+1);
+        newblock->size = bytesize; // may be overallocated
+        return (uint8_t *)(newblock+1);
     }
     return NULL;
 }
 
-uint32_t *TH_alloc(int bytesize, uint16_t tag) {
+uint8_t *TH_alloc(int bytesize, uint32_t tag) {
     return is_tail_or_free(tag) ? alloc_tail(bytesize,tag) : alloc_head(bytesize,tag);
+}
+
+uint8_t *TH_realloc(uint8_t *ptr, int newsize) {
+    int newsize_aligned = nearest4up(newsize);
+    if (!ptr) return NULL;
+    if (newsize <= 0) {
+        TH_free(ptr);
+        return NULL;
+    }
+    memblock_t *block = (memblock_t *)(ptr) - 1;
+    if (block->size >= (uint32_t)newsize) {
+        // Already big enough  
+        return ptr;
+    } else {
+        // Find out if we can expand into next block
+        memblock_t *next = block->next;
+        if (next->tag == TH_FREE_TAG && (block->size + SZ_MEMBLOCK + next->size) >= (uint32_t)newsize_aligned) {
+            // Can expand here
+            int extra_needed = newsize_aligned - block->size;
+            // CHeck if we leave a reasonable block size behind if we split
+            // We are only moving the next block header up so no need to account for 
+            // that blocksize
+            if (next->size > (uint32_t)extra_needed + 16) {
+                // Split the next block
+                uint8_t *newblockptr = (uint8_t *)(next) + extra_needed;
+                memblock_t *newblock = (memblock_t *)newblockptr;
+                newblock->tag = TH_FREE_TAG;
+                newblock->size = next->size - extra_needed;
+                newblock->next = next->next;
+                newblock->prev = block;
+                next->next->prev = newblock;
+                block->next = newblock;
+                block->size = newsize;
+            } else {
+                // Just take the whole next block
+                block->size = newsize; // May be overallocated - but that's ok
+                block->next = next->next;
+                next->next->prev = block;   
+            }
+            return ptr;
+        } else {
+            // Need to allocate a new block and move data
+            uint8_t *newptr = TH_alloc(newsize, block->tag);
+            if (newptr) {
+                // Copy old data
+                uint8_t *src = ptr;
+                uint8_t *dst = newptr;
+                for (unsigned n=0; n<block->size; n++) {
+                    *dst++ = *src++;
+                }
+                TH_free(ptr);
+                return newptr;
+            }
+        }
+    }
+    return NULL;
 }
 
 static int freeblock(memblock_t *block){
@@ -161,11 +211,11 @@ static int freeblock(memblock_t *block){
         default:
             break;
     }
-    return freed*4;
+    return freed;
 }
 
 // Free all blocks with tags between tag_low and tag_high both included.
-void TH_freetags(uint16_t tag_low, uint16_t tag_high){
+void TH_freetags(uint32_t tag_low, uint32_t tag_high){
     auto block = FIRSTBLOCK;
     while (block) {
         if (tag_low <= block->tag && block->tag <= tag_high) {
@@ -176,7 +226,7 @@ void TH_freetags(uint16_t tag_low, uint16_t tag_high){
 }
 
 // Free a single block pointed to by ptr
-int TH_free(uint32_t *ptr){
+int TH_free(uint8_t *ptr){
     memblock_t *block = (memblock_t *)ptr;
     return freeblock(block-1);
 }
@@ -203,13 +253,13 @@ void TH_defrag(defrag_cb_t move_if_allowed){
                 // We are into the tail - no need to continue defrag
                 if (is_tail_or_free(next->tag)) break;
                 // Else check if we can move it
-                uint32_t *newaddr = (uint32_t *)(block+1);
+                uint8_t *newaddr = (uint8_t *)(block+1);
                 if (move_if_allowed(next->tag,newaddr)){
                     // Move allowed
                     memblock_t oldblock = *next;
-                    uint32_t *dst = newaddr;
-                    uint32_t *src = (uint32_t *)(next+1);
-                    for (int n=0; n<next->size; n++) {
+                    uint8_t *dst = newaddr;
+                    uint8_t *src = (uint8_t *)(next+1);
+                    for (unsigned n=0; n<next->size; n++) {
                         *dst++=*src++;
                     }
                     // We are effectively flipping the free space in block 
@@ -250,5 +300,5 @@ int TH_countfreehead() {
         }
         block = block->next;
     }
-    return free*4;
+    return free;
 }

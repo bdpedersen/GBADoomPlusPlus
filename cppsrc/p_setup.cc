@@ -450,12 +450,14 @@ static int P_GroupLines (void)
     return total; // this value is needed by the reject overrun emulation code
 }
 
-
+int TH_countfreehead();
 void P_FreeLevelData()
 {
     R_ResetPlanes();
 
     Z_FreeTags(PU_LEVEL, PU_PURGELEVEL-1);
+    printf("Allocated for cache data: %d bytes\n", 10000000-TH_countfreehead());
+    NC_FlushCache();
 
     //Z_Free(_g->braintargets);
     _g->braintargets = NULL;

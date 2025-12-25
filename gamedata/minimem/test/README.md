@@ -421,6 +421,70 @@ Clean heap, all allocations released, no memory leaks
 
 ---
 
+### 18. **test_allocation_alignment** (2 assertions)
+**Purpose:** Verify that all allocations return 4-byte aligned pointers
+
+**Entry State:**
+```
+Initialized empty heap
+```
+
+**Test Sequence:**
+1. Allocate 14 blocks with sizes: 1, 2, 3, 4, 5, 7, 8, 15, 16, 17, 33, 100, 256, 1000 bytes
+2. Verify each returned pointer is 4-byte aligned (address % 4 == 0)
+3. Validate block chain integrity
+
+**Exit State:**
+```
+All 14 blocks allocated with properly aligned pointers
+```
+
+**Assertions:**
+- All allocations are 4-byte aligned (individual checks for each size)
+- Block chain valid after alignment test
+
+**Implementation Details:**
+- Uses `uintptr_t` to safely cast and check pointer alignment
+- Tests edge cases: unaligned request sizes (1, 3, 5, 7, 17 bytes)
+- Confirms alignment requirement is enforced by `nearest4up()` function
+- Alignment is critical for performance on 32-bit and 64-bit systems
+
+---
+
+## Memory Alignment
+
+The allocator ensures all data blocks are 4-byte aligned for optimal performance:
+
+```
+Allocation Request       →  Aligned Size
+────────────────────────────────────────
+1 byte                   →  4 bytes
+2 bytes                  →  4 bytes
+3 bytes                  →  4 bytes
+4 bytes                  →  4 bytes
+5 bytes                  →  8 bytes
+7 bytes                  →  8 bytes
+8 bytes                  →  8 bytes
+...
+1000 bytes               →  1000 bytes
+```
+
+**Alignment Function:**
+```cpp
+static inline int nearest4up(int x) {
+    return (x + 3) & ~3;  // Rounds up to nearest 4-byte boundary
+}
+```
+
+Benefits:
+- ✓ Supports efficient 32-bit word access
+- ✓ Reduces fragmentation from unaligned allocations
+- ✓ Required for DMA and cache-aligned operations on some platforms
+
+---
+
+## Test Descriptions
+
 ## Build and Execution
 
 ### Building
@@ -454,8 +518,9 @@ make run-verbose  # Build and run with verbose output
 | **Range Deallocation** | 1 | 2 | ✓ |
 | **Defragmentation** | 3 | 5 | ✓ |
 | **Stress Testing** | 1 | 1 | ✓ |
+| **Alignment Testing** | 1 | 2 | ✓ |
 | **Utility Functions** | 1 | 2 | ✓ |
-| **TOTAL** | **16** | **42** | **✓** |
+| **TOTAL** | **17** | **44** | **✓** |
 
 ## Key Test Scenarios
 

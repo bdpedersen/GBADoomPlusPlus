@@ -142,4 +142,15 @@ void NC_Unpin(int lumpnum)
     pincount.erase(lumpnum);
 }   
 
+void NC_FlushCache(void)
+{
+    // Free cached data if it is not pinned
+    if (cacheddata){
+        if (pinned_allocations.count(cachedlump) == 0){
+            GFREE((void *)cacheddata);
+        }
+        cacheddata = nullptr;
+        cachedlump = -1;
+    }
+}
 

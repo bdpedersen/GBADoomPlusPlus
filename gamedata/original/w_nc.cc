@@ -68,3 +68,8 @@ void NC_Unpin(int lumpnum UNUSED)
 {
     // No-op for this simple cache
 }
+
+void NC_FlushCache(void)
+{
+    // No-op for this simple cache
+}
