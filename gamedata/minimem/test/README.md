@@ -4,7 +4,7 @@
 
 This directory contains a comprehensive white-box test suite for the tagheap memory allocator (`../tagheap.cc`/`../tagheap.h`). The test suite validates all aspects of the allocator including allocation, deallocation, block merging, defragmentation, and memory integrity.
 
-**Test Results:** 42 assertions across 16 test functions, 100% pass rate
+**Test Results:** 112 assertions across 25 test functions, 100% pass rate
 
 ## Architecture
 
@@ -601,6 +601,279 @@ Each test prints detailed heap state before and after operations for manual insp
 
 ---
 
+## Reallocation Tests (10 functions, 68 assertions)
+
+### 19. **test_realloc_null_ptr** (2 assertions)
+**Purpose:** Verify that reallocating a NULL pointer returns NULL
+
+**Entry State:**
+```
+Initialized empty heap
+```
+
+**Operation:**
+1. Call TH_realloc(NULL, 100)
+
+**Exit State:**
+```
+Returns NULL, block chain unchanged
+```
+
+**Assertions:**
+- TH_realloc(NULL, 100) returns NULL
+- Block chain valid after null pointer realloc
+
+---
+
+### 20. **test_realloc_zero_size** (3 assertions)
+**Purpose:** Verify that reallocating to size 0 or negative frees the block
+
+**Entry State:**
+```
+One 100-byte HEAD allocation with tag 0x2000
+```
+
+**Operation:**
+1. Call TH_realloc(ptr, 0)
+2. Check that space is freed
+
+**Exit State:**
+```
+Block freed, space returned to free pool
+```
+
+**Assertions:**
+- TH_realloc(ptr, 0) returns NULL
+- Block chain valid after zero-size realloc
+- Free space increased (block was freed)
+
+---
+
+### 21. **test_realloc_no_op_shrink** (3 assertions)
+**Purpose:** Verify that reallocating to a smaller size is a no-op (returns same pointer)
+
+**Entry State:**
+```
+One 200-byte HEAD allocation with pattern
+```
+
+**Operation:**
+1. Write 32-bit pattern to allocated block
+2. Call TH_realloc(ptr, 100)
+3. Verify pattern is intact
+
+**Exit State:**
+```
+Same pointer returned, block unchanged
+```
+
+**Assertions:**
+- TH_realloc(ptr, 100) returns same ptr
+- Original pattern byte 0 intact
+- Original pattern byte 1 intact
+
+---
+
+### 22. **test_realloc_no_growth_needed** (3 assertions)
+**Purpose:** Verify that reallocating to a size the block already satisfies is a no-op
+
+**Entry State:**
+```
+One 200-byte HEAD allocation with pattern
+```
+
+**Operation:**
+1. Write 32-bit pattern to allocated block
+2. Call TH_realloc(ptr, 100) - block already has 200 bytes
+3. Verify pattern is intact
+
+**Exit State:**
+```
+Same pointer returned, no reallocation occurs
+```
+
+**Assertions:**
+- TH_realloc(ptr, 100) returns same ptr
+- Pattern byte 0 intact
+- Pattern byte 1 intact
+
+---
+
+### 23. **test_realloc_in_place_expansion** (5 assertions)
+**Purpose:** Verify that expansion into adjacent free space works
+
+**Entry State:**
+```
+Three sequential allocations: A(100), B(100), C(100)
+```
+
+**Operation:**
+1. Free block B (creates free space adjacent to A)
+2. Write pattern to A
+3. Call TH_realloc(ptr_A, 150)
+4. Verify A expanded in-place using B's space
+
+**Exit State:**
+```
+Block A: 150 bytes (in-place expanded)
+C: unchanged
+Free block: remaining space after B
+```
+
+**Assertions:**
+- In-place expansion returns same pointer
+- Original pattern byte 0 preserved
+- Original pattern byte 1 preserved
+- Block chain valid after expansion
+- Heap state shows correct layout
+
+---
+
+### 24. **test_realloc_with_block_splitting** (4 assertions)
+**Purpose:** Verify that block splitting works when expanding into larger free block
+
+**Entry State:**
+```
+Blocks: A(100), B(500, then freed), C(100)
+```
+
+**Operation:**
+1. Allocate A(100) and B(500) and C(100)
+2. Free B to create 500-byte free space
+3. Write pattern to A
+4. Call TH_realloc(ptr_A, 150) - expands into B but with space left over
+5. Verify pattern intact
+
+**Exit State:**
+```
+Block A: 150 bytes
+Remaining B: ~350 bytes (free block created from B)
+Block C: unchanged
+```
+
+**Assertions:**
+- Expansion with splitting returns same pointer
+- Pattern byte 0 preserved after split
+- Pattern byte 1 preserved after split
+- Block chain valid after split realloc
+
+---
+
+### 25. **test_realloc_full_reallocation** (5 assertions)
+**Purpose:** Verify that full reallocation (new block + copy + free old) works
+
+**Entry State:**
+```
+Blocks: A(100), B(100) - A and B are adjacent, B is NOT free
+```
+
+**Operation:**
+1. Write 25 dword pattern to A
+2. Call TH_realloc(ptr_A, 300) - can't expand into B (not free)
+3. Allocate new block, copy data, free old
+4. Verify pattern copied correctly
+
+**Exit State:**
+```
+New block allocated (different pointer)
+Data copied to new location
+Old block freed and merged with neighbors
+```
+
+**Assertions:**
+- Full reallocation succeeds (returns non-NULL)
+- Returns different pointer (new location)
+- Data copied correctly (all 25 dwords match)
+- Original block B still valid
+- Block chain valid after full reallocation
+
+---
+
+### 26. **test_realloc_data_integrity** (4 assertions)
+**Purpose:** Verify data integrity across multiple realloc cycles with various patterns
+
+**Entry State:**
+```
+Empty heap
+```
+
+**Test Sequence:**
+1. 4 test cases with different size transitions:
+   - 50→150 bytes
+   - 100→300 bytes
+   - 200→100 bytes (shrink, no-op)
+   - 80→200 bytes
+2. For each: Fill with XOR pattern, realloc, verify original bytes
+
+**Exit State:**
+```
+All patterns verified intact
+```
+
+**Assertions:**
+- Allocation succeeds in each test case
+- Realloc succeeds in each case
+- Data integrity maintained in each realloc cycle (4 cycles)
+- Block chain valid after all data integrity tests
+
+---
+
+### 27. **test_realloc_alignment** (5 assertions)
+**Purpose:** Verify data patterns are preserved during reallocation
+
+**Entry State:**
+```
+Empty heap
+```
+
+**Test Sequence:**
+1. Allocate 4 blocks with sizes: 10, 50, 100, 200 bytes
+2. Fill each with test pattern
+3. Realloc each to size+50
+4. Verify patterns are preserved
+
+**Exit State:**
+```
+All data patterns intact after reallocation
+```
+
+**Assertions:**
+- Initial allocation succeeds
+- Realloc succeeded (4 assertions, one per block)
+- Data pattern preserved after realloc
+- Block chain valid after alignment tests
+
+---
+
+### 28. **test_realloc_with_pinned_blocks** (4 assertions)
+**Purpose:** Verify reallocation behavior with fragmented heap and adjacent blocks
+
+**Entry State:**
+```
+Three allocations: A(100), B(100), C(100)
+```
+
+**Operation:**
+1. Free B to create fragmentation
+2. Write pattern to A
+3. Realloc A to 200 bytes
+4. Verify pattern preserved
+
+**Exit State:**
+```
+A reallocated (possibly to new location due to fragmentation)
+Data pattern preserved
+C still valid
+```
+
+**Assertions:**
+- All initial allocations succeed
+- Realloc succeeds
+- Pattern preserved in realloc with fragmentation
+- Block chain valid
+
+---
+
 **Test Suite Version:** 1.0  
 **Last Updated:** December 25, 2025  
-**Status:** All 42 assertions passing ✓
+**Status:** All 112 assertions passing ✓

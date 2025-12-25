@@ -17,7 +17,6 @@ extern line_t junk;
 
 static uint8_t *cache[MAXLUMPS];
 
-static bool didinit = false;
 static wadinfo_t header;
 
 static int allocated = 0;
@@ -39,7 +38,6 @@ static filelump_t LumpForNum(int lumpnum){
 // Simple wrappers mapping to W_ functions in the newcache namespace
 const uint8_t * NC_CacheLumpNum(int lumpnum)
 {
-    assert(didinit);
     if (cache[lumpnum]==nullptr){
         // Allocate new cache entry and load it from file
         auto lump = LumpForNum(lumpnum);
@@ -110,7 +108,6 @@ const char* NC_GetNameForNum(int lump, char buffer[8])
 
 void NC_Init(void)
 {
-    didinit = true;
     WR_Init();
     TH_init();
     // Permanently pin lumps that are allocated in normal RAM

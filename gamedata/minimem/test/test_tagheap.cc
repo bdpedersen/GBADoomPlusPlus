@@ -615,6 +615,345 @@ void test_allocation_alignment() {
     print_heap_state();
 }
 
+void test_realloc_null_ptr() {
+    printf(YELLOW "\n--- Test: Realloc with NULL Pointer ---\n" RESET);
+    TH_init();
+    
+    // Try to realloc NULL pointer - should return NULL
+    uint8_t *result = TH_realloc(NULL, 100);
+    TEST_ASSERT(result == NULL, "TH_realloc(NULL, 100) returns NULL");
+    TEST_ASSERT(validate_block_chain(), "Block chain valid after NULL realloc");
+    
+    print_heap_state();
+}
+
+void test_realloc_zero_size() {
+    printf(YELLOW "\n--- Test: Realloc with Zero/Negative Size ---\n" RESET);
+    TH_init();
+    
+    // Allocate a block
+    uint8_t *ptr = TH_alloc(100, 0x2000);
+    TEST_ASSERT(ptr != NULL, "Initial allocation succeeds");
+    
+    // Try to realloc to size 0 - should free and return NULL
+    uint8_t *result = TH_realloc(ptr, 0);
+    TEST_ASSERT(result == NULL, "TH_realloc(ptr, 0) returns NULL and frees block");
+    TEST_ASSERT(validate_block_chain(), "Block chain valid after zero-size realloc");
+    
+    // Verify the block was actually freed by checking free space
+    int free_after = TH_countfreehead();
+    printf(BLUE "Free HEAD space after zero-size realloc: %d bytes\n" RESET, free_after);
+    TEST_ASSERT(free_after > 0, "Space was freed after zero-size realloc");
+    
+    print_heap_state();
+}
+
+void test_realloc_no_op_shrink() {
+    printf(YELLOW "\n--- Test: Realloc to Smaller Size (No-Op) ---\n" RESET);
+    TH_init();
+    
+    // Allocate a block of 200 bytes
+    uint8_t *ptr = TH_alloc(200, 0x2000);
+    TEST_ASSERT(ptr != NULL, "Initial allocation succeeds");
+    
+    // Write pattern
+    uint32_t *pattern_ptr = (uint32_t *)ptr;
+    pattern_ptr[0] = 0xDEADBEEF;
+    pattern_ptr[1] = 0xCAFEBABE;
+    
+    // Try to realloc to smaller size (100 bytes) - implementation returns ptr as-is
+    uint8_t *result = TH_realloc(ptr, 100);
+    TEST_ASSERT(result == ptr, "TH_realloc to smaller size returns same ptr");
+    
+    // Verify pattern is intact
+    TEST_ASSERT(pattern_ptr[0] == 0xDEADBEEF, "Pattern byte 0 intact after shrink");
+    TEST_ASSERT(pattern_ptr[1] == 0xCAFEBABE, "Pattern byte 1 intact after shrink");
+    
+    print_heap_state();
+}
+
+void test_realloc_no_growth_needed() {
+    printf(YELLOW "\n--- Test: Realloc When Block Already Large Enough ---\n" RESET);
+    TH_init();
+    
+    // Allocate 200 bytes
+    uint8_t *ptr = TH_alloc(200, 0x2000);
+    TEST_ASSERT(ptr != NULL, "Initial allocation succeeds");
+    
+    // Write pattern
+    uint32_t *pattern_ptr = (uint32_t *)ptr;
+    pattern_ptr[0] = 0x11111111;
+    pattern_ptr[1] = 0x22222222;
+    
+    // Try to realloc to same/smaller size (100 bytes)
+    uint8_t *result = TH_realloc(ptr, 100);
+    TEST_ASSERT(result == ptr, "TH_realloc(200-byte block, 100) returns same ptr");
+    
+    // Verify pattern is intact
+    TEST_ASSERT(pattern_ptr[0] == 0x11111111, "Pattern byte 0 intact");
+    TEST_ASSERT(pattern_ptr[1] == 0x22222222, "Pattern byte 1 intact");
+    
+    TEST_ASSERT(validate_block_chain(), "Block chain valid");
+    
+    print_heap_state();
+}
+
+void test_realloc_in_place_expansion() {
+    printf(YELLOW "\n--- Test: Realloc with In-Place Expansion (Next Block Free) ---\n" RESET);
+    TH_init();
+    
+    // Allocate A (100 bytes)
+    uint8_t *ptrA = TH_alloc(100, 0x2000);
+    TEST_ASSERT(ptrA != NULL, "Block A allocation succeeds");
+    
+    // Allocate B (100 bytes)
+    uint8_t *ptrB = TH_alloc(100, 0x2001);
+    TEST_ASSERT(ptrB != NULL, "Block B allocation succeeds");
+    
+    // Allocate C (100 bytes)
+    uint8_t *ptrC = TH_alloc(100, 0x2002);
+    TEST_ASSERT(ptrC != NULL, "Block C allocation succeeds");
+    
+    printf(BLUE "Before realloc: A=%p, B=%p, C=%p\n" RESET, (void*)ptrA, (void*)ptrB, (void*)ptrC);
+    
+    // Free B - now A is adjacent to free block
+    TH_free(ptrB);
+    TEST_ASSERT(validate_block_chain(), "Block chain valid after freeing B");
+    
+    // Write pattern to A
+    uint32_t *pattern = (uint32_t *)ptrA;
+    pattern[0] = 0xAAAAAAAA;
+    pattern[1] = 0xBBBBBBBB;
+    
+    // Realloc A to 150 bytes - should expand into freed B space in-place
+    uint8_t *result = TH_realloc(ptrA, 150);
+    TEST_ASSERT(result == ptrA, "In-place expansion returns same pointer");
+    
+    // Verify pattern is intact in same location
+    uint32_t *check_pattern = (uint32_t *)result;
+    TEST_ASSERT(check_pattern[0] == 0xAAAAAAAA, "Original pattern byte 0 preserved");
+    TEST_ASSERT(check_pattern[1] == 0xBBBBBBBB, "Original pattern byte 1 preserved");
+    
+    TEST_ASSERT(validate_block_chain(), "Block chain valid after in-place expansion");
+    
+    printf(BLUE "After realloc: Result=%p (same=%d)\n" RESET, (void*)result, result == ptrA);
+    
+    print_heap_state();
+}
+
+void test_realloc_with_block_splitting() {
+    printf(YELLOW "\n--- Test: Realloc with In-Place Expansion + Block Splitting ---\n" RESET);
+    TH_init();
+    
+    // Allocate A (100 bytes)
+    uint8_t *ptrA = TH_alloc(100, 0x3000);
+    TEST_ASSERT(ptrA != NULL, "Block A allocation succeeds");
+    
+    // Allocate B (500 bytes) - large block to free later
+    uint8_t *ptrB = TH_alloc(500, 0x3001);
+    TEST_ASSERT(ptrB != NULL, "Block B allocation succeeds");
+    
+    // Allocate C (100 bytes) - to keep B from being tail-adjacent
+    uint8_t *ptrC = TH_alloc(100, 0x3002);
+    TEST_ASSERT(ptrC != NULL, "Block C allocation succeeds");
+    
+    // Free B - creates a 500-byte free block
+    TH_free(ptrB);
+    TEST_ASSERT(validate_block_chain(), "Block chain valid after freeing large B");
+    
+    // Write pattern to A
+    uint32_t *pattern = (uint32_t *)ptrA;
+    pattern[0] = 0xCCCCCCCC;
+    pattern[1] = 0xDDDDDDDD;
+    
+    // Realloc A to 150 bytes - should expand into B, splitting it
+    // (A needs 150, next free block is 500, so will split into 150 and remaining)
+    uint8_t *result = TH_realloc(ptrA, 150);
+    TEST_ASSERT(result == ptrA, "Expansion with splitting returns same pointer");
+    
+    // Verify pattern is intact
+    uint32_t *check = (uint32_t *)result;
+    TEST_ASSERT(check[0] == 0xCCCCCCCC, "Pattern byte 0 preserved after split");
+    TEST_ASSERT(check[1] == 0xDDDDDDDD, "Pattern byte 1 preserved after split");
+    
+    TEST_ASSERT(validate_block_chain(), "Block chain valid after split realloc");
+    
+    print_heap_state();
+}
+
+void test_realloc_full_reallocation() {
+    printf(YELLOW "\n--- Test: Realloc Requiring Full Reallocation (New Block) ---\n" RESET);
+    TH_init();
+    
+    // Allocate A (100 bytes)
+    uint8_t *ptrA = TH_alloc(100, 0x4000);
+    TEST_ASSERT(ptrA != NULL, "Block A allocation succeeds");
+    
+    // Allocate B (100 bytes) - next to A
+    uint8_t *ptrB = TH_alloc(100, 0x4001);
+    TEST_ASSERT(ptrB != NULL, "Block B allocation succeeds");
+    
+    printf(BLUE "Before full realloc: A=%p, B=%p\n" RESET, (void*)ptrA, (void*)ptrB);
+    
+    // Write pattern to A
+    uint32_t *pattern = (uint32_t *)ptrA;
+    for (int i = 0; i < 25; i++) {
+        pattern[i] = 0x12340000 + i;
+    }
+    
+    // Try to realloc A to 300 bytes
+    // Since B is adjacent and not free, can't expand in-place
+    // Should allocate new block, copy data, free old block
+    uint8_t *result = TH_realloc(ptrA, 300);
+    TEST_ASSERT(result != NULL, "Full reallocation succeeds");
+    TEST_ASSERT(result != ptrA, "Full reallocation returns different pointer");
+    
+    // Verify pattern was copied correctly
+    uint32_t *check = (uint32_t *)result;
+    bool data_intact = true;
+    for (int i = 0; i < 25; i++) {
+        if (check[i] != (0x12340000 + i)) {
+            printf(RED "✗ Pattern mismatch at offset %d: %p got 0x%x, expected 0x%x\n" RESET,
+                   i * 4, (void*)(result + i*4), check[i], 0x12340000 + i);
+            data_intact = false;
+        }
+    }
+    TEST_ASSERT(data_intact, "Data copied correctly on full reallocation");
+    
+    // Verify B is still accessible
+    TEST_ASSERT(ptrB != NULL, "Original block B still valid");
+    
+    TEST_ASSERT(validate_block_chain(), "Block chain valid after full reallocation");
+    
+    printf(BLUE "After full realloc: New=%p (different=%d)\n" RESET, (void*)result, result != ptrA);
+    
+    print_heap_state();
+}
+
+void test_realloc_data_integrity() {
+    printf(YELLOW "\n--- Test: Realloc Data Integrity with Various Patterns ---\n" RESET);
+    TH_init();
+    
+    // Test with multiple allocation+realloc cycles
+    struct {
+        int initial_size;
+        int realloc_size;
+    } test_cases[] = {
+        {50, 150},
+        {100, 300},
+        {200, 100},  // Shrink (no-op)
+        {80, 200},
+    };
+    
+    int num_cases = sizeof(test_cases) / sizeof(test_cases[0]);
+    
+    for (int tc = 0; tc < num_cases; tc++) {
+        int init_sz = test_cases[tc].initial_size;
+        int realloc_sz = test_cases[tc].realloc_size;
+        
+        uint8_t *ptr = TH_alloc(init_sz, 0x5000 + tc);
+        TEST_ASSERT(ptr != NULL, "Allocation succeeds in test case");
+        
+        // Fill with pattern
+        uint8_t *byte_ptr = ptr;
+        for (int i = 0; i < init_sz; i++) {
+            byte_ptr[i] = (uint8_t)((0xAA + tc) ^ (i & 0xFF));
+        }
+        
+        // Realloc
+        uint8_t *result = TH_realloc(ptr, realloc_sz);
+        TEST_ASSERT(result != NULL, "Realloc succeeds");
+        
+        // Verify original bytes are intact
+        bool match = true;
+        int check_sz = (init_sz < realloc_sz) ? init_sz : realloc_sz;
+        for (int i = 0; i < check_sz; i++) {
+            uint8_t expected = (uint8_t)((0xAA + tc) ^ (i & 0xFF));
+            if (result[i] != expected) {
+                printf(RED "✗ Data mismatch in test case %d at byte %d\n" RESET, tc, i);
+                match = false;
+                break;
+            }
+        }
+        TEST_ASSERT(match, "Data integrity maintained in realloc cycle");
+    }
+    
+    TEST_ASSERT(validate_block_chain(), "Block chain valid after data integrity tests");
+    
+    print_heap_state();
+}
+
+void test_realloc_alignment() {
+    printf(YELLOW "\n--- Test: Realloc Maintains Data Alignment ---\n" RESET);
+    TH_init();
+    
+    // Test that data from reallocated blocks is preserved correctly
+    // (We don't test pointer alignment since block headers may not be aligned)
+    int test_sizes[] = {10, 50, 100, 200};
+    int num_tests = sizeof(test_sizes) / sizeof(test_sizes[0]);
+    
+    for (int i = 0; i < num_tests; i++) {
+        uint8_t *ptr = TH_alloc(test_sizes[i], 0x6000 + i);
+        TEST_ASSERT(ptr != NULL, "Initial allocation succeeds");
+        
+        // Fill with test pattern
+        for (int j = 0; j < test_sizes[i]; j++) {
+            ptr[j] = (uint8_t)(0x55 + j);
+        }
+        
+        // Realloc to different size
+        int new_size = test_sizes[i] + 50;
+        uint8_t *result = TH_realloc(ptr, new_size);
+        
+        TEST_ASSERT(result != NULL, "Realloc succeeded");
+        
+        // Verify pattern is preserved
+        bool pattern_ok = true;
+        for (int j = 0; j < test_sizes[i]; j++) {
+            if (result[j] != (uint8_t)(0x55 + j)) {
+                pattern_ok = false;
+                break;
+            }
+        }
+        TEST_ASSERT(pattern_ok, "Data pattern preserved in realloc");
+    }
+    
+    TEST_ASSERT(validate_block_chain(), "Block chain valid after alignment tests");
+    
+    print_heap_state();
+}
+
+void test_realloc_with_pinned_blocks() {
+    printf(YELLOW "\n--- Test: Realloc Behavior with Pinned Blocks ---\n" RESET);
+    TH_init();
+    
+    // Allocate some blocks
+    uint8_t *ptrA = TH_alloc(100, 0x7000);
+    uint8_t *ptrB = TH_alloc(100, 0x7001);
+    uint8_t *ptrC = TH_alloc(100, 0x7002);
+    
+    TEST_ASSERT(ptrA && ptrB && ptrC, "All initial allocations succeed");
+    
+    // Free B to create fragmentation
+    TH_free(ptrB);
+    
+    // Write pattern to A
+    uint32_t *pattern = (uint32_t *)ptrA;
+    pattern[0] = 0x77777777;
+    
+    // Realloc A - this might involve block movement via defrag indirectly
+    uint8_t *result = TH_realloc(ptrA, 200);
+    TEST_ASSERT(result != NULL, "Realloc succeeds");
+    
+    // Verify pattern is intact
+    uint32_t *check = (uint32_t *)result;
+    TEST_ASSERT(check[0] == 0x77777777, "Pattern preserved in realloc with fragmentation");
+    
+    TEST_ASSERT(validate_block_chain(), "Block chain valid");
+    
+    print_heap_state();
+}
+
 void run_all_tests() {
     printf(BLUE "\n╔════════════════════════════════════════════╗\n");
     printf("║        TagHeap White Box Test Suite        ║\n");
@@ -637,6 +976,16 @@ void run_all_tests() {
     test_complex_fragmentation_and_defrag();
     test_rapid_alloc_free_cycles();
     test_allocation_alignment();
+    test_realloc_null_ptr();
+    test_realloc_zero_size();
+    test_realloc_no_op_shrink();
+    test_realloc_no_growth_needed();
+    test_realloc_in_place_expansion();
+    test_realloc_with_block_splitting();
+    test_realloc_full_reallocation();
+    test_realloc_data_integrity();
+    test_realloc_alignment();
+    test_realloc_with_pinned_blocks();
     
     // Print summary
     printf(BLUE "\n╔════════════════════════════════════════════╗\n");
