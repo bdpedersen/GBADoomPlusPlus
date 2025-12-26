@@ -30,11 +30,11 @@
 
 // Heap size in 32-bit words
 #ifndef TH_HEAPSIZE
-#define TH_HEAPSIZE 200000 // bytes
+#define TH_HEAPSIZE 200000 // bytes 200kb works and seems to be close to minimum for DOOM
 #endif
 
 #ifndef TH_CANARY_ENABLED
-#define TH_CANARY_ENABLED 1
+#define TH_CANARY_ENABLED 0
 #endif
 
 typedef struct th_memblock_s {
