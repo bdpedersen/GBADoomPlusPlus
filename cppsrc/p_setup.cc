@@ -282,7 +282,7 @@ static void P_LoadSideDefs2(int lump)
             unsigned short sector_num = SHORT(msd->sector);
             if (sector_num >= _g->numsectors)
             {
-                lprintf(LO_WARN,"P_LoadSideDefs2: sidedef %i has out-of-range sector num %u\n", i, sector_num);
+                lprintf(LO_WARN,"P_LoadSideDefs2: sidedef %i in lump %d has out-of-range sector num %u\n", i, lump, sector_num);
                 sector_num = 0;
             }
             sd->sector = sec = &_g->sectors[sector_num];

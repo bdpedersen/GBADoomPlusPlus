@@ -30,10 +30,15 @@
 
 // Heap size in 32-bit words
 #ifndef TH_HEAPSIZE
-#define TH_HEAPSIZE 10000000 // bytes
+#define TH_HEAPSIZE 200000 // bytes
 #endif
 
-
+typedef struct th_memblock_s {
+    struct th_memblock_s *prev;
+    struct th_memblock_s *next;
+    uint32_t tag;   // Tag of this block
+    uint32_t size;  // Size in bytes
+} th_memblock_t;
 
 #define TH_FREE_TAG 0xffffffff
 

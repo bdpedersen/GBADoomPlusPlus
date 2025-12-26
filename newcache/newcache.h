@@ -94,7 +94,7 @@ class Pinned {
         }
 
         bool isnull() const {
-            return lumpnum == -1;
+            return !ptr;// lumpnum == -1;
         }
 
     private:

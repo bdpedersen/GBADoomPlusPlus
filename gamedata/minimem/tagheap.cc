@@ -5,19 +5,14 @@
  * This file contains 
  */
 
-typedef struct memblock_s {
-    struct memblock_s *prev;
-    struct memblock_s *next;
-    uint32_t tag;   // Tag of this block
-    uint32_t size;  // Size in bytes
-} memblock_t;
 
-#define SZ_MEMBLOCK sizeof(memblock_t)
+
+#define SZ_MEMBLOCK sizeof(th_memblock_t)
 
 uint8_t heap[TH_HEAPSIZE];
 
-#define FIRSTBLOCK ((memblock_t *)&heap[0])
-#define LASTBLOCK ((memblock_t *)&heap[TH_HEAPSIZE-SZ_MEMBLOCK])
+#define FIRSTBLOCK ((th_memblock_t *)&heap[0])
+#define LASTBLOCK ((th_memblock_t *)&heap[TH_HEAPSIZE-SZ_MEMBLOCK])
 
 // Init the heap with start and end markers indicating the free space
 void TH_init() {
@@ -67,7 +62,7 @@ static uint8_t *alloc_head(int bytesize, uint32_t tag){
         // Mark the new header as free memory 
         int newsize = block->size-SZ_MEMBLOCK-size;
         uint8_t *newptr = (uint8_t *)block + SZ_MEMBLOCK + size;
-        memblock_t *newblock = (memblock_t *)newptr;
+        auto newblock = (th_memblock_t *)newptr;
         block->next->prev = newblock;
         newblock->next = block->next;
         newblock->prev = block;
@@ -100,7 +95,7 @@ static uint8_t *alloc_tail(int bytesize, uint32_t tag){
         int newsize = block->size-SZ_MEMBLOCK-size;
         // Put the new block right below the next block
         uint8_t *newptr = (uint8_t *)block->next - SZ_MEMBLOCK - size;
-        memblock_t *newblock = (memblock_t *)newptr;
+        th_memblock_t *newblock = (th_memblock_t *)newptr;
         block->next->prev = newblock;
         newblock->next = block->next;
         newblock->prev = block;
@@ -126,13 +121,13 @@ uint8_t *TH_realloc(uint8_t *ptr, int newsize) {
         TH_free(ptr);
         return NULL;
     }
-    memblock_t *block = (memblock_t *)(ptr) - 1;
+    th_memblock_t *block = (th_memblock_t *)(ptr) - 1;
     if (block->size >= (uint32_t)newsize) {
         // Already big enough  
         return ptr;
     } else {
         // Find out if we can expand into next block
-        memblock_t *next = block->next;
+        th_memblock_t *next = block->next;
         if (next->tag == TH_FREE_TAG && (block->size + SZ_MEMBLOCK + next->size) >= (uint32_t)newsize_aligned) {
             // Can expand here
             int extra_needed = newsize_aligned - block->size;
@@ -142,7 +137,7 @@ uint8_t *TH_realloc(uint8_t *ptr, int newsize) {
             if (next->size > (uint32_t)extra_needed + 16) {
                 // Split the next block
                 uint8_t *newblockptr = (uint8_t *)(next) + extra_needed;
-                memblock_t *newblock = (memblock_t *)newblockptr;
+                th_memblock_t *newblock = (th_memblock_t *)newblockptr;
                 newblock->tag = TH_FREE_TAG;
                 newblock->size = next->size - extra_needed;
                 newblock->next = next->next;
@@ -175,9 +170,9 @@ uint8_t *TH_realloc(uint8_t *ptr, int newsize) {
     return NULL;
 }
 
-static int freeblock(memblock_t *block){
-    memblock_t *next = block->next;
-    memblock_t *prev = block->prev;
+static int freeblock(th_memblock_t *block){
+    th_memblock_t *next = block->next;
+    th_memblock_t *prev = block->prev;
     int freetype = 0;
     // Allow merge with next block only if it is not the end marker
     freetype |= (next && next->tag == TH_FREE_TAG && next->size > 0) ? 1 : 0;
@@ -227,7 +222,7 @@ void TH_freetags(uint32_t tag_low, uint32_t tag_high){
 
 // Free a single block pointed to by ptr
 int TH_free(uint8_t *ptr){
-    memblock_t *block = (memblock_t *)ptr;
+    th_memblock_t *block = (th_memblock_t *)ptr;
     return freeblock(block-1);
 }
 
@@ -249,14 +244,14 @@ void TH_defrag(defrag_cb_t move_if_allowed){
                 }
             } else {
                 // We may have a block we can move ... 
-                memblock_t *next = block->next;
+                th_memblock_t *next = block->next;
                 // We are into the tail - no need to continue defrag
                 if (is_tail_or_free(next->tag)) break;
                 // Else check if we can move it
                 uint8_t *newaddr = (uint8_t *)(block+1);
                 if (move_if_allowed(next->tag,newaddr)){
                     // Move allowed
-                    memblock_t oldblock = *next;
+                    th_memblock_t oldblock = *next;
                     uint8_t *dst = newaddr;
                     uint8_t *src = (uint8_t *)(next+1);
                     for (unsigned n=0; n<next->size; n++) {
@@ -267,7 +262,7 @@ void TH_defrag(defrag_cb_t move_if_allowed){
                     // tags of the two swaps. We then insert a new block after the 
                     // new data area that holds the new free space. Consolidation
                     // with eventual free space will be done next round. 
-                    memblock_t *newblock = (memblock_t *)dst;
+                    th_memblock_t *newblock = (th_memblock_t *)dst;
                     newblock->size = block->size; 
                     newblock->tag = TH_FREE_TAG;
                     newblock->next = oldblock.next;
@@ -287,7 +282,7 @@ void TH_defrag(defrag_cb_t move_if_allowed){
 }
 
 int TH_countfreehead() {
-    memblock_t *block = FIRSTBLOCK;
+    th_memblock_t *block = FIRSTBLOCK;
     int free = 0;
     // Step through and find all free blocks until we meet a tail block or reach the end
     while (block) {
