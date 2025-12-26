@@ -5,10 +5,18 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
+
 #include "tagheap.h"
 
 extern unsigned char gfx_stbar[];
 extern line_t junk;
+
+#define ASSERT_PTR_IN_HEAP(ptr) assert((uint8_t *)(ptr) >= &th_heap[0] && (uint8_t *)(ptr) < &th_heap[TH_HEAPSIZE])
+#define ASSERT_VALID_LUMPNUM(lumpnum) assert(lumpnum >= 0 && lumpnum < MAXLUMPS)
+#define ASSERT_VALID_LUMPNUM_OR_MINUS1(lumpnum) assert((lumpnum >= -1 && lumpnum < MAXLUMPS))
+#define ASSERT_VALID_CACHE_ENTRY(entry) assert(entry >= 1 && entry <= 254)
+
 
 /**
  * This file contains a simple cache that uses TH_malloc to allocate memory and 
@@ -101,20 +109,25 @@ static void InitCache() {
 }
 
 /**
- * Helper function that can fetch the tag associated with ptr during TH_alloc()
+ * Helper function that can fetch the lumpnum associated with ptr during TH_alloc()
  */
-static uint32_t tag_for_ptr(const uint8_t *ptr) {
+static uint32_t lumpnum_for_ptr(const uint8_t *ptr) {
+    ASSERT_PTR_IN_HEAP(ptr);
     auto block = (const th_memblock_t *)ptr;
     block -= 1;
-    return block->tag;
+    auto lumpnum = block->tag;
+    ASSERT_VALID_LUMPNUM(lumpnum);
+    return lumpnum;
 }
 
 /**
  * Helper function that can fetch the size in bytes associated with ptr during TH_alloc()
  */
 static uint32_t size_for_ptr(const uint8_t *ptr){
+    ASSERT_PTR_IN_HEAP(ptr);
     auto block = (const th_memblock_t *)ptr;
     block -= 1;
+    ASSERT_VALID_LUMPNUM(block->tag); // At least check that the tag is a valid lumpnum
     return block->size;
 
 }
@@ -145,6 +158,7 @@ static void PrintHeapStatus() {
  * entries together
  */
 static void RemoveEntryFromLRU(uint8_t entry) {
+    ASSERT_VALID_CACHE_ENTRY(entry);
     auto prev = lru[entry].prev;
     auto next = lru[entry].next;
 
@@ -156,6 +170,7 @@ static void RemoveEntryFromLRU(uint8_t entry) {
  * Helper function that inserts the entry at the front of the LRU
  */
 static void InsertInFrontOfLRU(uint8_t entry) {
+    ASSERT_VALID_CACHE_ENTRY(entry);
     // 0 -> entry -> end
     // 0 <-       <- end
     lru[entry].prev=0;
@@ -176,30 +191,41 @@ static int EvictOne() {
     // If prev is 0, then we have nothing to evict - otherwise evict the least
     // recently used
     if (!entry) return 0;
+    ASSERT_VALID_CACHE_ENTRY(entry);
     // Take it out of the LRU list and free it
     RemoveEntryFromLRU(entry);
     // Insert in free list
     lru[entry].free = lru[0].free;
     lru[0].free = entry;
     auto ptr = pointers[entry];
-    auto tag = tag_for_ptr(ptr);
-    cache[tag]=0; // Clear that entry from the cache
+    auto lumpnum = lumpnum_for_ptr(ptr);
+    cache[lumpnum]=0; // Clear that entry from the cache
     allocated -= size_for_ptr(ptr);
     auto freed = TH_free(ptr);
     pointers[entry]=nullptr;
-    printf(" lump %d from cache freeing %d bytes at entry %d\n",tag,freed,entry);
+    printf(" lump %d from cache freeing %d bytes at entry %d\n",lumpnum,freed,entry);
+    #if TH_CANARY_ENABLED == 1
+    if (TH_checkhealth_verbose()==false) {
+        printf("FATAL: Heap corrupted during eviction of lump %d\n",lumpnum);
+        exit(-1);
+    } else {
+        printf("INFO: Heap healthy after eviction - %d bytes are allocated\n",allocated);
+    }  
+    #endif
     return freed;
 }
 
 /**
  * Callback function for defragmentation
  */
-static bool defrag_cb(short tag, uint8_t *proposed_newptr){
-    auto entry = cache[tag];
+static bool defrag_cb(short lumpnum, uint8_t *proposed_newptr){
+    ASSERT_VALID_LUMPNUM(lumpnum);
+    auto entry = cache[lumpnum];
     if (!entry) {
-        printf("Warning: Defrag found an allocation that isn't mapped in the cache (lump=%d). This is a leak, and we will allow it to move\n",tag);
+        printf("Warning: Defrag found an allocation that isn't mapped in the cache (lump=%d). This is a leak, and we will allow it to move\n",lumpnum);
         return true;
     }
+    ASSERT_VALID_CACHE_ENTRY(entry);
     if (pincount[entry]) return false; // Can't move pinned objects
     // Register the new pointer and give OK to move.
     pointers[entry]=proposed_newptr;
@@ -208,11 +234,14 @@ static bool defrag_cb(short tag, uint8_t *proposed_newptr){
 
 /**
  * Allocate a new area in the cache and push it to the front of the LRU
+ * Note that this fuction by design will exit the program if it can't allocate thus
+ * always returning a valid pointer.
  */
-static uint8_t AllocateIntoCache(int bytes, int tag) {
-    printf("\nINFO: Trying to allocate %d bytes for lump %d\n",bytes,tag);
+static uint8_t AllocateIntoCache(int bytes, int lumpnum) {
+    ASSERT_VALID_LUMPNUM(lumpnum);
+    printf("\nINFO: Trying to allocate %d bytes for lump %d\n",bytes,lumpnum);
     // Try to allocate bytes from the heap
-    uint8_t *data = TH_alloc(bytes,tag);
+    uint8_t *data = TH_alloc(bytes,lumpnum);
     if (!data) {
         // We need to try harder - find out how much we have free
         int freemem = TH_countfreehead();
@@ -227,16 +256,22 @@ static uint8_t AllocateIntoCache(int bytes, int tag) {
             }
         }
         // Try allocating again
-        data = TH_alloc(bytes,tag);
+        data = TH_alloc(bytes,lumpnum);
         while (!data) {
             // We have enough free data but it is not contiguous - try defrag
+            printf("INFO: Not enough contiguous memory - trying defragmentation\n");
             TH_defrag(defrag_cb);
-            data = TH_alloc(bytes,tag);
+            if (!TH_checkhealth_verbose()) {
+                printf("FATAL: Heap corrupted during defragmentation\n");
+                exit(-1);
+            }
+            data = TH_alloc(bytes,lumpnum);
             if (!data) {
-                // Still not working - try to evict one and then try again
+                // Still not working - try to evict one and then try defrag and alloc again
+                // (since data is null)
                 if (!EvictOne()) {
                     // Now this is bad - we cant evict any more and we can't allocate. 
-                    printf("FATAL: Can't allocate %d bytes for tag=%d\n",bytes,tag);
+                    printf("FATAL: Can't allocate %d bytes for lumpnum=%d\n",bytes,lumpnum);
                     PrintHeapStatus();
                     exit(-1);
                 }
@@ -246,7 +281,7 @@ static uint8_t AllocateIntoCache(int bytes, int tag) {
     // Get a free cache entry
     auto entry = lru[0].free;
     if (!entry) {
-        // We need a free entry
+        // We need a free entry so kick something out if we don't have one
         printf("INFO: Needs to evict a lump to free up a cache entry\n");
         if  (!EvictOne()){
             printf("FATAL: Cant evict an entry to free up - can't be true that all memory is pinned\n");
@@ -261,9 +296,9 @@ static uint8_t AllocateIntoCache(int bytes, int tag) {
     pointers[entry]=data;
     // Insert in front in the LRU.
     InsertInFrontOfLRU(entry);
-    cache[tag]=entry;
+    cache[lumpnum]=entry;
     allocated += bytes;
-    printf("INFO: Inserted %d bytes for lump %d into heap and cache structures at entry %d (@ 0x%lx)\n",bytes,tag,entry,(uintptr_t)data);
+    printf("INFO: Inserted %d bytes for lump %d into heap and cache structures at entry %d (@ 0x%lx)\n",bytes,lumpnum,entry,(uintptr_t)data);
     return entry;
 }
 
@@ -271,6 +306,7 @@ static uint8_t AllocateIntoCache(int bytes, int tag) {
  * Read a filelump_t from the wad file
  */
 static filelump_t LumpForNum(int lumpnum){
+    ASSERT_VALID_LUMPNUM(lumpnum);
     int offset = header.infotableofs+lumpnum*sizeof(filelump_t);
     filelump_t data;
     WR_Read((uint8_t*)&data,offset,sizeof(filelump_t));
@@ -282,6 +318,7 @@ static filelump_t LumpForNum(int lumpnum){
  */
 const uint8_t * NC_CacheLumpNum(int lumpnum)
 {
+    ASSERT_VALID_LUMPNUM_OR_MINUS1(lumpnum);
     if (cache[lumpnum]==0){
         // Allocate new cache entry and load it from file
         auto lump = LumpForNum(lumpnum);
@@ -289,8 +326,19 @@ const uint8_t * NC_CacheLumpNum(int lumpnum)
         auto ptr = pointers[entry];
         // Read the header
         WR_Read(ptr,lump.filepos,lump.size);    
+        #if TH_CANARY_ENABLED == 1
+        if (TH_checkhealth_verbose()==false) {
+            printf("FATAL: Heap corrupted after loading lump %d\n",lumpnum);
+            exit(-1);
+        } else {
+            printf("INFO: Heap healthy after loading lump %d - %d bytes are allocated\n",lumpnum,allocated);
+        }    
+        #endif
     } 
-    return pointers[cache[lumpnum]];
+    auto entry = cache[lumpnum];
+    ASSERT_VALID_CACHE_ENTRY(entry);
+    auto ptr = pointers[entry];
+    return ptr;
 }  
 
 /**
@@ -299,6 +347,7 @@ const uint8_t * NC_CacheLumpNum(int lumpnum)
  */
 int NC_LumpLength(int lumpnum)
 {
+    ASSERT_VALID_LUMPNUM(lumpnum);
     // Grab length from cache if the element is already cached.
     uint8_t entry = cache[lumpnum];
     if (entry) {
@@ -351,6 +400,7 @@ int NC_CheckNumForName(const char *name)
  */
 const char* NC_GetNameForNum(int lump, char buffer[8])
 {
+    ASSERT_VALID_LUMPNUM(lump);
     // This is never cached so ...
     uint64_t *nbuf = (uint64_t *)buffer;
     auto thelump = LumpForNum(lump);
@@ -407,9 +457,11 @@ void NC_ExtractFileBase(const char* path, char* dest)
  */
 const uint8_t * NC_Pin(int lumpnum)
 {
+    ASSERT_VALID_LUMPNUM_OR_MINUS1(lumpnum);
     auto data = NC_CacheLumpNum(lumpnum);
     auto entry = cache[lumpnum];
-    //printf("Pinning lump %d from entry %d at address 0x%lx\n",tag_for_ptr(data),entry,(uintptr_t)data);
+    ASSERT_VALID_CACHE_ENTRY(entry);
+    //printf("Pinning lump %d from entry %d at address 0x%lx\n",lumpnum_for_ptr(data),entry,(uintptr_t)data);
     pincount[entry]+=1;
     // Move entry up front in the LRU
     RemoveEntryFromLRU(entry);
@@ -422,8 +474,11 @@ const uint8_t * NC_Pin(int lumpnum)
  */
 void NC_Unpin(int lumpnum)
 {
+    ASSERT_VALID_LUMPNUM_OR_MINUS1(lumpnum);
     //printf("Unpin lump %d\n",lumpnum);
     auto entry = cache[lumpnum];
+    ASSERT_VALID_CACHE_ENTRY(entry);
+    assert(pincount[entry]>0);
     pincount[entry]-=1;    
 }   
 
@@ -438,7 +493,12 @@ void NC_FlushCache(void)
     printf("Flushing cache with %d bytes in it\n",allocated);
     while (EvictOne());
     printf("Flushed cache now has %d bytes in it\n",allocated);
-
+    #if TH_CANARY_ENABLED == 1
+    if (TH_checkhealth_verbose()==false) {
+        printf("FATAL: Heap corrupted during cache flush\n");
+        exit(-1);
+    }
+    #endif
     //TH_freetags(0, MAXLUMPS);
 }
 

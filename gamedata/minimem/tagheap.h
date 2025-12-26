@@ -33,12 +33,21 @@
 #define TH_HEAPSIZE 200000 // bytes
 #endif
 
+#ifndef TH_CANARY_ENABLED
+#define TH_CANARY_ENABLED 1
+#endif
+
 typedef struct th_memblock_s {
+    #if TH_CANARY_ENABLED == 1
+    uint32_t canary[4]; // Canary to detect memory corruption
+    #endif
     struct th_memblock_s *prev;
     struct th_memblock_s *next;
     uint32_t tag;   // Tag of this block
     uint32_t size;  // Size in bytes
 } th_memblock_t;
+
+extern uint8_t th_heap[TH_HEAPSIZE];
 
 #define TH_FREE_TAG 0xffffffff
 
@@ -53,6 +62,8 @@ void TH_defrag(defrag_cb_t callback);
 void TH_init();
 // Count how many bytes are free for allocation into head.
 int TH_countfreehead();
+
+bool TH_checkhealth_verbose();
 
 
 #endif // __memheap_h

@@ -61,7 +61,7 @@ INCLUDEPATH := \
     -Iinclude
 
 
-CXXFLAGS    := -std=c++17 -Wall -Wextra -Werror -Wno-unknown-pragmas  -g $(DEFINES) $(INCLUDEPATH)
+CXXFLAGS    := -std=c++17 -Wall -Wextra -Werror -Wno-unknown-pragmas  -g -O0 $(DEFINES) $(INCLUDEPATH)
 CFLAGS      += $(QT_CFLAGS)
 CXXFLAGS    += $(QT_CFLAGS)
 

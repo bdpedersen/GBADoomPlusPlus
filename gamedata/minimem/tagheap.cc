@@ -1,18 +1,20 @@
 #include "tagheap.h"
 #include <stdlib.h>
+#include <stdio.h>
+#include <assert.h>
 
 /**
- * This file contains 
+ * This file contains a simple tagged memory allocator that supports allocation 
  */
 
 
 
 #define SZ_MEMBLOCK sizeof(th_memblock_t)
 
-uint8_t heap[TH_HEAPSIZE];
+uint8_t th_heap[TH_HEAPSIZE];
 
-#define FIRSTBLOCK ((th_memblock_t *)&heap[0])
-#define LASTBLOCK ((th_memblock_t *)&heap[TH_HEAPSIZE-SZ_MEMBLOCK])
+#define FIRSTBLOCK ((th_memblock_t *)&th_heap[0])
+#define LASTBLOCK ((th_memblock_t *)&th_heap[TH_HEAPSIZE-SZ_MEMBLOCK])
 
 // Init the heap with start and end markers indicating the free space
 void TH_init() {
@@ -25,6 +27,13 @@ void TH_init() {
     LASTBLOCK->prev = FIRSTBLOCK;
     LASTBLOCK->tag = TH_FREE_TAG;
     LASTBLOCK->size = 0;
+    #if TH_CANARY_ENABLED == 1
+    // Fill in canary values
+    for (int i=0; i<4; i++) {
+        FIRSTBLOCK->canary[i] = 0xDEADBEEF;  
+        LASTBLOCK->canary[i] = 0xDEADBEEF;  
+    }
+    #endif
 }
 
 constexpr int log2ceil(int x) {
@@ -41,7 +50,7 @@ static inline bool is_tail_or_free(uint32_t tag) {
     return (tag & 0x80000000);
 }
 
-static inline unsigned nearest4up(int x) {
+static inline unsigned nearest4up(unsigned x) {
     return (x + 3) & ~3;
 }
 
@@ -72,6 +81,12 @@ static uint8_t *alloc_head(int bytesize, uint32_t tag){
         newblock->tag = TH_FREE_TAG;
         block->tag=tag;
         block->size = bytesize; // may be overallocated
+        #if TH_CANARY_ENABLED == 1
+        // Fill in canary values in the new block
+        for (int i=0; i<4; i++) {
+            newblock->canary[i] = 0xDEADBEEF;
+        }
+        #endif
         return (uint8_t *)(block+1);
     }
     return NULL;
@@ -105,13 +120,20 @@ static uint8_t *alloc_tail(int bytesize, uint32_t tag){
         block->tag = TH_FREE_TAG;
         newblock->tag=tag;
         newblock->size = bytesize; // may be overallocated
+        #if TH_CANARY_ENABLED == 1
+        // Fill in canary values in the new block
+        for (int i=0; i<4; i++) {
+            newblock->canary[i] = 0xDEADBEEF;
+        }
+        #endif
         return (uint8_t *)(newblock+1);
     }
     return NULL;
 }
 
 uint8_t *TH_alloc(int bytesize, uint32_t tag) {
-    return is_tail_or_free(tag) ? alloc_tail(bytesize,tag) : alloc_head(bytesize,tag);
+    auto ptr = is_tail_or_free(tag) ? alloc_tail(bytesize,tag) : alloc_head(bytesize,tag);
+    return ptr;
 }
 
 uint8_t *TH_realloc(uint8_t *ptr, int newsize) {
@@ -185,20 +207,24 @@ static int freeblock(th_memblock_t *block){
     }
     switch (freetype) {
         case 0: // block is a new free island
+            printf("Freeing block at %p of size %u creating an island\n", (void *)block, block->size);
             block->tag = TH_FREE_TAG;
             break;
         case 1: // Merge with next, removing next block - unless it is next-to-last block
+            printf("Freeing block at %p of size %u merging with next block at %p of size %u\n", (void *)block, block->size, (void *)next, next->size);
             block->size += next->size+SZ_MEMBLOCK;
             block->next = next->next;
             next->next->prev = block;
             block->tag = TH_FREE_TAG;
             break;
         case 2: // Merge with previous, removing this block
+            printf("Freeing block at %p of size %u merging with previous block at %p of size %u\n", (void *)block, block->size, (void *)prev, prev->size);
             prev->size += block->size + SZ_MEMBLOCK;
             prev->next = block->next;
             next->prev = prev;
             break;
         case 3: // Merge block and next with previous
+            printf("Freeing block at %p of size %u merging with previous block at %p of size %u and next block at %p of size %u\n", (void *)block, block->size, (void *)prev, prev->size, (void *)next, next->size);
             prev->size += block->size + next->size + 2*SZ_MEMBLOCK;
             prev->next = next->next;
             next->next->prev = prev;
@@ -236,11 +262,15 @@ void TH_defrag(defrag_cb_t move_if_allowed){
             if (block->next->tag == TH_FREE_TAG) {
                 // Reconcile the two blocks unless we reached the end
                 if (block->next->size > 0) {
+                    printf("Defrag: Merging free block at %p of size %u with next free block at %p of size %u\n", (void *)block, block->size, (void *)(block->next), block->next->size);
                     block->size += block->next->size + SZ_MEMBLOCK;
                     block->next = block->next->next;
                     block->next->prev = block;
                     // Retry the move
                     continue;
+                } else {
+                    // Reached the end marker - stop defrag here
+                    break;
                 }
             } else {
                 // We may have a block we can move ... 
@@ -250,11 +280,13 @@ void TH_defrag(defrag_cb_t move_if_allowed){
                 // Else check if we can move it
                 uint8_t *newaddr = (uint8_t *)(block+1);
                 if (move_if_allowed(next->tag,newaddr)){
+                    printf ("Defrag: Moving block with tag %u from %p to %p\n", next->tag, (void *)(next), (void *)newaddr);
                     // Move allowed
                     th_memblock_t oldblock = *next;
                     uint8_t *dst = newaddr;
                     uint8_t *src = (uint8_t *)(next+1);
-                    for (unsigned n=0; n<next->size; n++) {
+                    unsigned realsize = (next->size +3) & ~3; // Align to 4 bytes
+                    for (unsigned n=0; n<realsize; n++) {
                         *dst++=*src++;
                     }
                     // We are effectively flipping the free space in block 
@@ -264,9 +296,19 @@ void TH_defrag(defrag_cb_t move_if_allowed){
                     // with eventual free space will be done next round. 
                     th_memblock_t *newblock = (th_memblock_t *)dst;
                     newblock->size = block->size; 
+                    uintptr_t avail = (uintptr_t)(oldblock.next) - (uintptr_t)(newblock+1);
+                    assert(newblock->size <= avail);
                     newblock->tag = TH_FREE_TAG;
+                    // Tying up the pointers in block and newblock + oldblock.next
                     newblock->next = oldblock.next;
                     newblock->next->prev = newblock;
+                    #if TH_CANARY_ENABLED == 1
+                    // Fill in canary values in the new block
+                    for (int i=0; i<4; i++) {
+                        newblock->canary[i] = 0xDEADBEEF;
+                    }
+                    #endif
+                    // Update moved block header
                     block->tag = oldblock.tag;
                     block->size = oldblock.size;
                     block->next = newblock;
@@ -296,4 +338,40 @@ int TH_countfreehead() {
         block = block->next;
     }
     return free;
+}
+
+bool TH_checkhealth_verbose() {
+    th_memblock_t *block = FIRSTBLOCK;
+    th_memblock_t *prev = NULL;
+    bool healthy = true;
+    int cnt = 0;
+    while (block) {
+        // Check backward link consistency
+        if (block->prev != prev) {
+            printf("WARNING: Block chain broken at block #%d with tag %d: backward link inconsistency - expected %p got %p. Previous block had tag %d\n", cnt, block->tag, (void *)prev, (void *)block->prev, prev ? prev->tag : -1);
+            healthy = false;
+        }
+        if (block->next && ((uint8_t *)block->next < th_heap || 
+            (uint8_t *)block->next >= th_heap + TH_HEAPSIZE)) {
+            printf("WARNING: Block chain broken at block #%d  with tag %d: next pointer out of bounds\n", cnt, block->tag);
+            healthy = false;
+            break;
+        }
+        #if TH_CANARY_ENABLED == 1
+        // Check canary values
+        for (int i=0; i<4; i++) {
+            if (block->canary[i] != 0xDEADBEEF) {
+                printf("WARNING: Block #%d with tag %d has corrupted canary value at index %d\n", cnt, block->tag, i);
+                healthy = false;                
+            }
+        }
+        #endif
+        prev = block;
+        block = block->next;
+        cnt++;
+    }
+    if (healthy) {
+        printf("INFO: Heap is healthy with %d blocks\n", cnt);
+    }
+    return healthy;
 }
