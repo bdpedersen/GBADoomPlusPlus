@@ -1,7 +1,11 @@
 #include "tagheap.h"
 #include <stdlib.h>
+#if TH_CANARY_ENABLED == 1
 #include <stdio.h>
 #include <assert.h>
+#else
+#define assert(x)
+#endif
 
 /**
  * This file contains a simple tagged memory allocator that supports allocation 
@@ -207,24 +211,32 @@ static int freeblock(th_memblock_t *block){
     }
     switch (freetype) {
         case 0: // block is a new free island
+        #if TH_CANARY_ENABLED == 1
             printf("Freeing block at %p of size %u creating an island\n", (void *)block, block->size);
+        #endif
             block->tag = TH_FREE_TAG;
             break;
         case 1: // Merge with next, removing next block - unless it is next-to-last block
+        #if TH_CANARY_ENABLED == 1
             printf("Freeing block at %p of size %u merging with next block at %p of size %u\n", (void *)block, block->size, (void *)next, next->size);
+        #endif
             block->size += next->size+SZ_MEMBLOCK;
             block->next = next->next;
             next->next->prev = block;
             block->tag = TH_FREE_TAG;
             break;
         case 2: // Merge with previous, removing this block
+        #if TH_CANARY_ENABLED == 1
             printf("Freeing block at %p of size %u merging with previous block at %p of size %u\n", (void *)block, block->size, (void *)prev, prev->size);
+        #endif
             prev->size += block->size + SZ_MEMBLOCK;
             prev->next = block->next;
             next->prev = prev;
             break;
         case 3: // Merge block and next with previous
+        #if TH_CANARY_ENABLED == 1
             printf("Freeing block at %p of size %u merging with previous block at %p of size %u and next block at %p of size %u\n", (void *)block, block->size, (void *)prev, prev->size, (void *)next, next->size);
+        #endif
             prev->size += block->size + next->size + 2*SZ_MEMBLOCK;
             prev->next = next->next;
             next->next->prev = prev;
@@ -262,7 +274,9 @@ void TH_defrag(defrag_cb_t move_if_allowed){
             if (block->next->tag == TH_FREE_TAG) {
                 // Reconcile the two blocks unless we reached the end
                 if (block->next->size > 0) {
+                    #if TH_CANARY_ENABLED == 1
                     printf("Defrag: Merging free block at %p of size %u with next free block at %p of size %u\n", (void *)block, block->size, (void *)(block->next), block->next->size);
+                    #endif
                     block->size += block->next->size + SZ_MEMBLOCK;
                     block->next = block->next->next;
                     block->next->prev = block;
@@ -280,7 +294,9 @@ void TH_defrag(defrag_cb_t move_if_allowed){
                 // Else check if we can move it
                 uint8_t *newaddr = (uint8_t *)(block+1);
                 if (move_if_allowed(next->tag,newaddr)){
+                    #if TH_CANARY_ENABLED == 1
                     printf ("Defrag: Moving block with tag %u from %p to %p\n", next->tag, (void *)(next), (void *)newaddr);
+                    #endif
                     // Move allowed
                     th_memblock_t oldblock = *next;
                     uint8_t *dst = newaddr;
@@ -296,8 +312,10 @@ void TH_defrag(defrag_cb_t move_if_allowed){
                     // with eventual free space will be done next round. 
                     th_memblock_t *newblock = (th_memblock_t *)dst;
                     newblock->size = block->size; 
+                    #if TH_CANARY_ENABLED == 1
                     uintptr_t avail = (uintptr_t)(oldblock.next) - (uintptr_t)(newblock+1);
                     assert(newblock->size <= avail);
+                    #endif
                     newblock->tag = TH_FREE_TAG;
                     // Tying up the pointers in block and newblock + oldblock.next
                     newblock->next = oldblock.next;
@@ -341,6 +359,9 @@ int TH_countfreehead() {
 }
 
 bool TH_checkhealth_verbose() {
+    #if TH_CANARY_ENABLED != 1
+    return true;
+    #else
     th_memblock_t *block = FIRSTBLOCK;
     th_memblock_t *prev = NULL;
     bool healthy = true;
@@ -374,4 +395,5 @@ bool TH_checkhealth_verbose() {
         printf("INFO: Heap is healthy with %d blocks\n", cnt);
     }
     return healthy;
+    #endif
 }

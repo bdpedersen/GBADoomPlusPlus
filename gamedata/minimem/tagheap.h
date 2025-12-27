@@ -30,7 +30,7 @@
 
 // Heap size in 32-bit words
 #ifndef TH_HEAPSIZE
-#define TH_HEAPSIZE 200000 // bytes 200kb works and seems to be close to minimum for DOOM
+#define TH_HEAPSIZE 300000 // bytes 200kb works and seems to be close to minimum for DOOM
 #endif
 
 #ifndef TH_CANARY_ENABLED
