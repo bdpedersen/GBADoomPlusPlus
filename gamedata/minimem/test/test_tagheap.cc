@@ -5,13 +5,8 @@
 #include <cstdint>
 #include "../tagheap.h"
 
-// Expose internal structures and macros for testing
-typedef struct memblock_s {
-    struct memblock_s *prev;
-    struct memblock_s *next;
-    uint32_t tag;   // Tag of this block
-    uint32_t size;  // Size in bytes
-} memblock_t;
+// Use the actual tagheap structure
+typedef th_memblock_t memblock_t;
 
 #define SZ_MEMBLOCK sizeof(memblock_t)
 

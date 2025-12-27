@@ -17,7 +17,7 @@
 #undef Z_Calloc
 #undef Z_FreeTags
 
-bool NC_FreeSomeMemoryForTail(int bytes);
+bool NC_FreeSomeMemoryForTail();
 
  /// Z_BMalloc replacement
  void * Z_BMalloc(block_memory_alloc_s *zone) {
@@ -25,7 +25,7 @@ bool NC_FreeSomeMemoryForTail(int bytes);
     auto ptr = TH_alloc(zone->size, tag);
     if (!ptr) {
         // Try to free some memory - ask for double the size to be safe
-        if (!NC_FreeSomeMemoryForTail(2*zone->size) || !(ptr = TH_alloc(zone->size, tag))) {
+        if (!NC_FreeSomeMemoryForTail() || !(ptr = TH_alloc(zone->size, tag))) {
             // Out of memory - this is fatal
             #if TH_CANARY_ENABLED == 1
             printf("FATAL: Z_BMalloc: Out of memory trying to allocate %zu bytes with tag %u\n", zone->size, tag);
@@ -49,7 +49,10 @@ void * Z_Malloc(int size, int tag, void **user UNUSED) {
     if (!ptr) {
         // Out of memory - this is fatal
         // Try to free some memory - ask for some extra to be safe
-        if (!NC_FreeSomeMemoryForTail(size+128) || !(ptr = TH_alloc(size, tag))) {
+        #if TH_CANARY_ENABLED == 1
+        printf("INFO: Z_Malloc: Evicing memory to allocate %d bytes with tag %u\n", size, tag);
+        #endif
+        if (!NC_FreeSomeMemoryForTail() || !(ptr = TH_alloc(size, tag))) {
             #if TH_CANARY_ENABLED == 1
             printf("FATAL: Z_Malloc: Out of memory trying to allocate %d bytes with tag %u\n", size, tag);
             #endif
@@ -80,7 +83,7 @@ void Z_Free(void *ptr) {
 void * Z_Realloc(void *ptr, size_t n, int tag UNUSED, void **user UNUSED) {
     auto newptr = TH_realloc((uint8_t *)ptr,n);
     if (!newptr) {
-        if (!NC_FreeSomeMemoryForTail(n+128) || !(ptr = TH_realloc((uint8_t *)ptr,n))) {
+        if (!NC_FreeSomeMemoryForTail() || !(ptr = TH_realloc((uint8_t *)ptr,n))) {
             // Out of memory - this is fatal
             #if TH_CANARY_ENABLED == 1
             printf("FATAL: Z_Realloc: Out of memory trying to reallocate %zu bytes\n", n);

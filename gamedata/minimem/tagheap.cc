@@ -24,6 +24,7 @@ uint8_t th_heap[TH_HEAPSIZE];
 // Init the heap with start and end markers indicating the free space
 void TH_init() {
     if (initialized) return;
+    initialized = true;
     // Initialize the start and end markers
     FIRSTBLOCK->next = LASTBLOCK;
     FIRSTBLOCK->prev = NULL;

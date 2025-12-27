@@ -240,25 +240,14 @@ static bool defrag_cb(short lumpnum, uint8_t *proposed_newptr){
     return true;
 }
 
-bool NC_FreeSomeMemoryForTail(int bytes){
+bool NC_FreeSomeMemoryForTail(){
     #if TH_CANARY_ENABLED == 1
-    printf("INFO: Trying to free some memory for tail allocation of %d bytes\n",bytes);
+    printf("INFO: Trying to free some memory for tail\n");
     #endif
-    // Try defragmenting first
-    TH_defrag(defrag_cb);
-    int freemem = TH_countfreehead();
-    while (freemem < bytes){
-        auto freed = EvictOne();
-        TH_defrag(defrag_cb);
-        freemem += freed;
-        if (!freed) {
-            #if TH_CANARY_ENABLED == 1
-            printf("FATAL: Couldn't evict any useful amount..\n");
-            #endif
-            PrintHeapStatus();
-            return false;
-        }
+    while (EvictOne()) {
+        // Keep evicting until we can't evict any more
     }
+    TH_defrag(defrag_cb);
     return true;
 }
 
