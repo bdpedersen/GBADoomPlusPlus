@@ -240,6 +240,28 @@ static bool defrag_cb(short lumpnum, uint8_t *proposed_newptr){
     return true;
 }
 
+bool NC_FreeSomeMemoryForTail(int bytes){
+    #if TH_CANARY_ENABLED == 1
+    printf("INFO: Trying to free some memory for tail allocation of %d bytes\n",bytes);
+    #endif
+    // Try defragmenting first
+    TH_defrag(defrag_cb);
+    int freemem = TH_countfreehead();
+    while (freemem < bytes){
+        auto freed = EvictOne();
+        TH_defrag(defrag_cb);
+        freemem += freed;
+        if (!freed) {
+            #if TH_CANARY_ENABLED == 1
+            printf("FATAL: Couldn't evict any useful amount..\n");
+            #endif
+            PrintHeapStatus();
+            return false;
+        }
+    }
+    return true;
+}
+
 /**
  * Allocate a new area in the cache and push it to the front of the LRU
  * Note that this fuction by design will exit the program if it can't allocate thus

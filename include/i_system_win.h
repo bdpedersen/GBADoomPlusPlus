@@ -6,7 +6,7 @@
 #include <QApplication>
 #include <QWidget>
 
-#include "annontations.h"
+#include "annotations.h"
 
 //GBA Keys
 #define KEYD_A          1

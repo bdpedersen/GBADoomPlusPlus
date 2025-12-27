@@ -54,7 +54,7 @@
 #include <ctype.h>
 #include <limits.h>
 
-#include "annontations.h"
+#include "annotations.h"
 
 // this should go here, not in makefile/configure.ac -- josh
 #ifndef O_BINARY

@@ -48,7 +48,7 @@
 #include "lprintf.h"
 
 #include "global_data.h"
-#include "annontations.h"
+#include "annotations.h"
 
 // when to clip out sounds
 // Does not fit the large outdoor areas.

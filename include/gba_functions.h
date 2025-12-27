@@ -10,7 +10,7 @@
     #include <gba_dma.h>
 #endif
 
-#include "annontations.h"
+#include "annotations.h"
 
 
 inline static CONSTFUNC int IDiv32 (int a, int b)

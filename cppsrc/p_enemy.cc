@@ -50,7 +50,7 @@
 #include "lprintf.h"
 
 #include "global_data.h"
-#include "annontations.h"
+#include "annotations.h"
 
 const int distfriend = 128;
 line_t   junk;

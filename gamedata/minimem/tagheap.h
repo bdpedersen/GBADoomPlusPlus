@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+
 /**
  * This API is for a tagged memory allocator. It supports allocation from both 
  * head and tail of the heap area, and it supports defragmentation of the head
@@ -34,9 +35,12 @@
 #endif
 
 #ifndef TH_CANARY_ENABLED
-#define TH_CANARY_ENABLED 0
+#define TH_CANARY_ENABLED 1
 #endif
 
+#if TH_CANARY_ENABLED == 1
+#include <stdio.h>
+#endif
 typedef struct th_memblock_s {
     #if TH_CANARY_ENABLED == 1
     uint32_t canary[4]; // Canary to detect memory corruption

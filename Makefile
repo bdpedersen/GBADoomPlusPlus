@@ -17,11 +17,13 @@ SRCS        := $(CPP_SOURCES)
 #SRCS += gamedata/original/doom_iwad.cc
 #SRCS += gamedata/original/w_wad.cc
 #SRCS += gamedata/original/w_nc.cc
+#SRCS += gamedata/original/z_bmalloc.cc
 #vpath %.cc $(SRC_DIR) gamedata/original
 
 # ---- Guardmalloc Sources ----------------------------------------
 #SRCS += gamedata/original/doom_iwad.cc
 #SRCS += gamedata/original/w_wad.cc
+#SRCS += gamedata/original/z_bmalloc.cc
 #SRCS += gamedata/guard/w_nc.cc
 #SRCS += guardmalloc/guardmalloc.cc
 #vpath %.cc guardmalloc gamedata/guard gamedata/original $(SRC_DIR)
@@ -30,6 +32,7 @@ SRCS        := $(CPP_SOURCES)
 SRCS += gamedata/minimem/w_nc.cc
 SRCS += gamedata/minimem/wadfilereader.cc
 SRCS += gamedata/minimem/tagheap.cc
+SRCS += gamedata/minimem/z_mem_emu.cc
 vpath %.cc gamedata/minimem $(SRC_DIR)
 
 

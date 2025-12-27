@@ -44,7 +44,7 @@
 #include "d_event.h"
 
 #include "global_data.h"
-#include "annontations.h"
+#include "annotations.h"
 
 #define LOWERSPEED   (FRACUNIT*6)
 #define RAISESPEED   (FRACUNIT*6)

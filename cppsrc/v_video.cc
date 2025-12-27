@@ -46,7 +46,7 @@
 
 #include "global_data.h"
 #include "gba_functions.h"
-#include "annontations.h"
+#include "annotations.h"
 
 /*
  * V_DrawBackground tiles a 64x64 patch over the entire screen, providing the

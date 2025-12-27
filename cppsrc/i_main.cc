@@ -60,7 +60,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "annontations.h"
+#include "annotations.h"
 
 /* Most of the following has been rewritten by Lee Killough
  *

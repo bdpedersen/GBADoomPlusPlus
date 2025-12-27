@@ -47,7 +47,7 @@
 #include "i_main.h"
 #include <string.h>
 
-#include "annontations.h"
+#include "annotations.h"
 
 /* cphipps - enlarged message buffer and made non-static
  * We still have to be careful here, this function can be called after exit

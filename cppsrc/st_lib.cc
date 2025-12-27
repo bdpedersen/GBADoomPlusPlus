@@ -42,7 +42,7 @@
 #include "global_data.h"
 
 #include "gba_functions.h"
-#include "annontations.h"
+#include "annotations.h"
 
 //
 // STlib_init()

@@ -45,7 +45,7 @@
 #include "r_draw.h"
 
 #include "global_data.h"
-#include "annontations.h"
+#include "annotations.h"
 
 //
 // Data needed to add patches to full screen intermission pics.

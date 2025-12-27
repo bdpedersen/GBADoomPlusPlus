@@ -136,6 +136,9 @@ static uint8_t *alloc_tail(int bytesize, uint32_t tag){
 }
 
 uint8_t *TH_alloc(int bytesize, uint32_t tag) {
+    #if TH_CANARY_ENABLED == 1
+    printf("TH_alloc: Requesting %d bytes with tag %u (%s)\n", bytesize, tag, is_tail_or_free(tag) ? "tail" : "head");
+    #endif
     auto ptr = is_tail_or_free(tag) ? alloc_tail(bytesize,tag) : alloc_head(bytesize,tag);
     return ptr;
 }

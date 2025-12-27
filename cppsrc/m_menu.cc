@@ -59,7 +59,7 @@
 #include "i_sound.h"
 
 #include "global_data.h"
-#include "annontations.h"
+#include "annotations.h"
 
 static void (*messageRoutine)(int response);
 
