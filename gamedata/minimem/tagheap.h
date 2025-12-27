@@ -31,7 +31,7 @@
 
 // Heap size in 32-bit words
 #ifndef TH_HEAPSIZE
-#define TH_HEAPSIZE 300000 // bytes 200kb works and seems to be close to minimum for DOOM
+#define TH_HEAPSIZE 380000 // bytes 200kb works and seems to be close to minimum for DOOM
 #endif
 
 #ifndef TH_CANARY_ENABLED
@@ -54,6 +54,7 @@ typedef struct th_memblock_s {
 extern uint8_t th_heap[TH_HEAPSIZE];
 
 #define TH_FREE_TAG 0xffffffff
+
 
 typedef bool (*defrag_cb_t)(short tag, uint8_t *proposed_newptr);
 

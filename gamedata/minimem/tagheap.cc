@@ -11,6 +11,7 @@
  * This file contains a simple tagged memory allocator that supports allocation 
  */
 
+static bool initialized = false;
 
 
 #define SZ_MEMBLOCK sizeof(th_memblock_t)
@@ -22,6 +23,7 @@ uint8_t th_heap[TH_HEAPSIZE];
 
 // Init the heap with start and end markers indicating the free space
 void TH_init() {
+    if (initialized) return;
     // Initialize the start and end markers
     FIRSTBLOCK->next = LASTBLOCK;
     FIRSTBLOCK->prev = NULL;
@@ -302,10 +304,11 @@ void TH_defrag(defrag_cb_t move_if_allowed){
                     #endif
                     // Move allowed
                     th_memblock_t oldblock = *next;
-                    uint8_t *dst = newaddr;
-                    uint8_t *src = (uint8_t *)(next+1);
+                    // We can move using 32 bit load/stores as we know everything is 4 byte aligned
+                    uint32_t *dst = (uint32_t *)newaddr;
+                    uint32_t *src = (uint32_t *)(next+1);
                     unsigned realsize = (next->size +3) & ~3; // Align to 4 bytes
-                    for (unsigned n=0; n<realsize; n++) {
+                    for (unsigned n=0; n<(realsize>>2); n++) {
                         *dst++=*src++;
                     }
                     // We are effectively flipping the free space in block 
@@ -370,6 +373,15 @@ bool TH_checkhealth_verbose() {
     bool healthy = true;
     int cnt = 0;
     while (block) {
+        #if TH_CANARY_ENABLED == 1
+        // Check canary values
+        for (int i=0; i<4; i++) {
+            if (block->canary[i] != 0xDEADBEEF) {
+                printf("WARNING: Block #%d with tag %d has corrupted canary value at index %d\n", cnt, block->tag, i);
+                healthy = false;                
+            }
+        }
+        #endif
         // Check backward link consistency
         if (block->prev != prev) {
             printf("WARNING: Block chain broken at block #%d with tag %d: backward link inconsistency - expected %p got %p. Previous block had tag %d\n", cnt, block->tag, (void *)prev, (void *)block->prev, prev ? prev->tag : -1);
@@ -381,15 +393,6 @@ bool TH_checkhealth_verbose() {
             healthy = false;
             break;
         }
-        #if TH_CANARY_ENABLED == 1
-        // Check canary values
-        for (int i=0; i<4; i++) {
-            if (block->canary[i] != 0xDEADBEEF) {
-                printf("WARNING: Block #%d with tag %d has corrupted canary value at index %d\n", cnt, block->tag, i);
-                healthy = false;                
-            }
-        }
-        #endif
         prev = block;
         block = block->next;
         cnt++;

@@ -15,9 +15,9 @@ typedef struct memblock_s {
 
 #define SZ_MEMBLOCK sizeof(memblock_t)
 
-extern uint8_t heap[TH_HEAPSIZE];
-#define FIRSTBLOCK ((memblock_t *)&heap[0])
-#define LASTBLOCK ((memblock_t *)&heap[TH_HEAPSIZE-SZ_MEMBLOCK])
+extern uint8_t th_heap[TH_HEAPSIZE];
+#define FIRSTBLOCK ((memblock_t *)&th_heap[0])
+#define LASTBLOCK ((memblock_t *)&th_heap[TH_HEAPSIZE-SZ_MEMBLOCK])
 
 // Color codes for test output
 #define GREEN "\033[0;32m"
