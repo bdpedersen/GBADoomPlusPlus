@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 FILE *wad;
 
@@ -10,7 +11,7 @@ void WR_Init(){
     wad = fopen("gbadoom1.wad","rb");
     if (!wad) {
         printf("Couldn't open WAD file\n");
-        exit(-1);
+        assert(false);exit(-1);
     }
 }
 

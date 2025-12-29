@@ -28,7 +28,7 @@ bool NC_FreeSomeMemoryForTail();
         #if TH_CANARY_ENABLED == 1
         printf("FATAL: Z_BMalloc: Out of memory trying to allocate %zu bytes with tag %u\n", zone->size, tag);
         #endif
-        exit(-1);
+        assert(false);exit(-1);
     }
     return ptr;
  }
@@ -57,12 +57,12 @@ void * Z_Malloc(int size, int tag, void **user) {
         #if TH_CANARY_ENABLED == 1
         printf("FATAL: Z_Malloc: Out of memory trying to allocate %d bytes with tag %u\n", size, tag);
         #endif
-        exit(-1);
+        assert(false);exit(-1);
     }
     #if TH_CANARY_ENABLED == 1
     if (TH_checkhealth_verbose()==false) {
         printf("FATAL: Heap corrupted after Z_Malloc of %d bytes with tag %u\n",size,tag);
-        exit(-1);
+        assert(false);exit(-1);
     }
     #endif
     return ptr;
@@ -94,7 +94,7 @@ void * Z_Realloc(void *ptr, size_t n, int tag UNUSED, void **user UNUSED) {
         #if TH_CANARY_ENABLED == 1
         printf("FATAL: Z_Realloc: Out of memory trying to reallocate %zu bytes\n", n);
         #endif
-        exit(-1);
+        assert(false);exit(-1);
     }
     return newptr;
 }
@@ -115,7 +115,7 @@ void * Z_Calloc(size_t count, size_t size, int tag, void **user) {
     #if TH_CANARY_ENABLED == 1
     if (TH_checkhealth_verbose()==false) {
         printf("FATAL: Heap corrupted after Z_Calloc of %zu bytes with tag %u\n",size*count,tag);
-        exit(-1);
+        assert(false);exit(-1);
     }
     #endif
     return ptr;

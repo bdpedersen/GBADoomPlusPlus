@@ -51,7 +51,7 @@ const uint8_t * NC_CacheLumpNum(int lumpnum)
         uint8_t *data = (uint8_t *)GMALLOC(len);
         if (!data){
             printf("NC_CacheLumpNum: Failed to allocate %d bytes for lump %d\n", len, lumpnum);
-            exit(-1);
+            assert(false);exit(-1);
         }
         const uint8_t *lumpdata = (const uint8_t *)W_CacheLumpNum(lumpnum);
         memcpy(data, lumpdata, len);
@@ -128,7 +128,7 @@ void NC_Unpin(int lumpnum)
     if (lumpnum == -1) return;
     if (pincount.count(lumpnum) == 0){
         printf("Error: Lump %d is not pinned\n", lumpnum);
-        exit(-1);
+        assert(false);exit(-1);
     }
 
     if (--pincount[lumpnum]) return; // Nested pin - not time to unpin yet

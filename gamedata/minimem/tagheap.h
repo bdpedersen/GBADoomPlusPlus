@@ -37,7 +37,7 @@
 #endif
 
 #ifndef TH_CANARY_ENABLED
-#define TH_CANARY_ENABLED 1
+#define TH_CANARY_ENABLED 0
 #endif
 
 #if TH_CANARY_ENABLED == 1

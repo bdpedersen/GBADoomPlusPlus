@@ -213,7 +213,7 @@ static int EvictOne() {
     printf(" lump %d from cache freeing %d bytes at entry %d\n",lumpnum,freed,entry);
     if (TH_checkhealth_verbose()==false) {
         printf("FATAL: Heap corrupted during eviction of lump %d\n",lumpnum);
-        exit(-1);
+        assert(false);exit(-1);
     } else {
         printf("INFO: Heap healthy after eviction - %d bytes are allocated\n",allocated);
     }  
@@ -275,7 +275,7 @@ static uint8_t AllocateIntoCache(int bytes, int lumpnum) {
                 printf("FATAL: Couldn't evict any useful amount..\n");
                 #endif
                 PrintHeapStatus();
-                exit(-1);
+                assert(false);exit(-1);
             }
         }
         // Try allocating again
@@ -290,7 +290,7 @@ static uint8_t AllocateIntoCache(int bytes, int lumpnum) {
                 #if TH_CANARY_ENABLED == 1
                 printf("FATAL: Heap corrupted during defragmentation\n");
                 #endif
-                exit(-1);
+                assert(false);exit(-1);
             }
             data = TH_alloc(bytes,lumpnum);
             if (!data) {
@@ -302,7 +302,7 @@ static uint8_t AllocateIntoCache(int bytes, int lumpnum) {
                     printf("FATAL: Can't allocate %d bytes for lumpnum=%d\n",bytes,lumpnum);
                     PrintHeapStatus();
                     #endif
-                    exit(-1);
+                    assert(false);exit(-1);
                 }
             }
         }
@@ -319,7 +319,7 @@ static uint8_t AllocateIntoCache(int bytes, int lumpnum) {
             printf("FATAL: Cant evict an entry to free up - can't be true that all memory is pinned\n");
             #endif
             PrintHeapStatus();
-            exit(-1);
+            assert(false);exit(-1);
         } 
         entry = lru[0].free;
     }
@@ -364,7 +364,7 @@ const uint8_t * NC_CacheLumpNum(int lumpnum)
         #if TH_CANARY_ENABLED == 1
         if (TH_checkhealth_verbose()==false) {
             printf("FATAL: Heap corrupted after loading lump %d\n",lumpnum);
-            exit(-1);
+            assert(false);exit(-1);
         } else {
             printf("INFO: Heap healthy after loading lump %d - %d bytes are allocated\n",lumpnum,allocated);
         }    
@@ -540,7 +540,7 @@ void NC_FlushCache(void)
     printf("Flushed cache now has %d bytes in it\n",allocated);
     if (TH_checkhealth_verbose()==false) {
         printf("FATAL: Heap corrupted during cache flush\n");
-        exit(-1);
+        assert(false);exit(-1);
     }
     #endif
 }

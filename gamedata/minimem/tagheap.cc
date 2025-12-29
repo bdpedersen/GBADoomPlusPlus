@@ -57,10 +57,10 @@ static inline unsigned nearest4up(unsigned x) {
 }
 
 // Allocate *size* bytes and give them the given tag. Start search in bottom
-static uint8_t *alloc_leading(int bytesize, uint32_t tag){
+static uint8_t *alloc_first_fit(int bytesize, uint32_t tag){
     // Find first block txhat can hold the requested size starting from bottom
     unsigned size = nearest4up(bytesize); // Align to 4 bytes
-    unsigned searchsize = size + SZ_MEMBLOCK + 16; // Make sure to have space for a block header and meaningful data
+    unsigned searchsize = size; // Make sure to have space for a block header and meaningful data
     auto block = FIRSTBLOCK;
     while (block && ((block->tag==TH_FREE_TAG && block->size < searchsize) 
          || block->tag != TH_FREE_TAG /*|| (!is_tail_or_free(block->tag))*/ )) { // Disable tail check here as this function now allocates in both heaps
@@ -70,6 +70,12 @@ static uint8_t *alloc_leading(int bytesize, uint32_t tag){
     if (block && block->tag == TH_FREE_TAG) {
         // Insert a new header above the block and make room for <<size>> bytes
         // Mark the new header as free memory 
+        if (block->size < size + SZ_MEMBLOCK + 16) {
+            // Not enough space to split the block meaningfully - just allocate whole block and set size correctly
+            block->size = bytesize;
+            block->tag = tag;
+            return (uint8_t *)(block+1);
+        }
         int newsize = block->size-SZ_MEMBLOCK-size;
         uint8_t *newptr = (uint8_t *)block + SZ_MEMBLOCK + size;
         auto newblock = (th_memblock_t *)newptr;
@@ -93,52 +99,60 @@ static uint8_t *alloc_leading(int bytesize, uint32_t tag){
     return NULL;
 }
 
-/*
-// Allocate *size* bytes and give them the given tag. Start search in tail
-static uint8_t *alloc_tail(int bytesize, uint32_t tag){
+// Allocate *size* bytes and give them the given tag. Start search in bottom
+static uint8_t *alloc_best_fit(int bytesize, uint32_t tag){
     // Find first block txhat can hold the requested size starting from bottom
     unsigned size = nearest4up(bytesize); // Align to 4 bytes
-    unsigned searchsize = size + SZ_MEMBLOCK; // Make sure to have space for a block header
-     auto block = LASTBLOCK;
-    while (block && 
-        ((block->tag==TH_FREE_TAG && block->size < searchsize) 
-        || (block->tag!=TH_FREE_TAG && is_tail_or_free(block->tag)))) {
-            block = block->prev;
+    unsigned searchsize = size + SZ_MEMBLOCK + 16; // Make sure to have space for a block header and meaningful data
+    auto block = FIRSTBLOCK;
+    th_memblock_t *bestblock = NULL;
+    while (block) {
+        if (block->tag == TH_FREE_TAG && block->size >= searchsize) {
+            if (!bestblock || block->size < bestblock->size) {
+                bestblock = block;
+            }
+        }
+        block = block->next;
     }
+    block = bestblock;
     // Now block will either point to a suitable free area or be null
     if (block && block->tag == TH_FREE_TAG) {
         // Insert a new header above the block and make room for <<size>> bytes
         // Mark the new header as free memory 
+        if (block->size < size + SZ_MEMBLOCK + 16) {
+            // Not enough space to split the block meaningfully - just allocate whole block and set size correctly
+            block->size = bytesize;
+            block->tag = tag;
+            return (uint8_t *)(block+1);
+        }
         int newsize = block->size-SZ_MEMBLOCK-size;
-        // Put the new block right below the next block
-        uint8_t *newptr = (uint8_t *)block->next - SZ_MEMBLOCK - size;
-        th_memblock_t *newblock = (th_memblock_t *)newptr;
+        uint8_t *newptr = (uint8_t *)block + SZ_MEMBLOCK + size;
+        auto newblock = (th_memblock_t *)newptr;
         block->next->prev = newblock;
         newblock->next = block->next;
         newblock->prev = block;
         block->next=newblock;
-        // The data area is north of newblock
-        block->size = newsize; 
-        block->tag = TH_FREE_TAG;
-        newblock->tag=tag;
-        newblock->size = bytesize; // may be overallocated
+        newblock->size = newsize;
+        // The data is south of the new block
+        newblock->tag = TH_FREE_TAG;
+        block->tag=tag;
+        block->size = bytesize; // may be overallocated
         #if TH_CANARY_ENABLED == 1
         // Fill in canary values in the new block
         for (int i=0; i<4; i++) {
             newblock->canary[i] = 0xDEADBEEF;
         }
         #endif
-        return (uint8_t *)(newblock+1);
+        return (uint8_t *)(block+1);
     }
     return NULL;
 }
-*/
 
 uint8_t *TH_alloc(int bytesize, uint32_t tag) {
     #if TH_CANARY_ENABLED == 1
     printf("TH_alloc: Requesting %d bytes with tag %u (%s)\n", bytesize, tag, is_tail_or_free(tag) ? "objects" : "cache");
     #endif
-    auto ptr = alloc_leading(bytesize,tag);
+    auto ptr = (tag) ? alloc_best_fit(bytesize,tag) : alloc_first_fit(bytesize,tag); ;
     return ptr;
 }
 
@@ -222,7 +236,7 @@ static int freeblock(th_memblock_t *block){
         #if TH_CANARY_ENABLED == 1
             printf("Freeing block at %p of size %u merging with next block at %p of size %u\n", (void *)block, block->size, (void *)next, next->size);
         #endif
-            block->size += next->size+SZ_MEMBLOCK;
+            //block->size += next->size+SZ_MEMBLOCK;
             block->next = next->next;
             next->next->prev = block;
             block->tag = TH_FREE_TAG;
@@ -231,21 +245,25 @@ static int freeblock(th_memblock_t *block){
         #if TH_CANARY_ENABLED == 1
             printf("Freeing block at %p of size %u merging with previous block at %p of size %u\n", (void *)block, block->size, (void *)prev, prev->size);
         #endif
-            prev->size += block->size + SZ_MEMBLOCK;
+            //prev->size += block->size + SZ_MEMBLOCK;
             prev->next = block->next;
             next->prev = prev;
+            block = prev;
             break;
         case 3: // Merge block and next with previous
         #if TH_CANARY_ENABLED == 1
             printf("Freeing block at %p of size %u merging with previous block at %p of size %u and next block at %p of size %u\n", (void *)block, block->size, (void *)prev, prev->size, (void *)next, next->size);
         #endif
-            prev->size += block->size + next->size + 2*SZ_MEMBLOCK;
+            //prev->size += block->size + next->size + 2*SZ_MEMBLOCK;
             prev->next = next->next;
             next->next->prev = prev;
+            block = prev;
             break;
         default:
             break;
     }
+    // Adjust the size of the resulting free block
+    block->size = (uintptr_t)(block->next) - (uintptr_t)(block+1);
     return freed;
 }
 
