@@ -48,8 +48,8 @@ void * Z_Malloc(int size, int tag, void **user) {
         auto userptr = (void **)ptr;
         ptr += sizeof(void**);
         if (user) {
-            *((void **)userptr)=user;
-            *(void **)user = ptr;
+            *userptr=user;
+            *user = ptr;
         } else {
             *((void **)userptr)=(void **)2; // Mark as in use but unowned
         }
@@ -74,7 +74,9 @@ void * Z_Malloc(int size, int tag, void **user) {
 void Z_Free(void *ptr) {
     auto userptr = (void **)((uint8_t *)ptr - sizeof(void**));
     if (userptr > (void**)0x100) {
-        *userptr = 0;
+        void **user = (void **)(*userptr);
+        if (user && user > (void **)0x100)
+            *user = nullptr;
     }
 
     TH_free((uint8_t *)ptr-sizeof(void**));

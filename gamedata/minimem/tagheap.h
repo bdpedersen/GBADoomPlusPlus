@@ -32,7 +32,7 @@
 // Heap size in 32-bit words
 #ifndef TH_HEAPSIZE
 #define TH_CACHEHEAPSIZE 180000 // bytes - portion of heap used for caching
-#define TH_OBJECTHEAPSIZE 250000 // bytes - portion of heap used for static and level objects
+#define TH_OBJECTHEAPSIZE 220000 // bytes - portion of heap used for static and level objects
 #define TH_HEAPSIZE (TH_CACHEHEAPSIZE+TH_OBJECTHEAPSIZE)
 #endif
 

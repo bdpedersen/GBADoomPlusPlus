@@ -970,6 +970,7 @@ static const texture_t* R_GetOrLoadTexture(int tex_num)
     if(!tex)
         tex = R_GetTexture(tex_num);
 
+    assert(tex->patchcount > 0);
     return tex;
 }
 
