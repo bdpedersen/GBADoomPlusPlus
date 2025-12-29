@@ -18,40 +18,35 @@ static bool initialized = false;
 
 uint8_t th_heap[TH_HEAPSIZE];
 
-#define FIRSTBLOCK ((th_memblock_t *)&th_heap[0])
-#define LASTBLOCK ((th_memblock_t *)&th_heap[TH_HEAPSIZE-SZ_MEMBLOCK])
+#define LASTBLOCK ((th_memblock_t *)&th_heap[TH_CACHEHEAPSIZE-SZ_MEMBLOCK+(tag >> 31)*TH_OBJECTHEAPSIZE])
 
 // Init the heap with start and end markers indicating the free space
 void TH_init() {
     if (initialized) return;
     initialized = true;
     // Initialize the start and end markers
-    FIRSTBLOCK->next = LASTBLOCK;
-    FIRSTBLOCK->prev = NULL;
-    FIRSTBLOCK->tag = TH_FREE_TAG;
-    FIRSTBLOCK->size = TH_HEAPSIZE-2*SZ_MEMBLOCK;
-    LASTBLOCK->next = NULL;
-    LASTBLOCK->prev = FIRSTBLOCK;
-    LASTBLOCK->tag = TH_FREE_TAG;
-    LASTBLOCK->size = 0;
-    #if TH_CANARY_ENABLED == 1
-    // Fill in canary values
-    for (int i=0; i<4; i++) {
-        FIRSTBLOCK->canary[i] = 0xDEADBEEF;  
-        LASTBLOCK->canary[i] = 0xDEADBEEF;  
-    }
-    #endif
+    unsigned tag = 0;
+    do {
+        FIRSTBLOCK->next = LASTBLOCK;
+        FIRSTBLOCK->prev = NULL;
+        FIRSTBLOCK->tag = TH_FREE_TAG;
+        FIRSTBLOCK->size = ((tag) ? TH_OBJECTHEAPSIZE : TH_CACHEHEAPSIZE)-2*SZ_MEMBLOCK;
+        LASTBLOCK->next = NULL;
+        LASTBLOCK->prev = FIRSTBLOCK;
+        LASTBLOCK->tag = TH_FREE_TAG;
+        LASTBLOCK->size = 0;
+        #if TH_CANARY_ENABLED == 1
+        // Fill in canary values
+        for (int i=0; i<4; i++) {
+            FIRSTBLOCK->canary[i] = 0xDEADBEEF;  
+            LASTBLOCK->canary[i] = 0xDEADBEEF;  
+        }
+        #endif
+        tag ^= 0x80000000; // Toggle between cache and objects
+    } while (tag);
 }
 
-constexpr int log2ceil(int x) {
-    int r = 0;
-    int v = 1;
-    while (v < x) {
-        v <<= 1;
-        r++;
-    }
-    return r;
-}
+
 
 static inline bool is_tail_or_free(uint32_t tag) {
     return (tag & 0x80000000);
@@ -61,15 +56,14 @@ static inline unsigned nearest4up(unsigned x) {
     return (x + 3) & ~3;
 }
 
-// Allocate *size* bytes and give them the given tag. Start search in head
-static uint8_t *alloc_head(int bytesize, uint32_t tag){
+// Allocate *size* bytes and give them the given tag. Start search in bottom
+static uint8_t *alloc_leading(int bytesize, uint32_t tag){
     // Find first block txhat can hold the requested size starting from bottom
     unsigned size = nearest4up(bytesize); // Align to 4 bytes
-    unsigned searchsize = size + SZ_MEMBLOCK; // Make sure to have space for a block header
+    unsigned searchsize = size + SZ_MEMBLOCK + 16; // Make sure to have space for a block header and meaningful data
     auto block = FIRSTBLOCK;
-    while (block && 
-        ((block->tag==TH_FREE_TAG && block->size < searchsize) 
-        || (!is_tail_or_free(block->tag)) )) {
+    while (block && ((block->tag==TH_FREE_TAG && block->size < searchsize) 
+         || block->tag != TH_FREE_TAG /*|| (!is_tail_or_free(block->tag))*/ )) { // Disable tail check here as this function now allocates in both heaps
             block = block->next;
     }
     // Now block will either point to a suitable free area or be null
@@ -99,6 +93,7 @@ static uint8_t *alloc_head(int bytesize, uint32_t tag){
     return NULL;
 }
 
+/*
 // Allocate *size* bytes and give them the given tag. Start search in tail
 static uint8_t *alloc_tail(int bytesize, uint32_t tag){
     // Find first block txhat can hold the requested size starting from bottom
@@ -137,12 +132,13 @@ static uint8_t *alloc_tail(int bytesize, uint32_t tag){
     }
     return NULL;
 }
+*/
 
 uint8_t *TH_alloc(int bytesize, uint32_t tag) {
     #if TH_CANARY_ENABLED == 1
-    printf("TH_alloc: Requesting %d bytes with tag %u (%s)\n", bytesize, tag, is_tail_or_free(tag) ? "tail" : "head");
+    printf("TH_alloc: Requesting %d bytes with tag %u (%s)\n", bytesize, tag, is_tail_or_free(tag) ? "objects" : "cache");
     #endif
-    auto ptr = is_tail_or_free(tag) ? alloc_tail(bytesize,tag) : alloc_head(bytesize,tag);
+    auto ptr = alloc_leading(bytesize,tag);
     return ptr;
 }
 
@@ -255,6 +251,8 @@ static int freeblock(th_memblock_t *block){
 
 // Free all blocks with tags between tag_low and tag_high both included.
 void TH_freetags(uint32_t tag_low, uint32_t tag_high){
+    assert (is_tail_or_free(tag_low) == is_tail_or_free(tag_high)); // Must be same type of tags
+    unsigned tag = tag_low;
     auto block = FIRSTBLOCK;
     while (block) {
         if (tag_low <= block->tag && block->tag <= tag_high) {
@@ -270,9 +268,10 @@ int TH_free(uint8_t *ptr){
     return freeblock(block-1);
 }
 
-// Defrag head as described in tagheap.h. Both tag_low and tag_high is included
+// Defrag cache as described in tagheap.h. Both tag_low and tag_high is included
 // in the range to be defragmented. Never set tag_high to TH_FREE_TAG
 void TH_defrag(defrag_cb_t move_if_allowed){
+    unsigned tag = 0; // Only cache head blocks
     auto block = FIRSTBLOCK;
     // TODO: Implement defragmentation
     while (block) {
@@ -295,7 +294,7 @@ void TH_defrag(defrag_cb_t move_if_allowed){
             } else {
                 // We may have a block we can move ... 
                 th_memblock_t *next = block->next;
-                // We are into the tail - no need to continue defrag
+                // We are into the objects - no need to continue defrag
                 if (is_tail_or_free(next->tag)) break;
                 // Else check if we can move it
                 uint8_t *newaddr = (uint8_t *)(block+1);
@@ -341,7 +340,7 @@ void TH_defrag(defrag_cb_t move_if_allowed){
                 }
             }
         } else {
-            // We are into the tail - no need to terminate defrag
+            // We are into the objects - no need to terminate defrag
             if (is_tail_or_free(block->tag)) break;
         }
         block = block->next;
@@ -349,9 +348,10 @@ void TH_defrag(defrag_cb_t move_if_allowed){
 }
 
 int TH_countfreehead() {
+    unsigned tag = 0; // only work on cache
     th_memblock_t *block = FIRSTBLOCK;
     int free = 0;
-    // Step through and find all free blocks until we meet a tail block or reach the end
+    // Step through and find all free blocks until we meet a objects block or reach the end
     while (block) {
         if (block->tag == TH_FREE_TAG) {
             free += block->size;
@@ -369,38 +369,50 @@ bool TH_checkhealth_verbose() {
     #if TH_CANARY_ENABLED != 1
     return true;
     #else
-    th_memblock_t *block = FIRSTBLOCK;
-    th_memblock_t *prev = NULL;
+    unsigned tag = 0;
     bool healthy = true;
-    int cnt = 0;
-    while (block) {
-        #if TH_CANARY_ENABLED == 1
-        // Check canary values
-        for (int i=0; i<4; i++) {
-            if (block->canary[i] != 0xDEADBEEF) {
-                printf("WARNING: Block #%d with tag %d has corrupted canary value at index %d\n", cnt, block->tag, i);
-                healthy = false;                
+    do {
+        unsigned freemem = 0;
+        unsigned contigfree = 0;
+        printf("INFO: Checking heap health for %s allocations\n", (tag & 0x80000000) ? "object" : "cache");
+        th_memblock_t *block = FIRSTBLOCK;
+        th_memblock_t *prev = NULL;
+        int cnt = 0;
+        while (block) {
+            #if TH_CANARY_ENABLED == 1
+            // Check canary values
+            for (int i=0; i<4; i++) {
+                if (block->canary[i] != 0xDEADBEEF) {
+                    printf("WARNING: Block #%d with tag %d has corrupted canary value at index %d\n", cnt, block->tag, i);
+                    healthy = false;                
+                }
             }
+            #endif
+            // Check backward link consistency
+            if (block->prev != prev) {
+                printf("WARNING: Block chain broken at block #%d with tag %d: backward link inconsistency - expected %p got %p. Previous block had tag %d\n", cnt, block->tag, (void *)prev, (void *)block->prev, prev ? prev->tag : -1);
+                healthy = false;
+            }
+            if (block->next && ((uint8_t *)block->next < th_heap || 
+                (uint8_t *)block->next >= th_heap + TH_HEAPSIZE)) {
+                printf("WARNING: Block chain broken at block #%d  with tag %d: next pointer out of bounds\n", cnt, block->tag);
+                healthy = false;
+                break;
+            }
+            if (block->tag == TH_FREE_TAG) {
+                freemem += block->size;
+                contigfree = (contigfree > block->size) ? contigfree : block->size;
+            }
+            prev = block;
+            block = block->next;
+            cnt++;
         }
-        #endif
-        // Check backward link consistency
-        if (block->prev != prev) {
-            printf("WARNING: Block chain broken at block #%d with tag %d: backward link inconsistency - expected %p got %p. Previous block had tag %d\n", cnt, block->tag, (void *)prev, (void *)block->prev, prev ? prev->tag : -1);
-            healthy = false;
+        if (healthy) {
+            printf("INFO: %s Heap is healthy with %d blocks (%d bytes free - %d contiguous)\n", (tag) ? "Object" : "Cache",
+                    cnt, freemem, contigfree);
         }
-        if (block->next && ((uint8_t *)block->next < th_heap || 
-            (uint8_t *)block->next >= th_heap + TH_HEAPSIZE)) {
-            printf("WARNING: Block chain broken at block #%d  with tag %d: next pointer out of bounds\n", cnt, block->tag);
-            healthy = false;
-            break;
-        }
-        prev = block;
-        block = block->next;
-        cnt++;
-    }
-    if (healthy) {
-        printf("INFO: Heap is healthy with %d blocks\n", cnt);
-    }
+        tag ^= 0x80000000;
+    } while (tag);
     return healthy;
     #endif
 }

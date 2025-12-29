@@ -31,7 +31,9 @@
 
 // Heap size in 32-bit words
 #ifndef TH_HEAPSIZE
-#define TH_HEAPSIZE 380000 // bytes 200kb works and seems to be close to minimum for DOOM
+#define TH_CACHEHEAPSIZE 180000 // bytes - portion of heap used for caching
+#define TH_OBJECTHEAPSIZE 250000 // bytes - portion of heap used for static and level objects
+#define TH_HEAPSIZE (TH_CACHEHEAPSIZE+TH_OBJECTHEAPSIZE)
 #endif
 
 #ifndef TH_CANARY_ENABLED
@@ -52,6 +54,7 @@ typedef struct th_memblock_s {
 } th_memblock_t;
 
 extern uint8_t th_heap[TH_HEAPSIZE];
+#define FIRSTBLOCK ((th_memblock_t *)&th_heap[0+(tag >> 31)*TH_CACHEHEAPSIZE])
 
 #define TH_FREE_TAG 0xffffffff
 

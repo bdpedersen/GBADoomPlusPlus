@@ -66,6 +66,7 @@
 
 #include "gba_functions.h"
 
+#include <assert.h>
 
 //#define static
 
@@ -562,6 +563,7 @@ static void R_DrawColumn (const draw_column_vars_t *dcvars)
     auto pin = dcvars->sourcecache.pin();
     
     const byte *source = (pin.isnull()) ? dcvars->source : (const byte*)pin;
+    assert(source!=NULL);
     auto pinnedcolormap = dcvars->colormap.pin();
     const byte *colormap = pinnedcolormap;
 
@@ -632,6 +634,7 @@ static void R_DrawColumnHiRes(const draw_column_vars_t *dcvars)
     auto pin = dcvars->sourcecache.pin();
 
     const byte *source = (pin.isnull()) ? dcvars->source : (const byte*)pin;
+    assert(source!=NULL);
     auto pinnedcolormap = dcvars->colormap.pin();
     const byte *colormap = pinnedcolormap;
 
@@ -762,6 +765,7 @@ static void R_DrawMaskedColumn(R_DrawColumn_f colfunc, draw_column_vars_t *dcvar
             yl = cclip_x + 1;
 
         // killough 3/2/98, 3/27/98: Failsafe against overflow/crash:
+        
         if (yh < viewheight && yl <= yh)
         {
             dcvars->source =  (const byte*)column + 3;
@@ -782,6 +786,53 @@ static void R_DrawMaskedColumn(R_DrawColumn_f colfunc, draw_column_vars_t *dcvar
 
     dcvars->texturemid = basetexturemid;
 }
+
+// Overload for cached columns
+static void R_DrawMaskedColumn(R_DrawColumn_f colfunc, draw_column_vars_t *dcvars, Cached<column_t> column)
+{
+    const fixed_t basetexturemid = dcvars->texturemid;
+
+    const int fclip_x = mfloorclip[dcvars->x];
+    const int cclip_x = mceilingclip[dcvars->x];
+
+    while (column->topdelta != 0xff)
+    {
+        // calculate unclipped screen coordinates for post
+        const int topscreen = sprtopscreen + spryscale*column->topdelta;
+        const int bottomscreen = topscreen + spryscale*column->length;
+
+        int yh = (bottomscreen-1)>>FRACBITS;
+        int yl = (topscreen+FRACUNIT-1)>>FRACBITS;
+
+        if(yh >= fclip_x)
+            yh = fclip_x - 1;
+
+        if(yl <= cclip_x)
+            yl = cclip_x + 1;
+
+        // killough 3/2/98, 3/27/98: Failsafe against overflow/crash:
+        if (yh < viewheight && yl <= yh)
+        {
+            dcvars->source = NULL; // (const byte*)column + 3;
+            dcvars->sourcecache = column.bytebuffer().addOffset(3);
+
+            dcvars->texturemid = basetexturemid - (column->topdelta<<FRACBITS);
+
+            dcvars->yh = yh;
+            dcvars->yl = yl;
+
+            // Drawn by either R_DrawColumn
+            //  or (SHADOW) R_DrawFuzzColumn.
+            colfunc (dcvars);
+        }
+
+        // column = (const column_t *)((const byte *)column + column->length + 4);
+        column = column.transmuteToObjectAtByteOffset<column_t>(column->length + 4);
+    }
+
+    dcvars->texturemid = basetexturemid;
+}
+
 
 //
 // R_DrawVisSprite
@@ -832,12 +883,11 @@ static void R_DrawVisSprite(const vissprite_t *vis)
     dcvars.x = vis->x1;
     dcvars.odd_pixel = false;
 
-    auto pinnedpatch = patch.pin();
-    const patch_t *pinnedpatchptr = pinnedpatch;
 
     while(dcvars.x < SCREENWIDTH)
     {
-        const column_t* column = (const column_t *) ((const byte *)pinnedpatchptr + patch->columnofs[frac >> FRACBITS]);
+        //const column_t* column = (const column_t *) ((const byte *)pinnedpatchptr + patch->columnofs[frac >> FRACBITS]);
+        auto column = patch.transmuteToObjectAtByteOffset<column_t>(patch->columnofs[frac >> FRACBITS]);
         R_DrawMaskedColumn(colfunc, &dcvars, column);
 
         frac += xiscale;
@@ -854,7 +904,8 @@ static void R_DrawVisSprite(const vissprite_t *vis)
             break;
 
 
-        const column_t* column2 = (const column_t *) ((const byte *)pinnedpatchptr + patch->columnofs[frac >> FRACBITS]);
+        //const column_t* column2 = (const column_t *) ((const byte *)pinnedpatchptr + patch->columnofs[frac >> FRACBITS]);
+        auto column2 = patch.transmuteToObjectAtByteOffset<column_t>(patch->columnofs[frac >> FRACBITS]);
         R_DrawMaskedColumn(colfunc, &dcvars, column2);
 
         frac += xiscale;
@@ -878,6 +929,7 @@ static Cached<column_t> R_GetColumn(const texture_t* texture, int texcolumn)
     {
         //simple texture.
         auto patch = texture->patches[0].patch;
+        assert(patch.isvalid());
         return patch.transmuteToObjectAtByteOffset<column_t>(patch->columnofs[xc]);
         //return (const column_t *) ((const byte *)patch + patch->columnofs[xc]);
     }
@@ -890,6 +942,8 @@ static Cached<column_t> R_GetColumn(const texture_t* texture, int texcolumn)
             const texpatch_t* patch = &texture->patches[i];
 
             auto realpatch = patch->patch;
+            assert(realpatch.isvalid());
+
 
             const int x1 = patch->originx;
 
@@ -1429,6 +1483,7 @@ static void R_DoDrawPlane(visplane_t *pl)
             dcvars.iscale = skyiscale;
 
             const texture_t* tex = R_GetOrLoadTexture(_g->skytexture);
+            assert(tex->patchcount >= 1); // sky texture is always simple
 
             // killough 10/98: Use sky scrolling offset
             for (x = pl->minx; (dcvars.x = x) <= pl->maxx; x++)
@@ -1441,9 +1496,8 @@ static void R_DoDrawPlane(visplane_t *pl)
                     auto columnptr = column.bytebuffer();
                     columnptr += 3;
                     dcvars.sourcecache = columnptr;
-                    auto pinnedcolumnptr = columnptr.pin();
 
-                    dcvars.source = (const byte*)pinnedcolumnptr;
+                    dcvars.source = NULL;
                     R_DrawColumn(&dcvars);
                 }
             }
@@ -1939,14 +1993,16 @@ static void R_DrawSegTextureColumn(unsigned int texture, int texcolumn, draw_col
         auto column = R_GetColumn(tex, texcolumn);
         auto columnbytes = column.bytebuffer();
         columnbytes += 3;
-
+        assert(column.isvalid());
         dcvars->sourcecache = columnbytes;
+        dcvars->source = NULL;
         
     }
     else
     {
         dcvars->sourcecache = CachedBuffer<byte>();
         dcvars->source = R_ComposeColumn(texture, tex, texcolumn, dcvars->iscale);
+        assert(dcvars->source!=NULL);
     }
 
     R_DrawColumn (dcvars);

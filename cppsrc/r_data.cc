@@ -136,16 +136,19 @@ static const texture_t* R_LoadTexture(int texture_num)
     //const maptexture_t *mtexture = (const maptexture_t *) ((const byte *)maptex + offset);
     auto mtexture = maptex[0].transmuteToObjectAtByteOffset<maptexture_t>(offset);
 
-    texture_t* texture = (texture_t *)Z_Malloc(sizeof(const texture_t) + sizeof(const texpatch_t)*(mtexture->patchcount-1), PU_LEVEL, (void**)&textures[texture_num]);
+    texture_t* texture = (texture_t *)Z_Calloc(sizeof(const texture_t) + sizeof(const texpatch_t)*(mtexture->patchcount-1),1, PU_LEVEL, (void**)&textures[texture_num]);
 
     texture->width = mtexture->width;
     texture->height = mtexture->height;
     texture->patchcount = mtexture->patchcount;
-    texture->name = mtexture->name;
+    //texture->name = mtexture->name; // TODO: This is stealing pointer - fix later
+    texture->name = (const char *)Z_Calloc(9,1,PU_LEVEL,(void **)&texture->name);
+    strncpy((char*)texture->name, mtexture->name,8);
+    ((char*)texture->name)[8] = 0;
+
 
     texpatch_t* patch = texture->patches;
-    auto pinned_mtexture = mtexture.pin();
-    const mappatch_t* mpatch = pinned_mtexture->patches;
+    auto mpatch = mtexture->patches;
 
     texture->overlapped = 0;
 
@@ -214,7 +217,8 @@ const texture_t* R_GetTexture(int texture)
     if(texture >= _g->numtextures)
         return NULL;
 
-    if(textures[texture])
+    auto tex = textures[texture];
+    if(tex)
         return textures[texture];
 
     const texture_t* t = R_LoadTexture(texture);
@@ -343,16 +347,16 @@ static void R_InitTextures()
 
     _g->numtextures = numtextures1 + numtextures2;
 
-    textures = (const texture_t **)Z_Malloc(_g->numtextures*sizeof*textures, PU_STATIC, 0);
-    memset(textures, 0, _g->numtextures*sizeof*textures);
+    textures = (const texture_t **)Z_Calloc(_g->numtextures,sizeof(texture_t *), PU_STATIC, 0);
+    //memset(textures, 0, _g->numtextures*sizeof*textures);
 
-    textureheight = (fixed_t *)Z_Malloc(_g->numtextures*sizeof*textureheight, PU_STATIC, 0);
-    memset(textureheight, 0, _g->numtextures*sizeof*textureheight);
+    textureheight = (fixed_t *)Z_Calloc(_g->numtextures,sizeof(fixed_t), PU_STATIC, 0);
+    //memset(textureheight, 0, _g->numtextures*sizeof*textureheight);
 
-    texturetranslation = (short *)Z_Malloc((_g->numtextures+1)*sizeof*texturetranslation, PU_STATIC, 0);
+    texturetranslation = (short *)Z_Calloc((_g->numtextures+1),sizeof(short), PU_STATIC, 0);
 
-    for (int i=0 ; i<_g->numtextures ; i++)
-        texturetranslation[i] = i;
+    //for (int i=0 ; i<_g->numtextures ; i++)
+    //    texturetranslation[i] = i;
 }
 
 //

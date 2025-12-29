@@ -24,14 +24,11 @@ bool NC_FreeSomeMemoryForTail();
     unsigned tag = zone->tag | 0x80000000; // Ensure MSB is set for tail allocation
     auto ptr = TH_alloc(zone->size, tag);
     if (!ptr) {
-        // Try to free some memory - ask for double the size to be safe
-        if (!NC_FreeSomeMemoryForTail() || !(ptr = TH_alloc(zone->size, tag))) {
-            // Out of memory - this is fatal
-            #if TH_CANARY_ENABLED == 1
-            printf("FATAL: Z_BMalloc: Out of memory trying to allocate %zu bytes with tag %u\n", zone->size, tag);
-            #endif
-            exit(-1);
-        }
+        // Out of memory - this is fatal
+        #if TH_CANARY_ENABLED == 1
+        printf("FATAL: Z_BMalloc: Out of memory trying to allocate %zu bytes with tag %u\n", zone->size, tag);
+        #endif
+        exit(-1);
     }
     return ptr;
  }
@@ -43,21 +40,24 @@ bool NC_FreeSomeMemoryForTail();
 /**
  * Z_Malloc replacement
  */
-void * Z_Malloc(int size, int tag, void **user UNUSED) {
+void * Z_Malloc(int size, int tag, void **user) {
     tag |= 0x80000000; // Ensure MSB is set for tail allocation
-    auto ptr = TH_alloc(size,tag);
-    if (!ptr) {
-        // Out of memory - this is fatal
-        // Try to free some memory - ask for some extra to be safe
-        #if TH_CANARY_ENABLED == 1
-        printf("INFO: Z_Malloc: Evicing memory to allocate %d bytes with tag %u\n", size, tag);
-        #endif
-        if (!NC_FreeSomeMemoryForTail() || !(ptr = TH_alloc(size, tag))) {
-            #if TH_CANARY_ENABLED == 1
-            printf("FATAL: Z_Malloc: Out of memory trying to allocate %d bytes with tag %u\n", size, tag);
-            #endif
-            exit(-1);
+    // We need to also allocate space for the user pointer
+    auto ptr = TH_alloc(size+sizeof(void**),tag);
+    if (ptr) {
+        auto userptr = (void **)ptr;
+        ptr += sizeof(void**);
+        if (user) {
+            *((void **)userptr)=user;
+            *(void **)user = ptr;
+        } else {
+            *((void **)userptr)=(void **)2; // Mark as in use but unowned
         }
+    } else {
+        #if TH_CANARY_ENABLED == 1
+        printf("FATAL: Z_Malloc: Out of memory trying to allocate %d bytes with tag %u\n", size, tag);
+        #endif
+        exit(-1);
     }
     #if TH_CANARY_ENABLED == 1
     if (TH_checkhealth_verbose()==false) {
@@ -72,7 +72,12 @@ void * Z_Malloc(int size, int tag, void **user UNUSED) {
  * Z_Free replacement
  */
 void Z_Free(void *ptr) {
-    TH_free((uint8_t *)ptr);
+    auto userptr = (void **)((uint8_t *)ptr - sizeof(void**));
+    if (userptr > (void**)0x100) {
+        *userptr = 0;
+    }
+
+    TH_free((uint8_t *)ptr-sizeof(void**));
 }
 
 
@@ -83,13 +88,11 @@ void Z_Free(void *ptr) {
 void * Z_Realloc(void *ptr, size_t n, int tag UNUSED, void **user UNUSED) {
     auto newptr = TH_realloc((uint8_t *)ptr,n);
     if (!newptr) {
-        if (!NC_FreeSomeMemoryForTail() || !(ptr = TH_realloc((uint8_t *)ptr,n))) {
-            // Out of memory - this is fatal
-            #if TH_CANARY_ENABLED == 1
-            printf("FATAL: Z_Realloc: Out of memory trying to reallocate %zu bytes\n", n);
-            #endif
-            exit(-1);
-        }
+        // Out of memory - this is fatal
+        #if TH_CANARY_ENABLED == 1
+        printf("FATAL: Z_Realloc: Out of memory trying to reallocate %zu bytes\n", n);
+        #endif
+        exit(-1);
     }
     return newptr;
 }
@@ -97,14 +100,22 @@ void * Z_Realloc(void *ptr, size_t n, int tag UNUSED, void **user UNUSED) {
 /**
  * Z_Calloc replacement
  */
-void * Z_Calloc(size_t count, size_t size, int tag, void **user UNUSED) {
+void * Z_Calloc(size_t count, size_t size, int tag, void **user) {
     auto ptr = Z_Malloc(size*count, tag, user);
-    // Zero out the memory
-    auto realsize = ((size*count + 3) & ~3); // Align to 4 bytes
-    auto ptr32 = (uint32_t *)ptr;
-    for (unsigned n=0; n < (realsize >> 2); n++) {
-        ptr32[n] = 0;
+    if (ptr) {
+        // Zero out the memory
+        auto realsize = ((size*count + 3) & ~3); // Align to 4 bytes
+        auto ptr32 = (uint32_t *)ptr;
+        for (unsigned n=0; n < (realsize >> 2); n++) {
+            ptr32[n] = 0;
+        }
     }
+    #if TH_CANARY_ENABLED == 1
+    if (TH_checkhealth_verbose()==false) {
+        printf("FATAL: Heap corrupted after Z_Calloc of %zu bytes with tag %u\n",size*count,tag);
+        exit(-1);
+    }
+    #endif
     return ptr;
 }
 
@@ -112,9 +123,18 @@ void * Z_Calloc(size_t count, size_t size, int tag, void **user UNUSED) {
  * Z_FreeTags replacement
  */
 void Z_FreeTags(int lowtag, int hightag) {
-    lowtag |= 0x80000000;
-    hightag |= 0x80000000;
-    TH_freetags(lowtag,hightag);
+    unsigned tag = 0x80000000;
+    th_memblock_t *block = FIRSTBLOCK;
+    unsigned lt = lowtag | 0x80000000;
+    unsigned ht = hightag | 0x80000000;
+    while (block) {
+        auto userptr = (uint8_t *)(block+1);
+        auto ptr = userptr + sizeof(void**);
+        if (lt <= block->tag && block->tag <= ht) {
+            Z_Free(ptr);
+        }
+        block = block->next;
+    }
 }
 
 void Z_Init() {
