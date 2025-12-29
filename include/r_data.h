@@ -60,7 +60,7 @@ typedef struct
 
 typedef struct
 {
-  const char*  name;         // Keep name for switch changing, etc.
+  const char name[9];         // Keep name for switch changing, etc.
   //int   next, index;     // killough 1/31/98: used in hashing algorithm
   // CPhipps - moved arrays with per-texture entries to elements here
   unsigned short  widthmask;

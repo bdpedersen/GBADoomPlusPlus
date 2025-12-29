@@ -142,7 +142,7 @@ static const texture_t* R_LoadTexture(int texture_num)
     texture->height = mtexture->height;
     texture->patchcount = mtexture->patchcount;
     //texture->name = mtexture->name; // TODO: This is stealing pointer - fix later
-    texture->name = (const char *)Z_Calloc(9,1,PU_LEVEL,(void **)&texture->name);
+    //texture->name = (const char *)Z_Calloc(9,1,PU_LEVEL,(void **)&texture->name);
     strncpy((char*)texture->name, mtexture->name,8);
     ((char*)texture->name)[8] = 0;
 

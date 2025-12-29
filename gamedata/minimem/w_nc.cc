@@ -369,8 +369,8 @@ const uint8_t * NC_CacheLumpNum(int lumpnum)
             printf("INFO: Heap healthy after loading lump %d - %d bytes are allocated\n",lumpnum,allocated);
         }    
         #endif
-        printf("!");
-        fflush(stdout);
+        //printf("!");
+        //fflush(stdout);
     } 
     auto entry = cache[lumpnum];
     ASSERT_VALID_CACHE_ENTRY(entry);

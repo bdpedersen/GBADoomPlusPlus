@@ -450,7 +450,7 @@ void D_DoAdvanceDemo(void)
     _g->advancedemo = _g->usergame = false;
     _g->gameaction = ga_nothing;
 
-    _g->pagetic = TICRATE * 11;         /* killough 11/98: default behavior */
+    _g->pagetic = TICRATE * 3;         /* killough 11/98: default behavior */
     _g->gamestate = GS_DEMOSCREEN;
 
 
