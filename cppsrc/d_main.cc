@@ -75,6 +75,8 @@
 #include "doom_iwad.h"
 #include "global_data.h"
 
+#define TIME_ON_TITLE_SCREEN_SEC 1
+
 void GetFirstMap(int *ep, int *map); // Ty 08/29/98 - add "-warp x" functionality
 static void D_PageDrawer(void);
 static void D_UpdateFPS(void);
@@ -367,7 +369,8 @@ static void D_SetPageName(const char *name)
 static void D_DrawTitle1(const char *name)
 {
     S_StartMusic(mus_intro);
-    _g->pagetic = (TICRATE*30);
+    // NOTE: Time to display the title screen
+    _g->pagetic = (TICRATE*TIME_ON_TITLE_SCREEN_SEC);
     D_SetPageName(name);
 }
 
@@ -450,7 +453,7 @@ void D_DoAdvanceDemo(void)
     _g->advancedemo = _g->usergame = false;
     _g->gameaction = ga_nothing;
 
-    _g->pagetic = TICRATE * 3;         /* killough 11/98: default behavior */
+    _g->pagetic = TICRATE * 11;         /* killough 11/98: default behavior */
     _g->gamestate = GS_DEMOSCREEN;
 
 

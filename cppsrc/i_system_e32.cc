@@ -17,6 +17,10 @@
 
 #include "annotations.h"
 
+#ifdef DUMP_SCREENBUFFER
+#include <sys/stat.h>
+#include <sys/types.h>
+#endif
 
 //**************************************************************************************
 
@@ -115,12 +119,22 @@ void I_CreateWindow_e32()
 void I_CreateBackBuffer_e32()
 {	
 	I_CreateWindow_e32();
+    #ifdef DUMP_SCREENBUFFER
+    // Create directory to put the screen buffer files into - use posix for this.
+    // Only create this if it doesn't already exist.
+    struct stat st;
+    if (!(stat("screenbuffers", &st) == 0 && S_ISDIR(st.st_mode)))
+    {
+        mkdir("screenbuffers", S_IRWXU | S_IRGRP | S_IROTH | S_IXOTH);
+    }
+    #endif
 }
 
 //**************************************************************************************
 
 void I_FinishUpdate_e32(const byte* srcBuffer, const byte* pallete, const unsigned int width UNUSED, const unsigned int height UNUSED)
 {
+    // BDPNOTE: This is where the screenbuffer is drawn
     pb = (unsigned char*)srcBuffer;
     pl = (unsigned char*)pallete;
 
@@ -128,6 +142,7 @@ void I_FinishUpdate_e32(const byte* srcBuffer, const byte* pallete, const unsign
 
     app->processEvents();
 
+    /*
     int arrayCount = thesize;
 
     if(arrayCount == 0)
@@ -154,7 +169,46 @@ void I_FinishUpdate_e32(const byte* srcBuffer, const byte* pallete, const unsign
     f.write("\n};\n");
 
     f.close();
-
+    */
+   #ifdef DUMP_SCREENBUFFER
+    static int filenum = 0;
+    static uint32_t timebase = 0xffffffff;
+    char filename[256];
+    snprintf(filename, sizeof(filename), "screenbuffers/scr%05d.raw", filenum++);
+    struct image_header_s
+    {
+        uint32_t sequence_no;
+        uint32_t timestamp_ms;
+        uint16_t width;
+        uint16_t height;
+        struct {
+            uint8_t r;
+            uint8_t g;
+            uint8_t b;
+        } palette[256] __attribute__((packed));
+    } header;
+    FILE *f = fopen(filename, "wb");
+    if (f) {
+        clock_t clock_now = clock();
+        uint32_t time_ms = (uint32_t)((double)clock_now / ((double)CLOCKS_PER_SEC / 1000.0));
+        if (timebase == 0xffffffff)
+            timebase = time_ms;
+        header.timestamp_ms = time_ms-timebase;
+        header.sequence_no = filenum;
+        header.width = 2*width;
+        header.height = height;
+        for (int i=0; i<256; i++) {
+            header.palette[i].r = pl[3*i];
+            header.palette[i].g = pl[3*i+1];
+            header.palette[i].b = pl[3*i+2];
+        }
+        fwrite(&header, sizeof(header), 1, f);
+        fwrite(srcBuffer, 2*width*height, 1, f);
+        fclose(f);
+    } else {
+        printf("Failed to open screenbuffer dump file %s\n", filename);
+    }
+   #endif
 }
 
 //**************************************************************************************

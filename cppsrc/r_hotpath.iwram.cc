@@ -3388,6 +3388,7 @@ int I_GetTime(void)
 
     clock_t now = clock();
 
+    // For microseconds we can do (37*time_us)>>20
     thistimereply = (int)((double)now / ((double)CLOCKS_PER_SEC / (double)TICRATE));
 #else
     thistimereply = I_GetTime_e32();
