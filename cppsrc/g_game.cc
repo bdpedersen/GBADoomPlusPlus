@@ -818,7 +818,9 @@ void G_DoWorldDone (void)
     _g->idmusnum = -1;             //jff 3/17/98 allow new level's music to be loaded
     _g->gamestate = GS_LEVEL;
     _g->gamemap = _g->wminfo.next+1;
+    #ifdef RPT_MALLOC
     Z_ReportAll();
+    #endif
 
     G_DoLoadLevel();
     

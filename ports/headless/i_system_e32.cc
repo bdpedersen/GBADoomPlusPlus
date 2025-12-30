@@ -45,10 +45,16 @@ int I_GetTime(void)
 {
     int thistimereply;
 
+    #ifndef __CHESS__
     clock_t now = clock();
 
     // For microseconds we can do (37*time_us)>>20
     thistimereply = (int)((double)now / ((double)CLOCKS_PER_SEC / (double)TICRATE));
+    #else
+    #define MCYCLES_PER_SEC 32
+    uint64_t cycles_us = chess_cycle_count()/MCYCLES_PER_SEC; // Or other us timer
+    thistimereply = (cycles_us*37)>>20; // Approx. 35/1000000
+    #endif
 
     if (thistimereply < _g->lasttimereply)
     {
@@ -183,6 +189,7 @@ void I_FinishUpdate_e32(const byte* srcBuffer, const byte* pallete, const unsign
 
     // Stop after ~10 seconds
     if (filenum == 350) {
+        printf("\n\n.. It did run DOOM\n");
         exit(0);
     }
 }
