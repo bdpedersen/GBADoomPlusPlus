@@ -47,6 +47,8 @@
 #ifndef __TABLES__
 #define __TABLES__
 
+#include "annotations.h"
+
 #include "m_fixed.h"
 
 #define FINEANGLES              8192
@@ -74,30 +76,30 @@ typedef unsigned angle_t;
 void R_LoadTrigTables(void);
 
 // Effective size is 10240.
-extern const fixed_t finesine[10240];
+extern const fixed_t CONSTMEM finesine[10240];
 
 // Re-use data, is just PI/2 phase shift.
-static const fixed_t *const finecosine = finesine + (FINEANGLES/4);
+static const fixed_t * CONSTMEM const finecosine = finesine + (FINEANGLES/4);
 
 // Effective size is 4096.
-extern const fixed_t finetangent[4096];
+extern const fixed_t CONSTMEM finetangent[4096];
 
 // Effective size is 2049;
 // The +1 size is to handle the case when x==y without additional checking.
 
-extern const angle_t tantoangle[2049];
+extern const angle_t CONSTMEM tantoangle[2049];
 
-extern const int viewangletox[4096];
+extern const int CONSTMEM viewangletox[4096];
 
-extern const angle_t xtoviewangle[121];
-extern const angle_t* xtoviewangle_vram; //VRAM Copy.
+extern const angle_t CONSTMEM xtoviewangle[121];
+extern const angle_t* CONSTMEM xtoviewangle_vram; //VRAM Copy.
 
 
-extern const fixed_t yslope[160];
-extern const fixed_t* yslope_vram; //VRAM Copy.
+extern const fixed_t CONSTMEM yslope[160];
+extern const fixed_t* CONSTMEM yslope_vram; //VRAM Copy.
 
-extern const fixed_t distscale[120];
-extern const fixed_t* distscale_vram; //VRAM Copy.
+extern const fixed_t CONSTMEM distscale[120];
+extern const fixed_t* CONSTMEM distscale_vram; //VRAM Copy.
 
 extern short* screenheightarray;
 extern short* negonearray;
