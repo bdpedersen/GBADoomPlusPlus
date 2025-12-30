@@ -2,6 +2,7 @@
 import os
 from PIL import Image
 import glob
+import sys
 
 def read_header(file):
     """ 
@@ -79,8 +80,8 @@ def save_images_as_gif(images, output_file, timestamps, scale=1):
     images[0].save(output_file, save_all=True, append_images=images[1:], duration=durations, loop=0)
 
 if __name__ == "__main__":
-    input_directory = 'screenbuffers'
-    output_gif = 'output.gif'
+    input_directory = os.path.join(sys.argv[1],'screenbuffers')
+    output_gif = os.path.join(sys.argv[1],'output.gif')
     
     images,timestamps = read_images_from_raw_files(input_directory)
     # Compute average FPS

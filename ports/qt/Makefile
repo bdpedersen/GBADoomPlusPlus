@@ -4,7 +4,7 @@
 
 TARGET      := GBADoomCpp
 
-SRC_DIR     := cppsrc
+SRC_DIR     := ../../cppsrc
 OBJ_DIR     := cppbuild
 
 # Use all C sources in source/, plus the C++ ones we know about.
@@ -12,29 +12,32 @@ OBJ_DIR     := cppbuild
 CPP_SOURCES := $(wildcard $(SRC_DIR)/*.cc)
 
 SRCS        := $(CPP_SOURCES)
-SRCS += ports/qt/i_system_e32.cc
+
+# Port specific source files
+SRCS += i_system_e32.cc
+SRCS += wadfilereader.cc
+
 
 # ---- Original Doom Sources --------------------------------------------
-#SRCS += gamedata/original/doom_iwad.cc
-#SRCS += gamedata/original/w_wad.cc
-#SRCS += gamedata/original/w_nc.cc
-#SRCS += gamedata/original/z_bmalloc.cc
-#vpath %.cc $(SRC_DIR) gamedata/original
+#SRCS += ../../gamedata/original/doom_iwad.cc
+#SRCS += ../../gamedata/original/w_wad.cc
+#SRCS += ../../gamedata/original/w_nc.cc
+#SRCS += ../../gamedata/original/z_bmalloc.cc
+#vpath %.cc $(SRC_DIR) ../../gamedata/original
 
 # ---- Guardmalloc Sources ----------------------------------------
-#SRCS += gamedata/original/doom_iwad.cc
-#SRCS += gamedata/original/w_wad.cc
-#SRCS += gamedata/original/z_bmalloc.cc
-#SRCS += gamedata/guard/w_nc.cc
+#SRCS += ../../gamedata/original/doom_iwad.cc
+#SRCS += ../../gamedata/original/w_wad.cc
+#SRCS += ../../gamedata/original/z_bmalloc.cc
+#SRCS += ../../gamedata/guard/w_nc.cc
 #SRCS += guardmalloc/guardmalloc.cc
-#vpath %.cc guardmalloc gamedata/guard gamedata/original $(SRC_DIR)
+#vpath %.cc guardmalloc ../../gamedata/guard ../../gamedata/original $(SRC_DIR)
 
 # ---- Minimem Sources ----------------------------------------
-SRCS += gamedata/minimem/w_nc.cc
-SRCS += gamedata/minimem/wadfilereader.cc
-SRCS += gamedata/minimem/tagheap.cc
-SRCS += gamedata/minimem/z_mem_emu.cc
-vpath %.cc gamedata/minimem ports/qt $(SRC_DIR)
+SRCS += ../../gamedata/minimem/w_nc.cc
+SRCS += ../../gamedata/minimem/tagheap.cc
+SRCS += ../../gamedata/minimem/z_mem_emu.cc
+vpath %.cc ../../gamedata/minimem . $(SRC_DIR)
 
 
 # ---- Objects -----------------------------------------------------
@@ -63,7 +66,8 @@ DEFINES     := \
 	-DDUMP_SCREENBUFFER
 
 INCLUDEPATH := \
-    -Iinclude
+    -I../../include \
+	-I../../gamedata/minimem 
 
 
 CXXFLAGS    := -std=c++17 -Wall -Wextra -Werror -Wno-unknown-pragmas  -g -O0 $(DEFINES) $(INCLUDEPATH)
