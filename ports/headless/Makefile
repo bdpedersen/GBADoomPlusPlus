@@ -16,6 +16,7 @@ SRCS        := $(CPP_SOURCES)
 # Port specific source files
 SRCS += i_system_e32.cc
 SRCS += wadfilereader.cc
+SRCS += i_main.cc
 
 
 # ---- Original Doom Sources --------------------------------------------
@@ -63,7 +64,8 @@ DEFINES     := \
     -DRANGECHECK \
 	-DRPT_MALLOC \
     -D_CRT_SECURE_NO_WARNINGS \
-	-DDUMP_SCREENBUFFER
+	-DDUMP_SCREENBUFFER \
+	-DTIME_ON_TITLE_SCREEN_SEC=1
 
 INCLUDEPATH := \
     -I../../include \

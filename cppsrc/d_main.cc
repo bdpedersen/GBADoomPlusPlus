@@ -75,7 +75,9 @@
 #include "doom_iwad.h"
 #include "global_data.h"
 
-#define TIME_ON_TITLE_SCREEN_SEC 1
+#ifndef TIME_ON_TITLE_SCREEN_SEC
+#define TIME_ON_TITLE_SCREEN_SEC 10
+#endif
 
 void GetFirstMap(int *ep, int *map); // Ty 08/29/98 - add "-warp x" functionality
 static void D_PageDrawer(void);
