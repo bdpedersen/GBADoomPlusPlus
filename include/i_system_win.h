@@ -20,13 +20,14 @@
 #define KEYD_START      9
 #define KEYD_SELECT     10
 
-using std::byte;
+//using std::byte;
 
 extern "C"
 {
 
 extern const byte gammatable[2][32];
 
+/*
 typedef enum
 {
   ev_keydown,
@@ -43,7 +44,7 @@ typedef struct
   int       data2;    // mouse/joystick x move
   int       data3;    // mouse/joystick y move
 } event_t;
-
+*/
 void D_PostEvent(event_t* ev);
 }
 

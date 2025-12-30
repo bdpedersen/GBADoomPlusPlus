@@ -12,6 +12,7 @@ OBJ_DIR     := cppbuild
 CPP_SOURCES := $(wildcard $(SRC_DIR)/*.cc)
 
 SRCS        := $(CPP_SOURCES)
+SRCS += ports/qt/i_system_e32.cc
 
 # ---- Original Doom Sources --------------------------------------------
 #SRCS += gamedata/original/doom_iwad.cc
@@ -33,7 +34,7 @@ SRCS += gamedata/minimem/w_nc.cc
 SRCS += gamedata/minimem/wadfilereader.cc
 SRCS += gamedata/minimem/tagheap.cc
 SRCS += gamedata/minimem/z_mem_emu.cc
-vpath %.cc gamedata/minimem $(SRC_DIR)
+vpath %.cc gamedata/minimem ports/qt $(SRC_DIR)
 
 
 # ---- Objects -----------------------------------------------------

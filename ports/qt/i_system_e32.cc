@@ -3,9 +3,8 @@
 // Copyright 17/02/2019 
 //
 
-#ifndef GBA
-
-
+#include "global_data.h"
+#include "doomdef.h"
 #include "i_system_win.h"
 
 #include <stdarg.h>
@@ -21,6 +20,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #endif
+
+#include <time.h>
+
+extern globals_t* _g;
 
 //**************************************************************************************
 
@@ -45,6 +48,39 @@ int thesize;
 
 unsigned short backbuffer[120 *160];
 unsigned short frontbuffer[120 *160];
+
+
+int I_GetTime(void)
+{
+    int thistimereply;
+
+    clock_t now = clock();
+
+    // For microseconds we can do (37*time_us)>>20
+    thistimereply = (int)((double)now / ((double)CLOCKS_PER_SEC / (double)TICRATE));
+
+    if (thistimereply < _g->lasttimereply)
+    {
+        _g->basetime -= 0xffff;
+    }
+
+    _g->lasttimereply = thistimereply;
+
+
+    /* Fix for time problem */
+    if (!_g->basetime)
+    {
+        _g->basetime = thistimereply;
+        thistimereply = 0;
+    }
+    else
+    {
+        thistimereply -= _g->basetime;
+    }
+
+    return thistimereply;
+}
+
 
 //**************************************************************************************
 
@@ -142,34 +178,6 @@ void I_FinishUpdate_e32(const byte* srcBuffer, const byte* pallete, const unsign
 
     app->processEvents();
 
-    /*
-    int arrayCount = thesize;
-
-    if(arrayCount == 0)
-        return;
-
-    //dump the _g->viewangletox var
-    QFile f("C:\\temp\\gfx_stbar.c");
-    f.open(QIODevice::ReadWrite);
-
-    f.write("const byte gfx_stbar[");
-    f.write(QString::number(arrayCount).toLatin1().constData());
-
-    f.write("] =\n{\n");
-
-    for(int i = 0; i < arrayCount; i++)
-    {
-        f.write(QString::number(thearray[i]).toLatin1().constData());
-        f.write(",");
-
-        if((i%16) == 0)
-            f.write("\n");
-    }
-
-    f.write("\n};\n");
-
-    f.close();
-    */
    #ifdef DUMP_SCREENBUFFER
     static int filenum = 0;
     static uint32_t timebase = 0xffffffff;
@@ -283,5 +291,3 @@ void I_Quit_e32()
 }
 
 //**************************************************************************************
-
-#endif

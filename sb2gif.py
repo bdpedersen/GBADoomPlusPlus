@@ -83,6 +83,9 @@ if __name__ == "__main__":
     output_gif = 'output.gif'
     
     images,timestamps = read_images_from_raw_files(input_directory)
+    # Compute average FPS
+    fps = len(images) / ((timestamps[-1] - timestamps[0]) / 1000.0)
+    print(f"Read {len(images)} frames with average FPS: {fps:.2f}")
     
     save_images_as_gif(images, output_gif, timestamps,2)
     print(f"Saved animated GIF to {output_gif}")
