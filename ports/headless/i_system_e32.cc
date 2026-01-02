@@ -168,8 +168,12 @@ void I_FinishUpdate_e32(const uint8_t* srcBuffer, const uint8_t* pallete, const 
         } palette[256] __attribute__((packed));
     } header;
     #ifdef __chess__
+    static unsigned lastcyclecount = 0xffffffff;
     unsigned cyclecount = chess_cycle_count();
-    printf("Writing file %d after %u cycles\n",filenum,cyclecount);
+    if (lastcyclecount != 0xffffffff) {
+        printf("Generated frame #%d in %u cycles\n",filenum,cyclecount-lastcyclecount);
+    }
+    lastcyclecount = cyclecount;
     #endif
     
     FILE *f = fopen(filename, "wb");

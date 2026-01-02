@@ -431,7 +431,6 @@ int NC_CheckNumForName(const char *name)
         }
         n+=16;
     }
-    
     return -1;
 }
 
