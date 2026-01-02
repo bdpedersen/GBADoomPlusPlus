@@ -104,7 +104,11 @@ static inline int32_t idiv64(int64_t numerator, int32_t denominator) {
     uint64_t u_num = (uint64_t)((numerator ^ n_mask) - n_mask);
 
     // For 32 bit we have built in abs
+    #ifdef __chess__
     uint32_t u_den = abs(denominator);
+    #else
+    uint32_t u_den = D_abs(denominator);
+    #endif
 
     // Long division: shift-subtract
     uint64_t r = 0;

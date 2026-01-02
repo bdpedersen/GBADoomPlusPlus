@@ -33,6 +33,11 @@
 // killough 3/7/98: modified to allow arbitrary listeners in spy mode
 // killough 5/2/98: reindented, removed useless code, beautified
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#pragma clang diagnostic ignored "-Wunused-function"
+#pragma clang diagnostic ignored "-Wunused-variable"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -351,8 +356,8 @@ static boolean S_SoundIsPlaying(int cnum)
         return (channel->tickend < ticknow);
     }
 
-    return false;
     #endif
+    return false;
 }
 
 //
@@ -584,6 +589,8 @@ int S_AdjustSoundParams(mobj_t *listener, mobj_t *source, int *vol, int *sep)
         *vol = (_g->snd_SfxVolume * ((S_CLIPPING_DIST-approx_dist)>>FRACBITS) * 8) / S_ATTENUATOR;
 	
 	return (*vol > 0);
+    #else
+    return 0;
 	#endif
 }
 
@@ -635,4 +642,4 @@ static int S_getChannel(void *origin, const sfxinfo_t *sfxinfo, int is_pickup)
     #endif
 }
 
-
+#pragma clang diagnostic pop

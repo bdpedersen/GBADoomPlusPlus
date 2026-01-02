@@ -1409,10 +1409,10 @@ boolean G_CheckDemoStatus (void)
 {
     if (_g->timingdemo)
     {
-        int endtime = I_GetTime();
         // killough -- added fps information and made it work for longer demos:
-        unsigned realtics = endtime-_g->starttime;
         #ifdef GBA
+        int endtime = I_GetTime();
+        unsigned realtics = endtime-_g->starttime;
         I_Error ("Timed %u gametics in %u realtics = %-.1f frames per second",
                  (unsigned) _g->gametic,realtics,
                  (unsigned) _g->gametic * (double) TICRATE / realtics);
