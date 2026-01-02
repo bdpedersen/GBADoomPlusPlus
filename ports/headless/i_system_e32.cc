@@ -167,6 +167,11 @@ void I_FinishUpdate_e32(const uint8_t* srcBuffer, const uint8_t* pallete, const 
             uint8_t b;
         } palette[256] __attribute__((packed));
     } header;
+    #ifdef __chess__
+    unsigned cyclecount = chess_cycle_count();
+    printf("Writing file %d after %u cycles\n",filenum,cyclecount);
+    #endif
+    
     FILE *f = fopen(filename, "wb");
     if (f) {
         #ifndef __chess__
