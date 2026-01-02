@@ -95,7 +95,7 @@ int LC_CheckNumForName(const char *name)
         }
     }
     // Now this is not found - we still need to register this
-    // in the named cache as a missing entry:
+    // in the named cache as a missing entry to fail faster next time:
     uint8_t entry = GetFreeLRUEntry();
     named_cache[entry].lump.filepos = 0;
     named_cache[entry].lump.size = 0;

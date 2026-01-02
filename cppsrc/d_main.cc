@@ -133,27 +133,36 @@ void D_PostEvent(event_t *ev)
 // CPhipps - moved the screen wipe code from D_Display to here
 // The screens to wipe between are already stored, this just does the timing
 // and screen updating
-
+#define VISIBLE_WIPE 0 // SAVE CPU - something is broken with visible wipes 
 static void D_Wipe(void)
 {
     boolean done;
+    #if VISIBLE_WIPE==1
     int wipestart = I_GetTime () - 1;
+    #endif
 
     wipe_initMelt();
 
     do
     {
+        #if VISIBLE_WIPE==1
         int nowtime, tics;
         do
         {
             nowtime = I_GetTime();
             tics = nowtime - wipestart;
         } while (!tics);
-
         wipestart = nowtime;
+        #else
+        int tics = 1;
+        #endif
         done = wipe_ScreenWipe(tics);
 
+        #if VISIBLE_WIPE==1
+        I_FinishUpdate();
+        #else
         I_UpdateNoBlit(); // TODO: Why no blit?
+        #endif
         M_Drawer();                   // menu is drawn even on top of wipes
 
     } while (!done);

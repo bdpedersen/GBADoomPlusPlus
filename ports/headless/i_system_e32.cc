@@ -167,6 +167,15 @@ void I_FinishUpdate_e32(const uint8_t* srcBuffer, const uint8_t* pallete, const 
             uint8_t b;
         } palette[256] __attribute__((packed));
     } header;
+    #ifndef __chess__
+    clock_t clock_now = clock();
+    uint32_t time_ms = (uint32_t)((double)clock_now / ((double)CLOCKS_PER_SEC / 1000.0));
+    #else
+    uint32_t clock_now = chess_cycle_count() >> 5;
+    uint32_t time_ms = clock_now/1000;
+    #endif
+
+
     #ifdef __chess__
     static unsigned lastcyclecount = 0xffffffff;
     unsigned cyclecount = chess_cycle_count();
@@ -174,17 +183,16 @@ void I_FinishUpdate_e32(const uint8_t* srcBuffer, const uint8_t* pallete, const 
         printf("Generated frame #%d in %u cycles\n",filenum,cyclecount-lastcyclecount);
     }
     lastcyclecount = cyclecount;
+    #else
+    static uint32_t lastclock = 0xffffffff;
+    if (lastclock != 0xffffffff) {
+        printf("Generated frame #%d in %u ms\n",filenum,time_ms-lastclock);
+    }
+    lastclock = time_ms;
     #endif
     
     FILE *f = fopen(filename, "wb");
     if (f) {
-        #ifndef __chess__
-        clock_t clock_now = clock();
-        uint32_t time_ms = (uint32_t)((double)clock_now / ((double)CLOCKS_PER_SEC / 1000.0));
-        #else
-        uint32_t clock_now = chess_cycle_count() >> 5;
-        uint32_t time_ms = clock_now/1000;
-        #endif
         if (timebase == 0xffffffff)
             timebase = time_ms;
         header.timestamp_ms = time_ms-timebase;
