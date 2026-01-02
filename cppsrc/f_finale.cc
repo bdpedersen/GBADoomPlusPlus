@@ -185,12 +185,18 @@ boolean F_Responder (event_t *event)
 // Get_TextSpeed() returns the value of the text display speed  // phares
 // Rewritten to allow user-directed acceleration -- killough 3/28/98
 
-static float Get_TextSpeed(void)
+static float Get_InverseTextSpeed(void)
 {
-    return _g->midstage ? NEWTEXTSPEED : (_g->midstage=_g->acceleratestage) ?
-                              _g->acceleratestage=0, NEWTEXTSPEED : TEXTSPEED;
+    return _g->midstage ? (1.0f/NEWTEXTSPEED) : (_g->midstage=_g->acceleratestage) ?
+                              _g->acceleratestage=0, (1.0f/NEWTEXTSPEED) : (1.0f/TEXTSPEED);
     }
 
+
+static float Get_TextSpeed(void)
+{
+    return _g->midstage ? (NEWTEXTSPEED) : (_g->midstage=_g->acceleratestage) ?
+                              _g->acceleratestage=0, (NEWTEXTSPEED) : (TEXTSPEED);
+    }
 
 //
 // F_Ticker
@@ -265,7 +271,7 @@ static void F_TextWrite (void)
         int         cx = 10;
         int         cy = 10;
         const char* ch = _g->finaletext; // CPhipps - const
-        int         count = (int)((float)(_g->finalecount - 10)/Get_TextSpeed()); // phares
+        int         count = (int)((float)(_g->finalecount - 10)*Get_InverseTextSpeed()); // phares
         int         w;
 
         if (count < 0)

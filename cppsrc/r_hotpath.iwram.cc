@@ -68,6 +68,8 @@
 #include "gba_functions.h"
 
 #include <assert.h>
+#include <stdlib.h>
+
 
 //#define static
 
@@ -105,13 +107,13 @@ short* ceilingclip = (short*)&vram3_spare[512+240];
 //Stuff alloc'd in VRAM1 memory.
 
 //580 bytes
-const fixed_t* yslope_vram = (const fixed_t*)&vram1_spare[0];
+const fixed_t  * yslope_vram = (const fixed_t *)&vram1_spare[0];
 
 //480 bytes
-const fixed_t* distscale_vram = (const fixed_t*)&vram1_spare[580];
+const fixed_t  * distscale_vram = (const fixed_t *)&vram1_spare[580];
 
 //484 bytes.
-const angle_t* xtoviewangle_vram = (const angle_t*)&vram1_spare[580+480];
+const angle_t  * xtoviewangle_vram = (const angle_t *)&vram1_spare[580+480];
 
 //240 Bytes.
 short* wipe_y_lookup = (short*)&vram1_spare[580+480+484];
@@ -295,10 +297,12 @@ static const fixed_t skyiscale = (FRACUNIT*200)/((SCREENHEIGHT-ST_HEIGHT)+16);
 // This goes here as we want the Thumb code
 // to BX to ARM as Thumb long mul is very slow.
 //********************************************
+/*
 inline fixed_t CONSTFUNC FixedMul(fixed_t a, fixed_t b)
 {
     return (fixed_t)((int_64_t) a*b >> FRACBITS);
 }
+*/
 
 // killough 5/3/98: reformatted
 

@@ -37,6 +37,8 @@
 
 #include "../newcache/newcache.h"
 
+#include "annotations.h"
+
 
 
 typedef struct globals_t
@@ -144,7 +146,7 @@ const char*   finaleflat; // made static const
 
 int             castnum;
 int             casttics;
-const state_t*  caststate;
+const state_t CONSTMEM2 *  caststate;
 int             castframes;
 int             castonmelee;
 

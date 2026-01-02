@@ -1,11 +1,13 @@
 #include "tagheap.h"
-#include <stdlib.h>
+//#include <stdlib.h>
 #if TH_CANARY_ENABLED == 1
 #include <stdio.h>
 #include <assert.h>
 #else
 #define assert(x)
 #endif
+
+#include <stddef.h>
 
 /**
  * This file contains a simple tagged memory allocator that supports allocation 

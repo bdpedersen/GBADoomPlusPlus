@@ -8,6 +8,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "i_system_e32.h"
 
@@ -230,12 +231,12 @@ void I_ProcessKeyEvents()
 
 //**************************************************************************************
 
-#define MAX_MESSAGE_SIZE 1024
+#define MAX_MESSAGE_SIZE 128
 
 extern "C"
 void I_Error (const char *error, ...)
 {
-	char msg[MAX_MESSAGE_SIZE];
+	char msg[MAX_MESSAGE_SIZE+1];
  
     va_list v;
     va_start(v, error);
