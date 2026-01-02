@@ -65,7 +65,7 @@ int LC_CheckNumForName(const char *name)
     uint8_t next_entry = lru[0].next;
     while (next_entry!= LASTENTRY)
     {
-        if (named_cache[next_entry].lump.nname == nname)
+        if (named_cache[next_entry].lump.nname - nname == 0)
         {
             //printf("Found in named cache: %s\n",name);
             // Mark this as most recently used

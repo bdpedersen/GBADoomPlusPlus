@@ -391,6 +391,7 @@ static void R_InitSpriteLumps(void)
 {
   _g->firstspritelump = NC_GetNumForName("S_START") + 1;
   _g->lastspritelump = NC_GetNumForName("S_END") - 1;
+  printf("sprites can be found between %d and %d\n", _g->firstspritelump, _g->lastspritelump);
   _g->numspritelumps = _g->lastspritelump - _g->firstspritelump + 1;
 }
 
