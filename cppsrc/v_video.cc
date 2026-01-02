@@ -63,7 +63,7 @@ void V_DrawBackground(const char* flatname)
     unsigned short *dest = _g->screens[0].data;
 
     // killough 4/17/98:
-    auto src = CachedBuffer<byte>(lump = _g->firstflat + R_FlatNumForName(flatname));
+    auto src = CachedBuffer<uint8_t>(lump = _g->firstflat + R_FlatNumForName(flatname));
     auto pinsrc = src.pin();
 
     for(unsigned int y = 0; y < SCREENHEIGHT; y++)
@@ -71,7 +71,7 @@ void V_DrawBackground(const char* flatname)
         for(unsigned int x = 0; x < 240; x+=64)
         {
             unsigned short* d = &dest[ ScreenYToOffset(y) + (x >> 1)];
-            const byte* s = &pinsrc[((y&63) * 64) + (x&63)];
+            const uint8_t* s = &pinsrc[((y&63) * 64) + (x&63)];
 
             unsigned int len = 64;
 
@@ -102,7 +102,7 @@ void V_DrawPatch(int x, int y, int scrn, const patch_t* patch)
     const int   DY  = ((SCREENHEIGHT<<FRACBITS)+(FRACUNIT-1)) / 200;
     const int   DYI = (200<<FRACBITS) / SCREENHEIGHT;
 
-    byte* byte_topleft = (byte*)_g->screens[scrn].data;
+    uint8_t* byte_topleft = (uint8_t*)_g->screens[scrn].data;
     const int byte_pitch = (SCREENPITCH * 2);
 
     const int left = ( x * DX ) >> FRACBITS;
@@ -116,7 +116,7 @@ void V_DrawPatch(int x, int y, int scrn, const patch_t* patch)
         if(dc_x < 0)
             continue;
 
-        const column_t* column = (const column_t *)((const byte*)patch + patch->columnofs[colindex]);
+        const column_t* column = (const column_t *)((const uint8_t*)patch + patch->columnofs[colindex]);
 
         if (dc_x >= 240)
             break;
@@ -124,7 +124,7 @@ void V_DrawPatch(int x, int y, int scrn, const patch_t* patch)
         // step through the posts in a column
         while (column->topdelta != 0xff)
         {
-            const byte* source = (const byte*)column + 3;
+            const uint8_t* source = (const uint8_t*)column + 3;
             const int topdelta = column->topdelta;
 
             int dc_yl = (((y + topdelta) * DY) >> FRACBITS);
@@ -135,7 +135,7 @@ void V_DrawPatch(int x, int y, int scrn, const patch_t* patch)
 
             int count = (dc_yh - dc_yl);
 
-            byte* dest = byte_topleft + (dc_yl*byte_pitch) + dc_x;
+            uint8_t* dest = byte_topleft + (dc_yl*byte_pitch) + dc_x;
 
             const fixed_t fracstep = DYI;
             fixed_t frac = 0;
@@ -171,7 +171,7 @@ void V_DrawPatch(int x, int y, int scrn, const patch_t* patch)
                 frac += fracstep;
             }
 
-            column = (const column_t *)((const byte *)column + column->length + 4 );
+            column = (const column_t *)((const uint8_t *)column + column->length + 4 );
         }
     }
 }
@@ -216,18 +216,18 @@ void V_SetPalLump(int index)
     else
         lumpName[7] = '0' + index;
 
-    _g->pallete_lump = CachedBuffer<byte>(lumpName);
+    _g->pallete_lump = CachedBuffer<uint8_t>(lumpName);
 }
 
 //
 // V_FillRect
 //
 // CPhipps - New function to fill a rectangle with a given colour
-void V_FillRect(int x, int y, int width, int height, byte colour)
+void V_FillRect(int x, int y, int width, int height, uint8_t colour)
 {
-    byte* fb = (byte*)_g->screens[0].data;
+    uint8_t* fb = (uint8_t*)_g->screens[0].data;
 
-    byte* dest = &fb[(ScreenYToOffset(y) << 1) + x];
+    uint8_t* dest = &fb[(ScreenYToOffset(y) << 1) + x];
 
     while (height--)
     {
@@ -240,9 +240,9 @@ void V_FillRect(int x, int y, int width, int height, byte colour)
 
 static void V_PlotPixel(int x, int y, int color)
 {
-    byte* fb = (byte*)_g->screens[0].data;
+    uint8_t* fb = (uint8_t*)_g->screens[0].data;
 
-    byte* dest = &fb[(ScreenYToOffset(y) << 1) + x];
+    uint8_t* dest = &fb[(ScreenYToOffset(y) << 1) + x];
 
     //The GBA must write in 16bits.
     if((uintptr_t)dest & 1)

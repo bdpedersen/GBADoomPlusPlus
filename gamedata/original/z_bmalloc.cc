@@ -43,12 +43,12 @@
 typedef struct bmalpool_s {
   struct bmalpool_s *nextpool;
   size_t             blocks;
-  byte               used[0];
+  uint8_t               used[0];
 } bmalpool_t;
 
 __inline static void* getelem(bmalpool_t *p, size_t size, size_t n)
 {
-  return (((byte*)p) + sizeof(bmalpool_t) + sizeof(byte)*(p->blocks) + size*n);
+  return (((uint8_t*)p) + sizeof(bmalpool_t) + sizeof(uint8_t)*(p->blocks) + size*n);
 }
 
 __inline static PUREFUNC int iselem(const bmalpool_t *pool, size_t size, const void* p)
@@ -69,7 +69,7 @@ void* Z_BMalloc(struct block_memory_alloc_s *pzone)
 {
   bmalpool_t **pool = (bmalpool_t **)&(pzone->firstpool);
   while (*pool != NULL) {
-    byte *p = (byte *)memchr((*pool)->used, unused_block, (*pool)->blocks); // Scan for unused marker
+    uint8_t *p = (uint8_t *)memchr((*pool)->used, unused_block, (*pool)->blocks); // Scan for unused marker
     if (p) {
       int n = p - (*pool)->used;
       (*pool)->used[n] = used_block;
@@ -83,7 +83,7 @@ void* Z_BMalloc(struct block_memory_alloc_s *pzone)
 
     // CPhipps: Allocate new memory, initialised to 0
 
-    *pool = newpool = (bmalpool_t *)Z_Calloc(sizeof(*newpool) + (sizeof(byte) + pzone->size)*(pzone->perpool),
+    *pool = newpool = (bmalpool_t *)Z_Calloc(sizeof(*newpool) + (sizeof(uint8_t) + pzone->size)*(pzone->perpool),
              1,  pzone->tag, NULL);
     newpool->nextpool = NULL; // NULL = (void*)0 so this is redundant
 

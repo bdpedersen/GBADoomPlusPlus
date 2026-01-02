@@ -574,10 +574,10 @@ void test_defrag_with_pinned_blocks() {
 }
 
 void test_allocation_alignment() {
-    printf(YELLOW "\n--- Test: Allocation 4-Byte Alignment ---\n" RESET);
+    printf(YELLOW "\n--- Test: Allocation 4-uint8_t Alignment ---\n" RESET);
     TH_init();
     
-    // Test various allocation sizes to ensure all return 4-byte aligned pointers
+    // Test various allocation sizes to ensure all return 4-uint8_t aligned pointers
     int test_sizes[] = {1, 2, 3, 4, 5, 7, 8, 15, 16, 17, 33, 100, 256, 1000};
     int num_sizes = sizeof(test_sizes) / sizeof(test_sizes[0]);
     
@@ -587,7 +587,7 @@ void test_allocation_alignment() {
     for (int i = 0; i < num_sizes; i++) {
         ptrs[i] = TH_alloc(test_sizes[i], 0x1000 + i);
         
-        // Check if pointer is 4-byte aligned
+        // Check if pointer is 4-uint8_t aligned
         if (ptrs[i]) {
             uintptr_t addr = (uintptr_t)ptrs[i];
             if (addr % 4 != 0) {
@@ -604,7 +604,7 @@ void test_allocation_alignment() {
         }
     }
     
-    TEST_ASSERT(all_aligned, "All allocations are 4-byte aligned");
+    TEST_ASSERT(all_aligned, "All allocations are 4-uint8_t aligned");
     TEST_ASSERT(validate_block_chain(), "Block chain valid after alignment test");
     
     print_heap_state();
@@ -661,8 +661,8 @@ void test_realloc_no_op_shrink() {
     TEST_ASSERT(result == ptr, "TH_realloc to smaller size returns same ptr");
     
     // Verify pattern is intact
-    TEST_ASSERT(pattern_ptr[0] == 0xDEADBEEF, "Pattern byte 0 intact after shrink");
-    TEST_ASSERT(pattern_ptr[1] == 0xCAFEBABE, "Pattern byte 1 intact after shrink");
+    TEST_ASSERT(pattern_ptr[0] == 0xDEADBEEF, "Pattern uint8_t 0 intact after shrink");
+    TEST_ASSERT(pattern_ptr[1] == 0xCAFEBABE, "Pattern uint8_t 1 intact after shrink");
     
     print_heap_state();
 }
@@ -682,11 +682,11 @@ void test_realloc_no_growth_needed() {
     
     // Try to realloc to same/smaller size (100 bytes)
     uint8_t *result = TH_realloc(ptr, 100);
-    TEST_ASSERT(result == ptr, "TH_realloc(200-byte block, 100) returns same ptr");
+    TEST_ASSERT(result == ptr, "TH_realloc(200-uint8_t block, 100) returns same ptr");
     
     // Verify pattern is intact
-    TEST_ASSERT(pattern_ptr[0] == 0x11111111, "Pattern byte 0 intact");
-    TEST_ASSERT(pattern_ptr[1] == 0x22222222, "Pattern byte 1 intact");
+    TEST_ASSERT(pattern_ptr[0] == 0x11111111, "Pattern uint8_t 0 intact");
+    TEST_ASSERT(pattern_ptr[1] == 0x22222222, "Pattern uint8_t 1 intact");
     
     TEST_ASSERT(validate_block_chain(), "Block chain valid");
     
@@ -726,8 +726,8 @@ void test_realloc_in_place_expansion() {
     
     // Verify pattern is intact in same location
     uint32_t *check_pattern = (uint32_t *)result;
-    TEST_ASSERT(check_pattern[0] == 0xAAAAAAAA, "Original pattern byte 0 preserved");
-    TEST_ASSERT(check_pattern[1] == 0xBBBBBBBB, "Original pattern byte 1 preserved");
+    TEST_ASSERT(check_pattern[0] == 0xAAAAAAAA, "Original pattern uint8_t 0 preserved");
+    TEST_ASSERT(check_pattern[1] == 0xBBBBBBBB, "Original pattern uint8_t 1 preserved");
     
     TEST_ASSERT(validate_block_chain(), "Block chain valid after in-place expansion");
     
@@ -752,7 +752,7 @@ void test_realloc_with_block_splitting() {
     uint8_t *ptrC = TH_alloc(100, 0x3002);
     TEST_ASSERT(ptrC != NULL, "Block C allocation succeeds");
     
-    // Free B - creates a 500-byte free block
+    // Free B - creates a 500-uint8_t free block
     TH_free(ptrB);
     TEST_ASSERT(validate_block_chain(), "Block chain valid after freeing large B");
     
@@ -768,8 +768,8 @@ void test_realloc_with_block_splitting() {
     
     // Verify pattern is intact
     uint32_t *check = (uint32_t *)result;
-    TEST_ASSERT(check[0] == 0xCCCCCCCC, "Pattern byte 0 preserved after split");
-    TEST_ASSERT(check[1] == 0xDDDDDDDD, "Pattern byte 1 preserved after split");
+    TEST_ASSERT(check[0] == 0xCCCCCCCC, "Pattern uint8_t 0 preserved after split");
+    TEST_ASSERT(check[1] == 0xDDDDDDDD, "Pattern uint8_t 1 preserved after split");
     
     TEST_ASSERT(validate_block_chain(), "Block chain valid after split realloc");
     
@@ -865,7 +865,7 @@ void test_realloc_data_integrity() {
         for (int i = 0; i < check_sz; i++) {
             uint8_t expected = (uint8_t)((0xAA + tc) ^ (i & 0xFF));
             if (result[i] != expected) {
-                printf(RED "✗ Data mismatch in test case %d at byte %d\n" RESET, tc, i);
+                printf(RED "✗ Data mismatch in test case %d at uint8_t %d\n" RESET, tc, i);
                 match = false;
                 break;
             }

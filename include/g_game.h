@@ -65,7 +65,7 @@ void G_DoCompleted(void);
 void G_ReadDemoTiccmd(ticcmd_t *cmd);
 void G_DoWorldDone(void);
 void G_Compatibility(void);
-const byte *G_ReadOptions(const byte *demo_p);   /* killough 3/1/98 - cph: const byte* */
+const uint8_t *G_ReadOptions(const uint8_t *demo_p);   /* killough 3/1/98 - cph: const uint8_t* */
 void G_PlayerReborn(int player);
 void G_DoVictory(void);
 void G_BuildTiccmd (ticcmd_t* cmd); // CPhipps - move decl to header

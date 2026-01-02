@@ -195,7 +195,7 @@ typedef struct {
 
 
 //This is used at runtime so not packed.
-//compiler uses byte access on packed structs.
+//compiler uses uint8_t access on packed structs.
 
 typedef struct {
   short x;  // Partition line from (x,y) to x+dx,y+dy)

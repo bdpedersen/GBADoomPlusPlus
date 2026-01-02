@@ -755,7 +755,7 @@ boolean P_IsDoomnumAllowed(int doomnum)
 //
 // P_SpawnMapThing
 // The fields of the mapthing should
-// already be in host byte order.
+// already be in host uint8_t order.
 //
 
 void P_SpawnMapThing (Cached<mapthing_t> mthing)

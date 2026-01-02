@@ -69,7 +69,7 @@ void R_SetDefaultDrawColumnVars(draw_column_vars_t *dcvars)
     dcvars->x = dcvars->yl = dcvars->yh = 0;
 	dcvars->iscale = dcvars->texturemid = 0;
 	dcvars->source = NULL;
-    dcvars->sourcecache = CachedBuffer<byte>();
+    dcvars->sourcecache = CachedBuffer<uint8_t>();
     dcvars->colormap = colormaps;
 	dcvars->translation = NULL;
 }

@@ -15,8 +15,9 @@
 
 #include "annotations.h"
 
-
+#ifndef __chess__
 #include <time.h>
+#endif
 
 extern globals_t* _g;
 
@@ -45,7 +46,7 @@ int I_GetTime(void)
 {
     int thistimereply;
 
-    #ifndef __CHESS__
+    #ifndef __chess__
     clock_t now = clock();
 
     // For microseconds we can do (37*time_us)>>20
@@ -143,7 +144,7 @@ void I_CreateBackBuffer_e32()
 
 //**************************************************************************************
 
-void I_FinishUpdate_e32(const byte* srcBuffer, const byte* pallete, const unsigned int width UNUSED, const unsigned int height UNUSED)
+void I_FinishUpdate_e32(const uint8_t* srcBuffer, const uint8_t* pallete, const unsigned int width UNUSED, const unsigned int height UNUSED)
 {
     // BDPNOTE: This is where the screenbuffer is drawn
     pb = (unsigned char*)srcBuffer;
@@ -167,8 +168,13 @@ void I_FinishUpdate_e32(const byte* srcBuffer, const byte* pallete, const unsign
     } header;
     FILE *f = fopen(filename, "wb");
     if (f) {
+        #ifndef __chess__
         clock_t clock_now = clock();
         uint32_t time_ms = (uint32_t)((double)clock_now / ((double)CLOCKS_PER_SEC / 1000.0));
+        #else
+        uint32_t clock_now = chess_cycle_count() >> 5;
+        uint32_t time_ms = clock_now/1000;
+        #endif
         if (timebase == 0xffffffff)
             timebase = time_ms;
         header.timestamp_ms = time_ms-timebase;
@@ -196,7 +202,7 @@ void I_FinishUpdate_e32(const byte* srcBuffer, const byte* pallete, const unsign
 
 //**************************************************************************************
 
-void I_SetPallete_e32(CachedBuffer<byte> pallete UNUSED)
+void I_SetPallete_e32(CachedBuffer<uint8_t> pallete UNUSED)
 {
 
 }

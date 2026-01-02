@@ -41,7 +41,8 @@
 #include "config.h"
 #endif
 
-#ifndef GBA
+#if !defined(GBA)&& !defined(__chess__)
+
     #include <time.h>
 #endif
 
@@ -77,13 +78,13 @@
 //*****************************************
 
 #ifndef GBA
-static byte vram1_spare[2560];
-static byte vram2_spare[2560];
-static byte vram3_spare[1024];
+static uint8_t vram1_spare[2560];
+static uint8_t vram2_spare[2560];
+static uint8_t vram3_spare[1024];
 #else
-    #define vram1_spare ((byte*)0x6000000+0x9600)
-    #define vram2_spare ((byte*)0x600A000+0x9600)
-    #define vram3_spare ((byte*)0x7000000)
+    #define vram1_spare ((uint8_t*)0x6000000+0x9600)
+    #define vram2_spare ((uint8_t*)0x600A000+0x9600)
+    #define vram3_spare ((uint8_t*)0x7000000)
 #endif
 
 //Stuff alloc'd in OAM memory.
@@ -140,9 +141,9 @@ short* negonearray = (short*)&vram2_spare[240];
 //*****************************************
 
 #ifndef GBA
-static byte columnCache[128*128];
+static uint8_t columnCache[128*128];
 #else
-    #define columnCache ((byte*)0x6014000)
+    #define columnCache ((uint8_t*)0x6014000)
 #endif
 
 
@@ -158,9 +159,9 @@ fixed_t  viewx, viewy, viewz;
 
 angle_t  viewangle;
 
-static byte solidcol[MAX_SCREENWIDTH];
+static uint8_t solidcol[MAX_SCREENWIDTH];
 
-static byte spanstart[MAX_SCREENHEIGHT];                // killough 2/8/98
+static uint8_t spanstart[MAX_SCREENHEIGHT];                // killough 2/8/98
 
 
 static Cached<seg_t>     curline;
@@ -285,7 +286,7 @@ static const fixed_t skyiscale = (FRACUNIT*200)/((SCREENHEIGHT-ST_HEIGHT)+16);
 // it saves an OR and Shift per pixel.
 //********************************************
 #ifdef GBA
-    typedef byte pixel;
+    typedef uint8_t pixel;
 #else
     typedef unsigned short pixel;
 #endif
@@ -539,7 +540,7 @@ static CachedBuffer<lighttable_t> R_LoadColorMap(int lightlevel)
 #define COLEXTRABITS 9
 #define COLBITS (FRACBITS + COLEXTRABITS)
 
-inline static void R_DrawColumnPixel(unsigned short* dest, const byte* source, const byte* colormap, unsigned int frac)
+inline static void R_DrawColumnPixel(unsigned short* dest, const uint8_t* source, const uint8_t* colormap, unsigned int frac)
 {
     pixel* d = (pixel*)dest;
 
@@ -562,10 +563,10 @@ static void R_DrawColumn (const draw_column_vars_t *dcvars)
 
     auto pin = dcvars->sourcecache.pin();
     
-    const byte *source = (pin.isnull()) ? dcvars->source : (const byte*)pin;
+    const uint8_t *source = (pin.isnull()) ? dcvars->source : (const uint8_t*)pin;
     assert(source!=NULL);
     auto pinnedcolormap = dcvars->colormap.pin();
-    const byte *colormap = pinnedcolormap;
+    const uint8_t *colormap = pinnedcolormap;
 
     unsigned short* dest = drawvars.byte_topleft + ScreenYToOffset(dcvars->yl) + dcvars->x;
 
@@ -633,10 +634,10 @@ static void R_DrawColumnHiRes(const draw_column_vars_t *dcvars)
     
     auto pin = dcvars->sourcecache.pin();
 
-    const byte *source = (pin.isnull()) ? dcvars->source : (const byte*)pin;
+    const uint8_t *source = (pin.isnull()) ? dcvars->source : (const uint8_t*)pin;
     assert(source!=NULL);
     auto pinnedcolormap = dcvars->colormap.pin();
-    const byte *colormap = pinnedcolormap;
+    const uint8_t *colormap = pinnedcolormap;
 
     volatile unsigned short* dest = drawvars.byte_topleft + ScreenYToOffset(dcvars->yl) + dcvars->x;
 
@@ -715,7 +716,7 @@ static void R_DrawFuzzColumn (const draw_column_vars_t *dcvars)
         return;
 
     auto pinnedcolormap = fullcolormap.addOffset(6*256).pin();
-    const byte* colormap = pinnedcolormap; //&fullcolormap[6*256];
+    const uint8_t* colormap = pinnedcolormap; //&fullcolormap[6*256];
 
     unsigned short* dest = drawvars.byte_topleft + ScreenYToOffset(dc_yl) + dcvars->x;
 
@@ -723,7 +724,7 @@ static void R_DrawFuzzColumn (const draw_column_vars_t *dcvars)
 
     do
     {        
-        R_DrawColumnPixel(dest, (const byte*)&dest[fuzzoffset[fuzzpos]], colormap, 0); dest += SCREENWIDTH;  fuzzpos++;
+        R_DrawColumnPixel(dest, (const uint8_t*)&dest[fuzzoffset[fuzzpos]], colormap, 0); dest += SCREENWIDTH;  fuzzpos++;
 
         if(fuzzpos >= 50)
             fuzzpos = 0;
@@ -768,8 +769,8 @@ static void R_DrawMaskedColumn(R_DrawColumn_f colfunc, draw_column_vars_t *dcvar
         
         if (yh < viewheight && yl <= yh)
         {
-            dcvars->source =  (const byte*)column + 3;
-            dcvars->sourcecache = CachedBuffer<byte>();
+            dcvars->source =  (const uint8_t*)column + 3;
+            dcvars->sourcecache = CachedBuffer<uint8_t>();
 
             dcvars->texturemid = basetexturemid - (column->topdelta<<FRACBITS);
 
@@ -781,7 +782,7 @@ static void R_DrawMaskedColumn(R_DrawColumn_f colfunc, draw_column_vars_t *dcvar
             colfunc (dcvars);
         }
 
-        column = (const column_t *)((const byte *)column + column->length + 4);
+        column = (const column_t *)((const uint8_t *)column + column->length + 4);
     }
 
     dcvars->texturemid = basetexturemid;
@@ -813,7 +814,7 @@ static void R_DrawMaskedColumn(R_DrawColumn_f colfunc, draw_column_vars_t *dcvar
         // killough 3/2/98, 3/27/98: Failsafe against overflow/crash:
         if (yh < viewheight && yl <= yh)
         {
-            dcvars->source = NULL; // (const byte*)column + 3;
+            dcvars->source = NULL; // (const uint8_t*)column + 3;
             dcvars->sourcecache = column.bytebuffer().addOffset(3);
 
             dcvars->texturemid = basetexturemid - (column->topdelta<<FRACBITS);
@@ -826,7 +827,7 @@ static void R_DrawMaskedColumn(R_DrawColumn_f colfunc, draw_column_vars_t *dcvar
             colfunc (dcvars);
         }
 
-        // column = (const column_t *)((const byte *)column + column->length + 4);
+        // column = (const column_t *)((const uint8_t *)column + column->length + 4);
         column = column.transmuteToObjectAtByteOffset<column_t>(column->length + 4);
     }
 
@@ -886,7 +887,7 @@ static void R_DrawVisSprite(const vissprite_t *vis)
 
     while(dcvars.x < SCREENWIDTH)
     {
-        //const column_t* column = (const column_t *) ((const byte *)pinnedpatchptr + patch->columnofs[frac >> FRACBITS]);
+        //const column_t* column = (const column_t *) ((const uint8_t *)pinnedpatchptr + patch->columnofs[frac >> FRACBITS]);
         auto column = patch.transmuteToObjectAtByteOffset<column_t>(patch->columnofs[frac >> FRACBITS]);
         R_DrawMaskedColumn(colfunc, &dcvars, column);
 
@@ -904,7 +905,7 @@ static void R_DrawVisSprite(const vissprite_t *vis)
             break;
 
 
-        //const column_t* column2 = (const column_t *) ((const byte *)pinnedpatchptr + patch->columnofs[frac >> FRACBITS]);
+        //const column_t* column2 = (const column_t *) ((const uint8_t *)pinnedpatchptr + patch->columnofs[frac >> FRACBITS]);
         auto column2 = patch.transmuteToObjectAtByteOffset<column_t>(patch->columnofs[frac >> FRACBITS]);
         R_DrawMaskedColumn(colfunc, &dcvars, column2);
 
@@ -931,7 +932,7 @@ static Cached<column_t> R_GetColumn(const texture_t* texture, int texcolumn)
         auto patch = texture->patches[0].patch;
         assert(patch.isvalid());
         return patch.transmuteToObjectAtByteOffset<column_t>(patch->columnofs[xc]);
-        //return (const column_t *) ((const byte *)patch + patch->columnofs[xc]);
+        //return (const column_t *) ((const uint8_t *)patch + patch->columnofs[xc]);
     }
     else
     {
@@ -954,7 +955,7 @@ static Cached<column_t> R_GetColumn(const texture_t* texture, int texcolumn)
 
             if(xc < x2)
                 return realpatch.transmuteToObjectAtByteOffset<column_t>(realpatch->columnofs[xc - x1]);
-                // return (const column_t *)((const byte *)realpatch + realpatch->columnofs[xc-x1]);
+                // return (const column_t *)((const uint8_t *)realpatch + realpatch->columnofs[xc-x1]);
 
         } while(++i < patchcount);
     }
@@ -1342,7 +1343,7 @@ static void R_DrawMasked(void)
 //  and the inner loop has to step in texture space u and v.
 //
 
-inline static void R_DrawSpanPixel(unsigned short* dest, const byte* source, const byte* colormap, unsigned int position)
+inline static void R_DrawSpanPixel(unsigned short* dest, const uint8_t* source, const uint8_t* colormap, unsigned int position)
 {
 
  pixel* d = (pixel*)dest;
@@ -1361,9 +1362,9 @@ static void R_DrawSpan(unsigned int y, unsigned int x1, unsigned int x2, const d
     unsigned int count = (x2 - x1);
 
     auto pinnedsource = dsvars->source.pin();
-    const byte *source = pinnedsource;
+    const uint8_t *source = pinnedsource;
     auto pinnedcolormap = dsvars->colormap.pin();
-    const byte *colormap = pinnedcolormap;
+    const uint8_t *colormap = pinnedcolormap;
 
     unsigned short* dest = drawvars.byte_topleft + ScreenYToOffset(y) + x1;
 
@@ -1508,7 +1509,7 @@ static void R_DoDrawPlane(visplane_t *pl)
 
             draw_span_vars_t dsvars;
 
-            dsvars.source = CachedBuffer<byte>(_g->firstflat + flattranslation[pl->picnum]);
+            dsvars.source = CachedBuffer<uint8_t>(_g->firstflat + flattranslation[pl->picnum]);
             dsvars.colormap = R_LoadColorMap(pl->lightlevel);
 
             planeheight = D_abs(pl->height-viewz);
@@ -1834,11 +1835,11 @@ static visplane_t *R_CheckPlane(visplane_t *pl, int start, int stop)
         return R_DupPlane(pl,start,stop);
 }
 
-static void R_DrawColumnInCache(const column_t* patch, byte* cache, int originy, int cacheheight)
+static void R_DrawColumnInCache(const column_t* patch, uint8_t* cache, int originy, int cacheheight)
 {
     while (patch->topdelta != 0xff)
     {
-        const byte* source = (const byte *)patch + 3;
+        const uint8_t* source = (const uint8_t *)patch + 3;
         int count = patch->length;
         int position = originy + patch->topdelta;
 
@@ -1854,7 +1855,7 @@ static void R_DrawColumnInCache(const column_t* patch, byte* cache, int originy,
         if (count > 0)
             ByteCopy(cache + position, source, count);
 
-        patch = (const column_t *)(  (const byte *)patch + patch->length + 4);
+        patch = (const column_t *)(  (const uint8_t *)patch + patch->length + 4);
     }
 }
 
@@ -1906,7 +1907,7 @@ static unsigned int FindColumnCacheItem(unsigned int texture, unsigned int colum
 }
 
 
-static const byte* R_ComposeColumn(const unsigned int texture, const texture_t* tex, int texcolumn, unsigned int iscale)
+static const uint8_t* R_ComposeColumn(const unsigned int texture, const texture_t* tex, int texcolumn, unsigned int iscale)
 {
     //static int total, misses;
     int colmask;
@@ -1933,7 +1934,7 @@ static const byte* R_ComposeColumn(const unsigned int texture, const texture_t* 
 
     unsigned int cachekey = FindColumnCacheItem(texture, xc);
 
-    byte* colcache = &columnCache[cachekey*128];
+    uint8_t* colcache = &columnCache[cachekey*128];
     unsigned int cacheEntry = columnCacheEntries[cachekey];
 
     //total++;
@@ -1941,7 +1942,7 @@ static const byte* R_ComposeColumn(const unsigned int texture, const texture_t* 
     if(cacheEntry != CACHE_ENTRY(xc, texture))
     {
         //misses++;
-        byte tmpCache[128];
+        uint8_t tmpCache[128];
 
 
         columnCacheEntries[cachekey] = CACHE_ENTRY(xc, texture);
@@ -1967,7 +1968,7 @@ static const byte* R_ComposeColumn(const unsigned int texture, const texture_t* 
                 auto pinnedpatch = realpatch.pin();
                 const patch_t* pinnedpatchptr = (const patch_t *)pinnedpatch; 
 
-                const column_t* patchcol = (const column_t *)((const byte *)pinnedpatchptr + realpatch->columnofs[xc-x1]);
+                const column_t* patchcol = (const column_t *)((const uint8_t *)pinnedpatchptr + realpatch->columnofs[xc-x1]);
 
                 R_DrawColumnInCache (patchcol,
                                      tmpCache,
@@ -2001,7 +2002,7 @@ static void R_DrawSegTextureColumn(unsigned int texture, int texcolumn, draw_col
     }
     else
     {
-        dcvars->sourcecache = CachedBuffer<byte>();
+        dcvars->sourcecache = CachedBuffer<uint8_t>();
         dcvars->source = R_ComposeColumn(texture, tex, texcolumn, dcvars->iscale);
         assert(dcvars->source!=NULL);
     }
@@ -2490,14 +2491,14 @@ static void R_StoreWallRange(const int start, const int stop)
     // save sprite clipping info
     if ((ds_p->silhouette & SIL_TOP || maskedtexture) && !ds_p->sprtopclip)
     {
-        ByteCopy((byte*)_g->lastopening, (const byte*)(ceilingclip+start), sizeof(short)*(rw_stopx-start));
+        ByteCopy((uint8_t*)_g->lastopening, (const uint8_t*)(ceilingclip+start), sizeof(short)*(rw_stopx-start));
         ds_p->sprtopclip = _g->lastopening - start;
         _g->lastopening += rw_stopx - start;
     }
 
     if ((ds_p->silhouette & SIL_BOTTOM || maskedtexture) && !ds_p->sprbottomclip)
     {
-        ByteCopy((byte*)_g->lastopening, (const byte*)(floorclip+start), sizeof(short)*(rw_stopx-start));
+        ByteCopy((uint8_t*)_g->lastopening, (const uint8_t*)(floorclip+start), sizeof(short)*(rw_stopx-start));
         ds_p->sprbottomclip = _g->lastopening - start;
         _g->lastopening += rw_stopx - start;
     }
@@ -2584,12 +2585,12 @@ static void R_RecalcLineFlags(void)
 
 static void R_ClipWallSegment(int first, int last, boolean solid)
 {
-    byte *p;
+    uint8_t *p;
     while (first < last)
     {
         if (solidcol[first])
         {
-            if (!(p = (byte *)ByteFind(solidcol+first, 0, last-first)))
+            if (!(p = (uint8_t *)ByteFind(solidcol+first, 0, last-first)))
                 return; // All solid
 
             first = p - solidcol;
@@ -2597,7 +2598,7 @@ static void R_ClipWallSegment(int first, int last, boolean solid)
         else
         {
             int to;
-            if (!(p = (byte *)ByteFind(solidcol+first, 1, last-first)))
+            if (!(p = (uint8_t *)ByteFind(solidcol+first, 1, last-first)))
                 to = last;
             else
                 to = p - solidcol;
@@ -2766,7 +2767,7 @@ static void R_Subsector(int num)
 //  if some part of the bbox might be visible.
 //
 
-static const byte checkcoord[12][4] = // killough -- static const
+static const uint8_t checkcoord[12][4] = // killough -- static const
 {
   {3,0,2,1},
   {3,0,2,0},
@@ -2788,7 +2789,7 @@ static boolean R_CheckBBox(const short *bspcoord)
 
     {
         int        boxpos;
-        const byte* check;
+        const uint8_t* check;
 
         // Find the corners of the box
         // that define the edges from current viewpoint.
@@ -3025,24 +3026,24 @@ void V_DrawPatchNoScale(int x, int y, const patch_t* patch)
     y -= patch->topoffset;
     x -= patch->leftoffset;
 
-    byte* desttop = (byte*)_g->screens[0].data;
+    uint8_t* desttop = (uint8_t*)_g->screens[0].data;
     desttop += (ScreenYToOffset(y) << 1) + x;
 
     unsigned int width = patch->width;
 
     for (unsigned int col = 0; col < width; col++, desttop++)
     {
-        const column_t* column = (const column_t*)((const byte*)patch + patch->columnofs[col]);
+        const column_t* column = (const column_t*)((const uint8_t*)patch + patch->columnofs[col]);
 
         unsigned int odd_addr = (size_t)desttop & 1;
 
-        byte* desttop_even = (byte*)((size_t)desttop & ~1);
+        uint8_t* desttop_even = (uint8_t*)((size_t)desttop & ~1);
 
         // step through the posts in a column
         while (column->topdelta != 0xff)
         {
-            const byte* source = (const byte*)column + 3;
-            byte* dest = desttop_even + (ScreenYToOffset(column->topdelta) << 1);
+            const uint8_t* source = (const uint8_t*)column + 3;
+            uint8_t* dest = desttop_even + (ScreenYToOffset(column->topdelta) << 1);
 
             unsigned int count = column->length;
 
@@ -3062,7 +3063,7 @@ void V_DrawPatchNoScale(int x, int y, const patch_t* patch)
                 dest += 240;
             }
 
-            column = (const column_t*)((const byte*)column + column->length + 4);
+            column = (const column_t*)((const uint8_t*)column + column->length + 4);
         }
     }
 }

@@ -25,7 +25,7 @@ static void cheat_fps(void);
 typedef struct c_cheat
 {
     const char* name;
-    byte sequence[8];
+    uint8_t sequence[8];
     unsigned int packed_sequence;
     void (*cheat_function)(void);
 } c_cheat;

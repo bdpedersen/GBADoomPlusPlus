@@ -171,7 +171,7 @@
 /* Define if using the dmalloc debugging malloc package */
 /* #undef WITH_DMALLOC */
 
-/* Define to 1 if your processor stores words with the most significant byte
+/* Define to 1 if your processor stores words with the most significant uint8_t
    first (like Motorola and SPARC, unlike Intel and VAX). */
 /* #undef WORDS_BIGENDIAN */
 

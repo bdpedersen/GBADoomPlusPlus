@@ -47,7 +47,7 @@ typedef bool boolean;
 #else
 typedef enum {false, true} boolean;
 #endif
-typedef unsigned char byte;
+//typedef unsigned char uint8_t;
 #endif
 
 //e6y

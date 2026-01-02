@@ -159,10 +159,10 @@ boolean         castdeath;
 //g_game.c
 //******************************************************************************
 
-CachedBuffer<byte> demobuffer;   /* cph - only used for playback */
+CachedBuffer<uint8_t> demobuffer;   /* cph - only used for playback */
 int demolength; // check for overrun (missing DEMOMARKER)
 
-CachedBuffer<byte> demo_p;
+CachedBuffer<uint8_t> demo_p;
 
 gameaction_t    gameaction;
 gamestate_t     gamestate;
@@ -194,7 +194,7 @@ skill_t d_skill;
 int     d_episode;
 int     d_map;
 
-byte  savegameslot;         // Slot to load if gameaction == ga_loadgame
+uint8_t  savegameslot;         // Slot to load if gameaction == ga_loadgame
 
 
 boolean secretexit;
@@ -504,7 +504,7 @@ mobj_t    **blocklinks;           // for thing chains
 //
 
 int rejectlump;// cph - store reject lump num if cached
-CachedBuffer<byte> rejectmatrix; // cph - const*
+CachedBuffer<uint8_t> rejectmatrix; // cph - const*
 
 // Maintain single and multi player starting spots.
 mapthing_t playerstarts[MAXPLAYERS];

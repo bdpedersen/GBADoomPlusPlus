@@ -81,7 +81,7 @@ typedef struct
 #define NUM_SCREENS 1
 
 // V_FillRect
-void V_FillRect(int x, int y, int width, int height, byte colour);
+void V_FillRect(int x, int y, int width, int height, uint8_t colour);
 
 
 // CPhipps - patch drawing

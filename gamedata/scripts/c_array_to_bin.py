@@ -5,7 +5,7 @@ from pathlib import Path
 
 def extract_c_array_bytes(c_text, array_name):
     """
-    Extract byte values from a C array definition.
+    Extract uint8_t values from a C array definition.
     Returns a list of integers (0–255).
     """
 
@@ -29,7 +29,7 @@ def extract_c_array_bytes(c_text, array_name):
     for t in tokens:
         value = int(t, 16) if t.startswith("0x") else int(t)
         if not 0 <= value <= 255:
-            raise ValueError(f"Value out of byte range: {value}")
+            raise ValueError(f"Value out of uint8_t range: {value}")
         bytes_out.append(value)
 
     return bytes_out

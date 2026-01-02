@@ -51,7 +51,7 @@
 
 /* Endianess handling. */
 
-/* cph - First the macros to do the actual byte swapping */
+/* cph - First the macros to do the actual uint8_t swapping */
 
 /* leban
  * rather than continue the confusing tradition of redefining the

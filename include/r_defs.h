@@ -296,7 +296,7 @@ typedef struct subsector_s
 // from darkening PLAYPAL to all black.
 // Could use even more than 32 levels.
 
-typedef byte  lighttable_t;
+typedef uint8_t  lighttable_t;
 
 //
 // Masked 2s linedefs
@@ -337,11 +337,11 @@ typedef struct
 // posts are runs of non masked source pixels
 typedef struct
 {
-    byte		topdelta;	// -1 is the last post in a column
-    byte		length; 	// length data bytes follows
+    uint8_t		topdelta;	// -1 is the last post in a column
+    uint8_t		length; 	// length data bytes follows
 } post_t;
 
-// column_t is a list of 0 or more post_t, (byte)-1 terminated
+// column_t is a list of 0 or more post_t, (uint8_t)-1 terminated
 typedef post_t	column_t;
 
 //
@@ -391,8 +391,8 @@ typedef struct
   short lump[8];
 
   // Flip bit (1 = flip) to use for view angles 0-7.
-  //byte  flip[8];
-  byte flipmask;
+  //uint8_t  flip[8];
+  uint8_t flipmask;
 
   // If false use 0 for any position.
   // Note: as eight entries are available,
@@ -428,17 +428,17 @@ typedef struct visplane
   fixed_t height;
   boolean modified;
 
-  byte		pad1;
-  byte		pad2;
-  byte		pad3;
+  uint8_t		pad1;
+  uint8_t		pad2;
+  uint8_t		pad3;
   // Here lies the rub for all
   //  dynamic resize/change of resolution.
-  byte		top[SCREENWIDTH];
-  byte		pad4;
-  byte		pad5;
+  uint8_t		top[SCREENWIDTH];
+  uint8_t		pad4;
+  uint8_t		pad5;
   // See above.
-  byte		bottom[SCREENWIDTH];
-  byte		pad6;
+  uint8_t		bottom[SCREENWIDTH];
+  uint8_t		pad6;
 
 } visplane_t;
 
