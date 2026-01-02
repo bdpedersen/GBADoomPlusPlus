@@ -3,6 +3,7 @@
 #include "../include/r_defs.h"
 #include "wadreader.h"
 #include "tagheap.h"
+#include "w_lumps.h"
 
 #include <string.h>
 #if TH_CANARY_ENABLED == 1
@@ -342,9 +343,12 @@ static uint8_t AllocateIntoCache(int bytes, int lumpnum) {
  */
 static filelump_t LumpForNum(int lumpnum){
     ASSERT_VALID_LUMPNUM(lumpnum);
+    /*
     int offset = header.infotableofs+lumpnum*sizeof(filelump_t);
     filelump_t data;
     WR_Read((uint8_t*)&data,offset,sizeof(filelump_t));
+    */
+    auto data = LC_LumpForNum(lumpnum);
     return data;
 }
 
@@ -385,6 +389,7 @@ const uint8_t * NC_CacheLumpNum(int lumpnum)
 int NC_LumpLength(int lumpnum)
 {
     ASSERT_VALID_LUMPNUM(lumpnum);
+    /*
     // Grab length from cache if the element is already cached.
     uint8_t entry = cache[lumpnum];
     if (entry) {
@@ -393,6 +398,8 @@ int NC_LumpLength(int lumpnum)
 
     auto data = LumpForNum(lumpnum);
     return data.size;
+    */
+    return LC_LumpLength(lumpnum);
 }
 
 /**
@@ -415,6 +422,7 @@ int NC_GetNumForName (const char* name)
  */
 int NC_CheckNumForName(const char *name)
 {
+    /*
     uint64_t nname=0;
     strncpy((char *)&nname,name,8);
     int n = 0;
@@ -432,6 +440,8 @@ int NC_CheckNumForName(const char *name)
         n+=16;
     }
     return -1;
+    */
+   return LC_CheckNumForName(name);
 }
 
 /**
@@ -440,11 +450,14 @@ int NC_CheckNumForName(const char *name)
 const char* NC_GetNameForNum(int lump, char buffer[8])
 {
     ASSERT_VALID_LUMPNUM(lump);
+    /*
     // This is never cached so ...
     uint64_t *nbuf = (uint64_t *)buffer;
     auto thelump = LumpForNum(lump);
     *nbuf = thelump.nname;
     return buffer;
+    */
+    return LC_GetNameForNum(lump,buffer);
 }
 
 /**
@@ -454,6 +467,7 @@ void NC_Init(void)
 {
     WR_Init();
     TH_init();
+    LC_Init();
     // Permanently pin lumps that are allocated in normal RAM
     InitCache();
     // Read the header

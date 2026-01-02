@@ -4,7 +4,7 @@
 
 TARGET      := GBADoomCpp
 
-SRC_DIR     := ../../cppsrc
+SRC_DIR     := cppsrc
 OBJ_DIR     := cppbuild
 
 # Use all C sources in source/, plus the C++ ones we know about.
@@ -14,9 +14,9 @@ CPP_SOURCES := $(wildcard $(SRC_DIR)/*.cc)
 SRCS        := $(CPP_SOURCES)
 
 # Port specific source files
-SRCS += i_system_e32.cc
-SRCS += wadfilereader.cc
-SRCS += i_main.cc
+SRCS += ports/qt/i_system_e32.cc
+SRCS += ports/qt/wadfilereader.cc
+SRCS += ports/qt/i_main.cc
 
 
 # ---- Original Doom Sources --------------------------------------------
@@ -35,12 +35,12 @@ SRCS += i_main.cc
 #vpath %.cc guardmalloc ../../gamedata/guard ../../gamedata/original $(SRC_DIR)
 
 # ---- Minimem Sources ----------------------------------------
-SRCS += ../../gamedata/minimem/w_nc.cc
-SRCS += ../../gamedata/minimem/tagheap.cc
-SRCS += ../../gamedata/minimem/z_mem_emu.cc
-SRCS += ../../gamedata/minimem/w_lumps.cc
-SRCS += ../../gamedata/minimem/gbadoom1_lumps.cc
-vpath %.cc ../../gamedata/minimem . $(SRC_DIR)
+SRCS += gamedata/minimem/w_nc.cc
+SRCS += gamedata/minimem/tagheap.cc
+SRCS += gamedata/minimem/z_mem_emu.cc
+SRCS += gamedata/minimem/w_lumps.cc
+SRCS += gamedata/minimem/gbadoom1_lumps.cc
+vpath %.cc gamedata/minimem ports/qt $(SRC_DIR)
 
 
 # ---- Objects -----------------------------------------------------
@@ -64,16 +64,15 @@ QT_LIBS     := $(shell pkg-config --libs $(QT_MODULE))
 DEFINES     := \
     -DQT_DEPRECATED_WARNINGS \
     -DRANGECHECK \
+	-DRPT_MALLOC \
     -D_CRT_SECURE_NO_WARNINGS \
-	-DDUMP_SCREENBUFFER \
-	-DTIME_ON_TITLE_SCREEN_SEC=1
 
 INCLUDEPATH := \
-    -I../../include \
-	-I../../gamedata/minimem 
+    -Iinclude \
+	-Igamedata/minimem \
+	-Iports/qt
 
-
-CXXFLAGS    := -std=c++17 -Wall -Wextra -Werror -Wno-unknown-pragmas  -g -O0 $(DEFINES) $(INCLUDEPATH)
+CXXFLAGS    := -std=c++17 -Wall -Wextra -Werror -Wno-unknown-pragmas  -Os $(DEFINES) $(INCLUDEPATH)
 CFLAGS      += $(QT_CFLAGS)
 CXXFLAGS    += $(QT_CFLAGS)
 

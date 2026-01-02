@@ -287,7 +287,7 @@ typedef struct mobj_s
     unsigned short      type;
 
     int                 tics;   // state tic counter
-    const state_t CONSTMEM2 *      state;
+    const state_t *      state;
     unsigned int        flags;
 
     // Thing being chased/attacked (or NULL),

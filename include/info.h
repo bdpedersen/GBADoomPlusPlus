@@ -1266,7 +1266,7 @@ typedef struct
 } state_t;
 
 /* these are in info.c */
-extern const state_t CONSTMEM2 states[NUMSTATES];
+extern const state_t states[NUMSTATES];
 extern const char* const sprnames[]; /* 1/17/98 killough - CPhipps - const */
 
 /********************************************************************

@@ -146,7 +146,7 @@ const char*   finaleflat; // made static const
 
 int             castnum;
 int             casttics;
-const state_t CONSTMEM2 *  caststate;
+const state_t *  caststate;
 int             castframes;
 int             castonmelee;
 

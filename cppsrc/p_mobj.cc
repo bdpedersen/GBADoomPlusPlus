@@ -537,7 +537,7 @@ static mobj_t* P_NewMobj()
 
 mobj_t* P_SpawnMobj(fixed_t x,fixed_t y,fixed_t z,mobjtype_t type)
 {
-    const state_t CONSTMEM2 *    st;
+    const state_t *    st;
     const mobjinfo_t* info;
 
     mobj_t*     mobj = P_NewMobj();

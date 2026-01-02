@@ -10,10 +10,8 @@
 #endif
 
 #ifdef __chess__
-#define CONSTMEM2 //chess_storage(PMEM)
 #define CONSTMEM chess_storage(PMEM)
 #else
-#define CONSTMEM2
 #define CONSTMEM
 #endif
 

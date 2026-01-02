@@ -153,7 +153,7 @@ static void D_Wipe(void)
         wipestart = nowtime;
         done = wipe_ScreenWipe(tics);
 
-        I_UpdateNoBlit();
+        I_UpdateNoBlit(); // TODO: Why no blit?
         M_Drawer();                   // menu is drawn even on top of wipes
 
     } while (!done);

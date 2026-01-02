@@ -100,7 +100,7 @@ const char * const sprnames[NUMSPRITES+1] = {
 // parts where frame rewiring is done for more details and the
 // extended way a BEX file can handle this.
 
-const state_t CONSTMEM2 states[NUMSTATES] = {
+const state_t states[NUMSTATES] = {
   {SPR_TROO,0,-1,{NULL},S_NULL,0,0},  // S_NULL
   {SPR_SHTG,4,0,{.acp2=A_Light0},S_NULL,0,0}, // S_LIGHTDONE
   {SPR_PUNG,0,1,{.acp2=A_WeaponReady},S_PUNCH,0,0}, // S_PUNCH
