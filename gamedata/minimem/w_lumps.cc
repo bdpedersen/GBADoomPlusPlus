@@ -67,7 +67,7 @@ int LC_CheckNumForName(const char *name)
     {
         if (named_cache[next_entry].lump.nname == nname)
         {
-            printf("Found in named cache: %s\n",name);
+            //printf("Found in named cache: %s\n",name);
             // Mark this as most recently used
             RemoveEntryFromLRU(next_entry);
             InsertInFrontOfLRU(next_entry);
@@ -75,7 +75,7 @@ int LC_CheckNumForName(const char *name)
         }
         next_entry = lru[next_entry].next;
     }
-    printf("Cache miss: %s\n",name);
+    //printf("Cache miss: %s\n",name);
     //not found in named cache - do full search
     uint32_t name_low = nname;
     uint32_t name_high = nname >> 32;
@@ -90,7 +90,7 @@ int LC_CheckNumForName(const char *name)
             named_cache[entry].lump.nname = nname;
             named_cache[entry].index = i;
             InsertInFrontOfLRU(entry);
-            printf("Caching lump %s at entry %d\n",name,entry);
+            //printf("Caching lump %s at entry %d\n",name,entry);
             return i;
         }
     }
@@ -102,7 +102,7 @@ int LC_CheckNumForName(const char *name)
     named_cache[entry].lump.nname = nname;
     named_cache[entry].index = -1;
     InsertInFrontOfLRU(entry);
-    printf("Caching missing lump %s at entry %d\n",name,entry);
+    //printf("Caching missing lump %s at entry %d\n",name,entry);
     return -1;
 }
 
@@ -138,7 +138,7 @@ void LC_Init(void)
     lru[0].next = LASTENTRY;
     lru[LASTENTRY].prev = 0;
     lru[LASTENTRY].next = 0;
-    for (uint8_t i = 1; i < CACHESIZE; i++)
+    for (uint8_t i = 0; i < LASTENTRY-1; i++)
     {
         lru[i].free = i + 1;
     }
