@@ -65,7 +65,7 @@ static void P_SetPsprite(player_t *player, int position, statenum_t stnum)
 
   do
     {
-      const state_t *state;
+      const state_t CONSTMEM2 *state;
 
       if (!stnum)
         {

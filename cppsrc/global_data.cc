@@ -1,4 +1,5 @@
-#include <stdlib.h>
+//#include <stdlib.h>
+#include <string.h>
 #include "global_data.h"
 
 #include "z_zone.h"

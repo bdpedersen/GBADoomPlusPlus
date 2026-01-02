@@ -537,7 +537,7 @@ static mobj_t* P_NewMobj()
 
 mobj_t* P_SpawnMobj(fixed_t x,fixed_t y,fixed_t z,mobjtype_t type)
 {
-    const state_t*    st;
+    const state_t CONSTMEM2 *    st;
     const mobjinfo_t* info;
 
     mobj_t*     mobj = P_NewMobj();
@@ -755,7 +755,7 @@ boolean P_IsDoomnumAllowed(int doomnum)
 //
 // P_SpawnMapThing
 // The fields of the mapthing should
-// already be in host byte order.
+// already be in host uint8_t order.
 //
 
 void P_SpawnMapThing (Cached<mapthing_t> mthing)

@@ -9,11 +9,14 @@
 #define MAYBE_UNUSED
 #endif
 
-#ifdef __CHESS__
+#ifdef __chess__
+#define CONSTMEM2 //chess_storage(PMEM)
 #define CONSTMEM chess_storage(PMEM)
 #else
 #define CONSTMEM
 #endif
+
+
 
 #endif /* annotations.h */
 

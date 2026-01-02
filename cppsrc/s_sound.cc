@@ -90,6 +90,7 @@ static int S_getChannel(void *origin, const sfxinfo_t *sfxinfo, int is_pickup);
 
 void S_Init(int sfxVolume, int musicVolume)
 {
+#ifdef GBA
     //jff 1/22/98 skip sound init if sound not enabled
     if (!nosfxparm)
     {
@@ -112,10 +113,12 @@ void S_Init(int sfxVolume, int musicVolume)
         // no sounds are playing, and they are not mus_paused
         _g->mus_paused = 0;
     }
+#endif
 }
 
 void S_Stop(void)
 {
+#ifdef GBA
     unsigned int cnum;
 
     //jff 1/22/98 skip sound init if sound not enabled
@@ -123,6 +126,7 @@ void S_Stop(void)
         for (cnum=0 ; cnum<numChannels ; cnum++)
             if (_g->channels[cnum].sfxinfo)
                 S_StopChannel(cnum);
+#endif
 }
 
 //
@@ -132,6 +136,7 @@ void S_Stop(void)
 //
 void S_Start(void)
 {
+    #ifdef GBA
     int mnum;
 
     // kill all playing sounds at start of level
@@ -172,10 +177,12 @@ void S_Start(void)
                 mnum = spmus[_g->gamemap-1];
         }
     S_ChangeMusic(mnum, true);
+    #endif
 }
 
 void S_StartSoundAtVolume(mobj_t *origin, int sfx_id, int volume)
 {
+    #ifdef GBA
     unsigned cnum;
     int is_pickup;
     const sfxinfo_t *sfx;
@@ -240,6 +247,7 @@ void S_StartSoundAtVolume(mobj_t *origin, int sfx_id, int volume)
         _g->channels[cnum].handle = h;
         _g->channels[cnum].tickend = (_g->gametic + sfx->ticks);
     }
+    #endif
 
 }
 
@@ -250,6 +258,7 @@ void S_StartSound(mobj_t *origin, int sfx_id)
 
 void S_StartSound2(degenmobj_t* origin, int sfx_id)
 {
+    #ifdef GBA
     //Look at this mess.
 
     //Originally, the degenmobj_t had
@@ -275,10 +284,12 @@ void S_StartSound2(degenmobj_t* origin, int sfx_id)
     fm.origin.y = origin->y;
 
     S_StartSoundAtVolume((mobj_t*) &fm, sfx_id, _g->snd_SfxVolume);
+    #endif
 }
 
 void S_StopSound(void *origin)
 {
+    #ifdef GBA
     unsigned cnum;
 
     //jff 1/22/98 return if sound is not enabled
@@ -291,6 +302,7 @@ void S_StopSound(void *origin)
             S_StopChannel(cnum);
             break;
         }
+    #endif
 }
 
 
@@ -299,6 +311,7 @@ void S_StopSound(void *origin)
 //
 void S_PauseSound(void)
 {
+    #ifdef GBA
     //jff 1/22/98 return if music is not enabled
     if (nomusicparm)
         return;
@@ -308,10 +321,12 @@ void S_PauseSound(void)
         I_PauseSong(0);
         _g->mus_paused = true;
     }
+    #endif
 }
 
 void S_ResumeSound(void)
 {
+    #ifdef GBA
     //jff 1/22/98 return if music is not enabled
     if (nomusicparm)
         return;
@@ -321,10 +336,12 @@ void S_ResumeSound(void)
         I_ResumeSong(0);
         _g->mus_paused = false;
     }
+    #endif
 }
 
 static boolean S_SoundIsPlaying(int cnum)
 {
+    #ifdef GBA
     const channel_t* channel = &_g->channels[cnum];
 
     if(channel->sfxinfo)
@@ -335,6 +352,7 @@ static boolean S_SoundIsPlaying(int cnum)
     }
 
     return false;
+    #endif
 }
 
 //
@@ -342,6 +360,7 @@ static boolean S_SoundIsPlaying(int cnum)
 //
 void S_UpdateSounds(void* listener_p UNUSED)
 {
+    #ifdef GBA
 	unsigned cnum;
 	
 	//jff 1/22/98 return if sound is not enabled
@@ -381,10 +400,12 @@ void S_UpdateSounds(void* listener_p UNUSED)
 				S_StopChannel(cnum);
 		}
 	}
+	#endif
 }
 
 void S_SetMusicVolume(int volume)
 {
+    #ifdef GBA
     //jff 1/22/98 return if music is not enabled
     if (nomusicparm)
         return;
@@ -392,18 +413,21 @@ void S_SetMusicVolume(int volume)
         I_Error("S_SetMusicVolume: Attempt to set music volume at %d", volume);
     I_SetMusicVolume(volume);
     _g->snd_MusicVolume = volume;
+    #endif
 }
 
 
 
 void S_SetSfxVolume(int volume)
 {
+    #ifdef GBA
     //jff 1/22/98 return if sound is not enabled
     if (nosfxparm)
         return;
     if (volume < 0 || volume > 127)
         I_Error("S_SetSfxVolume: Attempt to set sfx volume at %d", volume);
     _g->snd_SfxVolume = volume;
+    #endif
 }
 
 
@@ -420,6 +444,7 @@ void S_StartMusic(int m_id)
 
 void S_ChangeMusic(int musicnum, int looping)
 {
+    #ifdef GBA
     //jff 1/22/98 return if music is not enabled
     if (nomusicparm)
         return;
@@ -437,11 +462,13 @@ void S_ChangeMusic(int musicnum, int looping)
     I_PlaySong(musicnum, looping);
 
     _g->mus_playing = musicnum;
+    #endif
 }
 
 
 void S_StopMusic(void)
 {
+    #ifdef GBA
     //jff 1/22/98 return if music is not enabled
     if (nomusicparm)
         return;
@@ -455,12 +482,14 @@ void S_StopMusic(void)
 
         _g->mus_playing = 0;
     }
+    #endif
 }
 
 
 
 void S_StopChannel(unsigned cnum)
 {
+    #ifdef GBA
     unsigned i;
     channel_t *c = &_g->channels[cnum];
 
@@ -480,6 +509,7 @@ void S_StopChannel(unsigned cnum)
         c->sfxinfo = 0;
         c->tickend = 0;
     }
+    #endif
 }
 
 //
@@ -491,6 +521,7 @@ void S_StopChannel(unsigned cnum)
 
 int S_AdjustSoundParams(mobj_t *listener, mobj_t *source, int *vol, int *sep)
 {
+    #ifdef GBA
 	fixed_t adx, ady,approx_dist;
 
 	//jff 1/22/98 return if sound is not enabled
@@ -553,6 +584,7 @@ int S_AdjustSoundParams(mobj_t *listener, mobj_t *source, int *vol, int *sep)
         *vol = (_g->snd_SfxVolume * ((S_CLIPPING_DIST-approx_dist)>>FRACBITS) * 8) / S_ATTENUATOR;
 	
 	return (*vol > 0);
+	#endif
 }
 
 //
@@ -563,6 +595,7 @@ int S_AdjustSoundParams(mobj_t *listener, mobj_t *source, int *vol, int *sep)
 
 static int S_getChannel(void *origin, const sfxinfo_t *sfxinfo, int is_pickup)
 {
+    #ifdef GBA
     // channel number to use
     unsigned cnum;
     channel_t *c;
@@ -597,6 +630,9 @@ static int S_getChannel(void *origin, const sfxinfo_t *sfxinfo, int is_pickup)
     c->origin = origin;
     c->is_pickup = is_pickup;         // killough 4/25/98
     return cnum;
+    #else
+    return -1;
+    #endif
 }
 
 

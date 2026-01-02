@@ -89,7 +89,7 @@ typedef struct
 
 static const texture_t* R_LoadTexture(int texture_num)
 {
-    auto pnames = CachedBuffer<byte>("PNAMES");
+    auto pnames = CachedBuffer<uint8_t>("PNAMES");
 
     //Skip to list of names.
     pnames += 4;
@@ -133,7 +133,7 @@ static const texture_t* R_LoadTexture(int texture_num)
         I_Error("R_LoadTexture: Texture %d not in range.", texture_num);
     }
 
-    //const maptexture_t *mtexture = (const maptexture_t *) ((const byte *)maptex + offset);
+    //const maptexture_t *mtexture = (const maptexture_t *) ((const uint8_t *)maptex + offset);
     auto mtexture = maptex[0].transmuteToObjectAtByteOffset<maptexture_t>(offset);
 
     texture_t* texture = (texture_t *)Z_Calloc(sizeof(const texture_t) + sizeof(const texpatch_t)*(mtexture->patchcount-1),1, PU_LEVEL, (void**)&textures[texture_num]);
@@ -161,7 +161,7 @@ static const texture_t* R_LoadTexture(int texture_num)
 
         char pname[8];
         auto pnames_pin = pnames.pin();
-        const byte* pnames_data = (const byte*)pnames_pin;
+        const uint8_t* pnames_data = (const uint8_t*)pnames_pin;
         strncpy(pname, (const char*)&pnames_data[mpatch->patch * 8], 8);
 
         patch->patch = Cached<patch_t>(pname);
@@ -291,7 +291,7 @@ static int R_GetTextureNumForName(const char* tex_name)
 
         int offset = *directory;
 
-        //const maptexture_t* mtexture = (const maptexture_t *) ( (const byte *)maptex + offset);
+        //const maptexture_t* mtexture = (const maptexture_t *) ( (const uint8_t *)maptex + offset);
         auto mtexture = maptex[0].transmuteToObjectAtByteOffset<maptexture_t>(offset);
 
         if(!strncmp(tex_name_upper, mtexture->name, 8))

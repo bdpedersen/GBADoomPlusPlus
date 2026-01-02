@@ -116,7 +116,7 @@ static const fixed_t sidemove[2]    = {0x18, 0x28};
 static const fixed_t angleturn[3]   = {640, 1280, 320};  // + slow turn
 
 static void G_DoSaveGame (boolean menu);
-static CachedBuffer<byte> G_ReadDemoHeader(CachedBuffer<byte> demo_p, size_t size, boolean failonerror);
+static CachedBuffer<uint8_t> G_ReadDemoHeader(CachedBuffer<uint8_t> demo_p, size_t size, boolean failonerror);
 
 
 typedef struct gba_save_data_t
@@ -903,7 +903,7 @@ void G_UpdateSaveGameStrings()
     unsigned int savebuffersize = sizeof(gba_save_data_t) * 8;
 
 
-    byte* loadbuffer = (byte *)Z_Malloc(savebuffersize, PU_STATIC, NULL);
+    uint8_t* loadbuffer = (uint8_t *)Z_Malloc(savebuffersize, PU_STATIC, NULL);
 
     LoadSRAM(loadbuffer, savebuffersize, 0);
 
@@ -951,7 +951,7 @@ void G_DoLoadGame()
     unsigned int savebuffersize = sizeof(gba_save_data_t) * 8;
 
 
-    byte* loadbuffer = (byte *)Z_Malloc(savebuffersize, PU_STATIC, NULL);
+    uint8_t* loadbuffer = (uint8_t *)Z_Malloc(savebuffersize, PU_STATIC, NULL);
 
     LoadSRAM(loadbuffer, savebuffersize, 0);
 
@@ -986,7 +986,7 @@ void G_DoLoadGame()
 //
 // G_SaveGame
 // Called by the menu task.
-// Description is a 24 byte text string
+// Description is a 24 uint8_t text string
 //
 
 void G_SaveGame(int slot, const char *description UNUSED)
@@ -999,7 +999,7 @@ static void G_DoSaveGame(boolean menu UNUSED)
 {
     unsigned int savebuffersize = sizeof(gba_save_data_t) * 8;
 
-    byte* savebuffer = (byte *)Z_Malloc(savebuffersize, PU_STATIC, NULL);
+    uint8_t* savebuffer = (uint8_t *)Z_Malloc(savebuffersize, PU_STATIC, NULL);
 
     LoadSRAM(savebuffer, savebuffersize, 0);
 
@@ -1043,14 +1043,14 @@ void G_SaveSettings()
     settings.musicVolume = _g->snd_MusicVolume;
     settings.soundVolume = _g->snd_SfxVolume;
 
-    SaveSRAM((byte*)&settings, sizeof(settings), settings_sram_offset);
+    SaveSRAM((uint8_t*)&settings, sizeof(settings), settings_sram_offset);
 }
 
 void G_LoadSettings()
 {
     gba_save_settings_t settings;
 
-    LoadSRAM((byte*)&settings, sizeof(settings), settings_sram_offset);
+    LoadSRAM((uint8_t*)&settings, sizeof(settings), settings_sram_offset);
 
     if(settings.cookie == settings_cookie)
     {
@@ -1186,10 +1186,10 @@ void G_ReadDemoTiccmd (ticcmd_t* cmd)
 
 
 /* Same, but read instead of write
- * cph - const byte*'s
+ * cph - const uint8_t*'s
  */
 
-CachedBuffer<byte> G_ReadOptions(CachedBuffer<byte> demo_p)
+CachedBuffer<uint8_t> G_ReadOptions(CachedBuffer<uint8_t> demo_p)
 {
     auto target = demo_p.addOffset(GAME_OPTION_SIZE);
 
@@ -1211,7 +1211,7 @@ void G_DeferedPlayDemo (const char* name)
 static int demolumpnum = -1;
 
 //e6y: Check for overrun
-static boolean CheckForOverrun(CachedBuffer<byte> start_p, CachedBuffer<byte> current_p, size_t maxsize, size_t size, boolean failonerror)
+static boolean CheckForOverrun(CachedBuffer<uint8_t> start_p, CachedBuffer<uint8_t> current_p, size_t maxsize, size_t size, boolean failonerror)
 {
     size_t pos = current_p.byteoffset() - start_p.byteoffset();
     if (pos + size > maxsize)
@@ -1224,7 +1224,7 @@ static boolean CheckForOverrun(CachedBuffer<byte> start_p, CachedBuffer<byte> cu
     return false;
 }
 
-CachedBuffer<byte> G_ReadDemoHeader(CachedBuffer<byte> demo_p, size_t size, boolean failonerror)
+CachedBuffer<uint8_t> G_ReadDemoHeader(CachedBuffer<uint8_t> demo_p, size_t size, boolean failonerror)
 {
     skill_t skill;
     int episode, map;
@@ -1242,15 +1242,15 @@ CachedBuffer<byte> G_ReadDemoHeader(CachedBuffer<byte> demo_p, size_t size, bool
 
     //e6y: check for overrun
     if (CheckForOverrun(header_p, demo_p, size, 1, failonerror))
-        return CachedBuffer<byte>();
+        return CachedBuffer<uint8_t>();
 
     _g->demover = *demo_p++;
     _g->longtics = 0;
 
     // e6y
     // Handling of unrecognized demo formats
-    // Versions up to 1.2 use a 7-byte header - first byte is a skill level.
-    // Versions after 1.2 use a 13-byte header - first byte is a demoversion.
+    // Versions up to 1.2 use a 7-uint8_t header - first uint8_t is a skill level.
+    // Versions after 1.2 use a 13-uint8_t header - first uint8_t is a demoversion.
     // BOOM's demoversion starts from 200
     if (!((_g->demover >=   0  && _g->demover <=   4) ||
           (_g->demover >= 104  && _g->demover <= 111) ||
@@ -1272,7 +1272,7 @@ CachedBuffer<byte> G_ReadDemoHeader(CachedBuffer<byte> demo_p, size_t size, bool
         {
             //e6y: check for overrun
             if (CheckForOverrun(header_p, demo_p, size, 8, failonerror))
-                return CachedBuffer<byte>();
+                return CachedBuffer<uint8_t>();
 
             skill = (skill_t)*demo_p++;
             episode = *demo_p++;
@@ -1287,7 +1287,7 @@ CachedBuffer<byte> G_ReadDemoHeader(CachedBuffer<byte> demo_p, size_t size, bool
         {
             //e6y: check for overrun
             if (CheckForOverrun(header_p, demo_p, size, 2, failonerror))
-                return CachedBuffer<byte>();
+                return CachedBuffer<uint8_t>();
 
             episode = *demo_p++;
             map = *demo_p++;
@@ -1302,12 +1302,12 @@ CachedBuffer<byte> G_ReadDemoHeader(CachedBuffer<byte> demo_p, size_t size, bool
         case 201:
             //e6y: check for overrun
             if (CheckForOverrun(header_p, demo_p, size, 1, failonerror))
-                return CachedBuffer<byte>();
+                return CachedBuffer<uint8_t>();
             break;
         case 202:
             //e6y: check for overrun
             if (CheckForOverrun(header_p, demo_p, size, 1, failonerror))
-                return CachedBuffer<byte>();
+                return CachedBuffer<uint8_t>();
 
             break;
         case 203:
@@ -1344,7 +1344,7 @@ CachedBuffer<byte> G_ReadDemoHeader(CachedBuffer<byte> demo_p, size_t size, bool
         }
         //e6y: check for overrun
         if (CheckForOverrun(header_p, demo_p, size, 5, failonerror))
-            return CachedBuffer<byte>();
+            return CachedBuffer<uint8_t>();
 
         skill = (skill_t)*demo_p++;
         episode = *demo_p++;
@@ -1354,7 +1354,7 @@ CachedBuffer<byte> G_ReadDemoHeader(CachedBuffer<byte> demo_p, size_t size, bool
 
         //e6y: check for overrun
         if (CheckForOverrun(header_p, demo_p, size, GAME_OPTION_SIZE, failonerror))
-            return CachedBuffer<byte>();
+            return CachedBuffer<uint8_t>();
 
         demo_p = G_ReadOptions(demo_p);  // killough 3/1/98: Read game options
 
@@ -1364,7 +1364,7 @@ CachedBuffer<byte> G_ReadDemoHeader(CachedBuffer<byte> demo_p, size_t size, bool
 
     //e6y: check for overrun
     if (CheckForOverrun(header_p, demo_p, size, MAXPLAYERS, failonerror))
-        return CachedBuffer<byte>();
+        return CachedBuffer<uint8_t>();
 
     _g->playeringame = *demo_p++;
     demo_p += MIN_MAXPLAYERS - MAXPLAYERS;
@@ -1388,7 +1388,7 @@ void G_DoPlayDemo(void)
 
     /* cph - store lump number for unlocking later */
     demolumpnum = NC_GetNumForName(basename);
-    _g->demobuffer = CachedBuffer<byte>(demolumpnum);
+    _g->demobuffer = CachedBuffer<uint8_t>(demolumpnum);
     _g->demolength = _g->demobuffer.size();
     _g->demo_p = G_ReadDemoHeader(_g->demobuffer, _g->demolength, true);
 
@@ -1412,9 +1412,11 @@ boolean G_CheckDemoStatus (void)
         int endtime = I_GetTime();
         // killough -- added fps information and made it work for longer demos:
         unsigned realtics = endtime-_g->starttime;
+        #ifdef GBA
         I_Error ("Timed %u gametics in %u realtics = %-.1f frames per second",
                  (unsigned) _g->gametic,realtics,
                  (unsigned) _g->gametic * (double) TICRATE / realtics);
+        #endif
     }
 
     if (_g->demoplayback)

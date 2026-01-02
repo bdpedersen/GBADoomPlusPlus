@@ -1030,7 +1030,7 @@ void AM_Drawer (void)
     if (!(_g->automapmode & am_active)) return;
 
     if (!(_g->automapmode & am_overlay)) // cph - If not overlay mode, clear background for the automap
-        V_FillRect(0, 0, f_w, f_h, (byte)mapcolor_back); //jff 1/5/98 background default color
+        V_FillRect(0, 0, f_w, f_h, (uint8_t)mapcolor_back); //jff 1/5/98 background default color
 
     AM_drawWalls();
     AM_drawPlayers();

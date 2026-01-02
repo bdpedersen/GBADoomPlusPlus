@@ -1,4 +1,4 @@
-#include "wadreader.h"
+#include "../gamedata/minimem/wadreader.h"
 #include "../newcache/newcache.h"
 
 #include <stdio.h>

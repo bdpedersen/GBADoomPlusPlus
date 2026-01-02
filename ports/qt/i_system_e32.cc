@@ -168,7 +168,7 @@ void I_CreateBackBuffer_e32()
 
 //**************************************************************************************
 
-void I_FinishUpdate_e32(const byte* srcBuffer, const byte* pallete, const unsigned int width UNUSED, const unsigned int height UNUSED)
+void I_FinishUpdate_e32(const uint8_t* srcBuffer, const uint8_t* pallete, const unsigned int width UNUSED, const unsigned int height UNUSED)
 {
     // BDPNOTE: This is where the screenbuffer is drawn
     pb = (unsigned char*)srcBuffer;
@@ -221,7 +221,7 @@ void I_FinishUpdate_e32(const byte* srcBuffer, const byte* pallete, const unsign
 
 //**************************************************************************************
 
-void I_SetPallete_e32(CachedBuffer<byte> pallete UNUSED)
+void I_SetPallete_e32(CachedBuffer<uint8_t> pallete UNUSED)
 {
 
 }

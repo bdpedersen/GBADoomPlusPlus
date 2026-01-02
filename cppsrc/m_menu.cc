@@ -36,7 +36,7 @@
  *-----------------------------------------------------------------------------*/
 
 #include <stdio.h>
-#include <fcntl.h>
+//#include <fcntl.h>
 
 #include "doomdef.h"
 #include "doomstat.h"

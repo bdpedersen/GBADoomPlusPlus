@@ -119,9 +119,9 @@ static void P_LoadSectors (int lump)
   auto sectors = CachedBuffer<mapsector_t>(lump);
   _g->numsectors = sectors.size();
   _g->sectors = (sector_t *)Z_Calloc (_g->numsectors,sizeof(sector_t),PU_LEVEL,0);
-  auto databuffer = CachedBuffer<byte>(lump); // cph - wad lump handling updated
+  auto databuffer = CachedBuffer<uint8_t>(lump); // cph - wad lump handling updated
   auto pinneddata = databuffer.pin();
-  auto data = (const byte *)pinneddata; 
+  auto data = (const uint8_t *)pinneddata; 
 
   for (i=0; i<_g->numsectors; i++)
     {
@@ -172,7 +172,7 @@ static void P_LoadNodes (int lump)
  *
  * killough 5/3/98: reformatted, cleaned up
  * cph 2001/07/07 - don't write into the lump cache, especially non-idepotent
- * changes like byte order reversals. Take a copy to edit.
+ * changes like uint8_t order reversals. Take a copy to edit.
  */
 
 static void P_LoadThings (int lump)
@@ -264,10 +264,10 @@ static void P_LoadSideDefs (int lump)
 
 static void P_LoadSideDefs2(int lump)
 {
-    auto databuf = CachedBuffer<byte>(lump); // cph - const*, wad lump handling updated
+    auto databuf = CachedBuffer<uint8_t>(lump); // cph - const*, wad lump handling updated
     int  i;
     auto pinned_data = databuf.pin();
-    auto data = (const byte *)pinned_data;
+    auto data = (const uint8_t *)pinned_data;
 
     for (i=0; i<_g->numsides; i++)
     {
@@ -356,7 +356,7 @@ static void P_LoadBlockMap (int lump)
 static void P_LoadReject(int lumpnum)
 {
   _g->rejectlump = lumpnum + ML_REJECT;
-  _g->rejectmatrix = CachedBuffer<byte>(_g->rejectlump);
+  _g->rejectmatrix = CachedBuffer<uint8_t>(_g->rejectlump);
 }
 
 //

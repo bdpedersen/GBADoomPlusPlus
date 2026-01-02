@@ -1,6 +1,8 @@
 #ifndef RECIP_H
 #define RECIP_H
 
-const extern unsigned int reciprocalTable[];
+#include "annotations.h"
+
+const extern unsigned int CONSTMEM reciprocalTable[];
 
 #endif // RECIP_H

@@ -38,6 +38,7 @@
 #include "doomtype.h"
 
 #include "m_recip.h"
+#include <stdint.h>
 
 /*
  * Fixed point, 32bit as 16.16.
@@ -72,20 +73,80 @@ inline static int CONSTFUNC D_abs(fixed_t x)
 
 static inline fixed_t CONSTFUNC FixedMul(fixed_t a, fixed_t b)
 {
-    return (fixed_t)((int_64_t) a*b >> FRACBITS);
+    return (fixed_t)((int64_t) a*b >> FRACBITS); // TODO: funnel shifter
 }
+
+
+
 /*
  * Fixed Point Division
  */
 
 /* CPhipps - made __inline__ to inline, as specified in the gcc docs
  * Also made const */
+ 
+#define SW_DIV //For testing
+ 
+#if defined(__chess__) || defined(SW_DIV)
+
+// Return the lower 32 bits of the division result - don't care about overflow
+static inline int32_t idiv64(int64_t numerator, int32_t denominator) {
+    if (denominator == 0) {
+        // Undefined; choose your own behavior
+        return 0;
+    }
+
+    // Compute sign of the result: 1 if signs differ, 0 otherwise
+    int32_t s_mask = ((numerator >> 63) ^ (denominator >> 31));
+
+    // Branchless absolute value for 64-bit numerator
+    int64_t n_mask = numerator >> 63;                 // all 1s if negative, 0 if non-negative
+    uint64_t u_num = (uint64_t)((numerator ^ n_mask) - n_mask);
+
+    // For 32 bit we have built in abs
+    uint32_t u_den = abs(denominator);
+
+    // Long division: shift-subtract
+    uint64_t r = 0;
+    
+    uint32_t unum_h = u_num >> 32;
+    uint32_t unum_l = u_num;
+    uint32_t q32 = 0;
+
+    // First part we don't need to store a result for
+    for (int i = 31; i >= 0; --i) {
+        r = (r << 1) | ((unum_h >> i) & 1u);
+        if (r >= u_den) {
+            r -= u_den;
+        }
+    }
+
+    // We only need the lower 32 bits of the quotient
+    for (int i = 31; i >= 0; --i) {
+        r = (r << 1) | ((unum_l >> i) & 1u);
+        if (r >= u_den) {
+            r -= u_den;
+            q32 |= (uint32_t)1 << i;
+        }
+    }
+
+    // Apply sign branchlessly: if sign == 1, return -q32; else return q32
+    // Using two's complement trick: -x == (~x + 1)
+    int32_t result = (int32_t)((q32 ^ s_mask) - s_mask);
+
+    return result;
+}
+#endif
 
 inline static fixed_t CONSTFUNC FixedDiv(fixed_t a, fixed_t b)
 {
 #ifndef GBA
+#if !defined(__chess__) && !defined(SW_DIV)
     return ((unsigned)D_abs(a)>>14) >= (unsigned)D_abs(b) ? ((a^b)>>31) ^ INT_MAX :
                                                   (fixed_t)(((int_64_t) a << FRACBITS) / b);
+#else
+    return ((unsigned)D_abs(a)>>14) >= (unsigned)D_abs(b) ? ((a^b)>>31) ^ INT_MAX : idiv64((int_64_t) a << FRACBITS,b);
+#endif // __chess__
 #else
 
     unsigned int udiv64_arm (unsigned int a, unsigned int b, unsigned int c);
@@ -105,7 +166,7 @@ inline static fixed_t CONSTFUNC FixedDiv(fixed_t a, fixed_t b)
         q = -q;
 
     return q;
-#endif
+#endif // GBA
 }
 
 /* CPhipps -

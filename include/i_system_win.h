@@ -20,12 +20,12 @@
 #define KEYD_START      9
 #define KEYD_SELECT     10
 
-//using std::byte;
+//using std::uint8_t;
 
 extern "C"
 {
 
-extern const byte gammatable[2][32];
+extern const uint8_t gammatable[2][32];
 
 /*
 typedef enum

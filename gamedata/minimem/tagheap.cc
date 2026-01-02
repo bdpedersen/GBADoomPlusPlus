@@ -1,11 +1,13 @@
 #include "tagheap.h"
-#include <stdlib.h>
+//#include <stdlib.h>
 #if TH_CANARY_ENABLED == 1
 #include <stdio.h>
 #include <assert.h>
 #else
 #define assert(x)
 #endif
+
+#include <stddef.h>
 
 /**
  * This file contains a simple tagged memory allocator that supports allocation 
@@ -322,7 +324,7 @@ void TH_defrag(defrag_cb_t move_if_allowed){
                     #endif
                     // Move allowed
                     th_memblock_t oldblock = *next;
-                    // We can move using 32 bit load/stores as we know everything is 4 byte aligned
+                    // We can move using 32 bit load/stores as we know everything is 4 uint8_t aligned
                     uint32_t *dst = (uint32_t *)newaddr;
                     uint32_t *src = (uint32_t *)(next+1);
                     unsigned realsize = (next->size +3) & ~3; // Align to 4 bytes

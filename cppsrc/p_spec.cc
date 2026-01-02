@@ -128,7 +128,7 @@ static void P_SpawnScrollers(void);
 // PWAD lump called ANIMATED rather than a static table in this module to
 // allow wad designers to insert or modify animation sequences.
 //
-// Lump format is an array of byte packed animdef_t structures, terminated
+// Lump format is an array of uint8_t packed animdef_t structures, terminated
 // by a structure with istexture == -1. The lump can be generated from a
 // text source file using SWANTBLS.EXE, distributed with the BOOM utils.
 // The standard list of switches and animations is contained in the example

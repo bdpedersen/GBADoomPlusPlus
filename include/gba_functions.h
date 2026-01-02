@@ -57,7 +57,7 @@ inline static void BlockSet(void* dest, volatile unsigned int val, const unsigne
 #endif
 }
 
-inline static void ByteCopy(byte* dest, const byte* src, unsigned int count)
+inline static void ByteCopy(uint8_t* dest, const uint8_t* src, unsigned int count)
 {
     do
     {
@@ -65,7 +65,7 @@ inline static void ByteCopy(byte* dest, const byte* src, unsigned int count)
     } while(--count);
 }
 
-inline static void ByteSet(byte* dest, byte val, unsigned int count)
+inline static void ByteSet(uint8_t* dest, uint8_t val, unsigned int count)
 {
     do
     {
@@ -73,7 +73,7 @@ inline static void ByteSet(byte* dest, byte val, unsigned int count)
     } while(--count);
 }
 
-inline static void* ByteFind(byte* mem, byte val, unsigned int count)
+inline static void* ByteFind(uint8_t* mem, uint8_t val, unsigned int count)
 {
     do
     {
@@ -87,17 +87,17 @@ inline static void* ByteFind(byte* mem, byte val, unsigned int count)
 }
 
 
-inline static void SaveSRAM(const byte* eeprom MAYBE_UNUSED, unsigned int size MAYBE_UNUSED, unsigned int offset MAYBE_UNUSED)
+inline static void SaveSRAM(const uint8_t* eeprom MAYBE_UNUSED, unsigned int size MAYBE_UNUSED, unsigned int offset MAYBE_UNUSED)
 {
 #ifdef GBA
-    ByteCopy((byte*)(0xE000000 + offset), eeprom, size);
+    ByteCopy((uint8_t*)(0xE000000 + offset), eeprom, size);
 #endif
 }
 
-inline static void LoadSRAM(byte* eeprom MAYBE_UNUSED, unsigned int size MAYBE_UNUSED, unsigned int offse MAYBE_UNUSED)
+inline static void LoadSRAM(uint8_t* eeprom MAYBE_UNUSED, unsigned int size MAYBE_UNUSED, unsigned int offse MAYBE_UNUSED)
 {
 #ifdef GBA
-    ByteCopy(eeprom, (byte*)(0xE000000 + offset), size);
+    ByteCopy(eeprom, (uint8_t*)(0xE000000 + offset), size);
 #endif
 }
 

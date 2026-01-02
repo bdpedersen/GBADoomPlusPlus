@@ -2,14 +2,12 @@
  * Memory emulation for z_zone and z_bmalloc functions using tagheap
  */
 
- #include "tagheap.h"
- #include <stdlib.h>
- #include <memory.h>
- #include <z_bmalloc.h>
- #include <z_zone.h>
- #include <annotations.h>
- #include <stdlib.h>
- 
+#include "tagheap.h"
+#include <stdlib.h>
+#include <string.h> 
+#include <z_bmalloc.h>
+#include <z_zone.h>
+#include <annotations.h>
 
 #undef Z_Malloc
 #undef Z_Free

@@ -49,11 +49,11 @@ typedef struct {
   fixed_t             iscale;
   fixed_t             texturemid;
 
-  CachedBuffer<byte>        sourcecache; // if the column is cached
-  const byte          *source; // first pixel in a column
+  CachedBuffer<uint8_t>        sourcecache; // if the column is cached
+  const uint8_t          *source; // first pixel in a column
 
   CachedBuffer<lighttable_t>  colormap;
-  const byte          *translation;
+  const uint8_t          *translation;
 
   boolean             odd_pixel;
 
@@ -64,7 +64,7 @@ void R_SetDefaultDrawColumnVars(draw_column_vars_t *dcvars);
 typedef struct {
   unsigned int        position;
   unsigned int        step;
-  CachedBuffer<byte>          source; // start of a 64*64 tile image
+  CachedBuffer<uint8_t>          source; // start of a 64*64 tile image
   CachedBuffer<lighttable_t>  colormap;
 } draw_span_vars_t;
 

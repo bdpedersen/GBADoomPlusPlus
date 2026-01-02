@@ -36,7 +36,7 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
+//#include <stdlib.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -121,7 +121,7 @@ static void I_UploadNewPalette(int pal)
   
     if(_g->pallete_lump.isnull())
     {
-        _g->pallete_lump = CachedBuffer<byte>("PLAYPAL");
+        _g->pallete_lump = CachedBuffer<uint8_t>("PLAYPAL");
     }
 
     _g->current_pallete = _g->pallete_lump.addOffset(pal*256*3);
@@ -157,7 +157,7 @@ void I_FinishUpdate (void)
 	}
 
     auto pinnedpallete = _g->current_pallete.pin();
-    I_FinishUpdate_e32((const byte* )_g->screens[0].data, pinnedpallete, SCREENWIDTH, SCREENHEIGHT);
+    I_FinishUpdate_e32((const uint8_t* )_g->screens[0].data, pinnedpallete, SCREENWIDTH, SCREENHEIGHT);
 }
 
 //
