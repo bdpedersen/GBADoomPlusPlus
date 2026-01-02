@@ -70,7 +70,7 @@ INCLUDEPATH := \
 	-I../../gamedata/minimem 
 
 
-CXXFLAGS    := -std=c++17 -Wall -Wextra -Werror -Wno-unknown-pragmas  -g -O0 $(DEFINES) $(INCLUDEPATH)
+CXXFLAGS    := -std=c++17 -Wall -Wextra -Werror -Wno-unknown-pragmas  -Os $(DEFINES) $(INCLUDEPATH)
 CFLAGS      += $(QT_CFLAGS)
 CXXFLAGS    += $(QT_CFLAGS)
 

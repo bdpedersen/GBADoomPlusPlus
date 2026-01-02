@@ -294,10 +294,7 @@ static const fixed_t skyiscale = (FRACUNIT*200)/((SCREENHEIGHT-ST_HEIGHT)+16);
 // This goes here as we want the Thumb code
 // to BX to ARM as Thumb long mul is very slow.
 //********************************************
-inline fixed_t CONSTFUNC FixedMul(fixed_t a, fixed_t b)
-{
-    return (fixed_t)((int_64_t) a*b >> FRACBITS);
-}
+
 
 // killough 5/3/98: reformatted
 

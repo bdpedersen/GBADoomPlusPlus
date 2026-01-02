@@ -70,8 +70,10 @@ inline static int CONSTFUNC D_abs(fixed_t x)
 /* CPhipps - made __inline__ to inline, as specified in the gcc docs
  * Also made const */
 
-fixed_t CONSTFUNC FixedMul(fixed_t a, fixed_t b);
-
+static inline fixed_t CONSTFUNC FixedMul(fixed_t a, fixed_t b)
+{
+    return (fixed_t)((int_64_t) a*b >> FRACBITS);
+}
 /*
  * Fixed Point Division
  */
