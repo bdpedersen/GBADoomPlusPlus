@@ -71,7 +71,7 @@ def save_images_as_gif(images, output_file, timestamps, scale=1):
     """ Saves a list of PIL Images as an animated GIF. """
     durations = []
     for i in range(1, len(timestamps)):
-        durations.append(timestamps[i] - timestamps[i-1])
+        durations.append(min(timestamps[i] - timestamps[i-1],65535))
     durations.append(durations[-1])  # Last frame duration same as second last
     # Scale images if needed
     if scale != 1:
@@ -87,6 +87,14 @@ if __name__ == "__main__":
     # Compute average FPS
     fps = len(images) / ((timestamps[-1] - timestamps[0]) / 1000.0)
     print(f"Read {len(images)} frames with average FPS: {fps:.2f}")
+
+    durations = []
+    for i in range(1,len(timestamps)):
+        durations.append(timestamps[i]-timestamps[i-1])
+    durations.sort()
+    perc90 = int(len(durations)*0.90+0.5)
+    fps90=1000.0/durations[perc90]
+    print(f"95% of the time FPS will be at least: {fps90}")
     
     save_images_as_gif(images, output_gif, timestamps,2)
     print(f"Saved animated GIF to {output_gif}")
