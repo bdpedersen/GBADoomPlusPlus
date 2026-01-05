@@ -3,6 +3,6 @@
 
 #include "annotations.h"
 
-const extern unsigned int CONSTMEM reciprocalTable[];
+extern ConstMemArray<unsigned int> reciprocalTable;
 
 #endif // RECIP_H

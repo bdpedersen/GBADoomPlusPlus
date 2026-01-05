@@ -55,7 +55,7 @@
 
 
 
-const fixed_t CONSTMEM finetangent[4096] =
+const fixed_t CONSTMEM _finetangent[4096] =
 {
     -170910304,-56965752,-34178904,-24413316,-18988036,-15535599,-13145455,-11392683,
     -10052327,-8994149,-8137527,-7429880,-6835455,-6329090,-5892567,-5512368,
@@ -571,9 +571,11 @@ const fixed_t CONSTMEM finetangent[4096] =
     11392683,13145455,15535599,18988036,24413316,34178904,56965752,170910304
 };
 
+ConstMemArray<fixed_t> finetangent(_finetangent);
+
 //const fixed_t CONSTMEM *const finecosine = &finesine[FINEANGLES/4];
 
-const fixed_t CONSTMEM finesine[10240] =
+const fixed_t CONSTMEM _finesine[10240] =
 {
     25,75,125,175,226,276,326,376,
     427,477,527,578,628,678,728,779,
@@ -1857,7 +1859,10 @@ const fixed_t CONSTMEM finesine[10240] =
     65534,65535,65535,65535,65535,65535,65535,65535
 };
 
-const angle_t CONSTMEM tantoangle[2049] =
+ConstMemArray<fixed_t> finesine(_finesine);
+ConstMemArray<fixed_t> finecosine(_finesine + FINEANGLES/4);
+
+const angle_t CONSTMEM _tantoangle[2049] =
 {
     0,333772,667544,1001315,1335086,1668857,2002626,2336395,
     2670163,3003929,3337694,3671457,4005219,4338979,4672736,5006492,
@@ -2118,7 +2123,9 @@ const angle_t CONSTMEM tantoangle[2049] =
     536870912
 };
 
-const int CONSTMEM viewangletox[4096] =
+ConstMemArray<angle_t> tantoangle(_tantoangle);
+
+const int CONSTMEM _viewangletox[4096] =
 {
     120,
     120,120,120,120,120,120,120,120,120,120,120,120,120,120,120,120,
@@ -2378,6 +2385,8 @@ const int CONSTMEM viewangletox[4096] =
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 };
+
+ConstMemArray<int> viewangletox(_viewangletox);
 
 const angle_t xtoviewangle[121] =
 {

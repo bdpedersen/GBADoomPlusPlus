@@ -1,5 +1,7 @@
 #ifndef __annotations_h
 #define __annotations_h
+#include <stdint.h>
+#include <stddef.h>
 
 #define UNUSED __attribute__((unused))
 

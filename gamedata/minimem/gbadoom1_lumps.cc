@@ -1,7 +1,7 @@
 #include "gbadoom1_lumps.h"
 #include "annotations.h"
 
-int32_t CONSTMEM filepos[WADLUMPS] = {
+int32_t CONSTMEM _filepos[WADLUMPS] = {
     18540,
     29292,
     37996,
@@ -1162,7 +1162,7 @@ int32_t CONSTMEM filepos[WADLUMPS] = {
     3831292,
 };
 
-int32_t CONSTMEM lumpsize[WADLUMPS] = {
+int32_t CONSTMEM _lumpsize[WADLUMPS] = {
     10752,
     8704,
     4000,
@@ -2323,7 +2323,7 @@ int32_t CONSTMEM lumpsize[WADLUMPS] = {
     10752,
 };
 
-uint32_t CONSTMEM lumpname_high[WADLUMPS] = {
+uint32_t CONSTMEM _lumpname_high[WADLUMPS] = {
     0x004c4150,
     0x50414d52,
     0x00004d4f,
@@ -3484,7 +3484,7 @@ uint32_t CONSTMEM lumpname_high[WADLUMPS] = {
     0x354c4150,
 };
 
-uint32_t CONSTMEM lumpname_low[WADLUMPS] = {
+uint32_t CONSTMEM _lumpname_low[WADLUMPS] = {
     0x59414c50,
     0x4f4c4f43,
     0x4f444e45,
@@ -4644,3 +4644,9 @@ uint32_t CONSTMEM lumpname_low[WADLUMPS] = {
     0x59414c50,
     0x59414c50,
 };
+
+// Array representations
+ConstMemArray<int32_t> filepos(_filepos);
+ConstMemArray<int32_t> lumpsize(_lumpsize);
+ConstMemArray<uint32_t> lumpname_high(_lumpname_high);
+ConstMemArray<uint32_t> lumpname_low(_lumpname_low);

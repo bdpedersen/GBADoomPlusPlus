@@ -76,20 +76,21 @@ typedef unsigned angle_t;
 void R_LoadTrigTables(void);
 
 // Effective size is 10240.
-extern const fixed_t CONSTMEM finesine[10240];
+extern ConstMemArray<fixed_t> finesine;
 
 // Re-use data, is just PI/2 phase shift.
-static const fixed_t CONSTMEM * const finecosine = finesine + (FINEANGLES/4);
+//static const fixed_t CONSTMEM * const finecosine = finesine + (FINEANGLES/4);
+extern ConstMemArray<fixed_t> finecosine;
 
 // Effective size is 4096.
-extern const fixed_t CONSTMEM finetangent[4096];
+extern ConstMemArray<fixed_t> finetangent;
 
 // Effective size is 2049;
 // The +1 size is to handle the case when x==y without additional checking.
 
-extern const angle_t CONSTMEM tantoangle[2049];
+extern ConstMemArray<angle_t> tantoangle;
 
-extern const int CONSTMEM viewangletox[4096];
+extern ConstMemArray<int> viewangletox;
 
 extern const angle_t  xtoviewangle[121];
 extern const angle_t* xtoviewangle_vram; //VRAM Copy.

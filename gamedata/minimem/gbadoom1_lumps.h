@@ -6,9 +6,10 @@
 
 #define WADLUMPS 1158
 
-extern int32_t CONSTMEM filepos[WADLUMPS];
-extern int32_t CONSTMEM lumpsize[WADLUMPS];
-extern uint32_t CONSTMEM lumpname_high[WADLUMPS];
-extern uint32_t CONSTMEM lumpname_low[WADLUMPS];
+
+extern ConstMemArray<int32_t> filepos;
+extern ConstMemArray<int32_t> lumpsize;
+extern ConstMemArray<uint32_t> lumpname_high;
+extern ConstMemArray<uint32_t> lumpname_low;
 
 #endif // _GBADOOM1_LUMPS_H_

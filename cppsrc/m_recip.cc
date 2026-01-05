@@ -1,6 +1,6 @@
 #include "m_recip.h"
 
-const unsigned int CONSTMEM reciprocalTable[65537] = {
+const unsigned int CONSTMEM _reciprocalTable[65537] = {
     0,
     4294967295,
     2147483648,
@@ -65539,3 +65539,5 @@ const unsigned int CONSTMEM reciprocalTable[65537] = {
     65537,
     65536
 };
+
+ConstMemArray<unsigned int> reciprocalTable(_reciprocalTable);
