@@ -40,7 +40,6 @@ unsigned char* thearray = NULL;
 int thesize;
 
 unsigned short backbuffer[120 *160];
-unsigned short frontbuffer[120 *160];
 
 
 int I_GetTime(void)
@@ -124,10 +123,6 @@ unsigned short* I_GetBackBuffer()
     return &backbuffer[0];
 }
 
-unsigned short* I_GetFrontBuffer()
-{
-    return &frontbuffer[0];
-}
 
 //**************************************************************************************
 

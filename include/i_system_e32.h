@@ -33,7 +33,6 @@ void I_Quit_e32();
 
 unsigned short* I_GetBackBuffer();
 
-unsigned short* I_GetFrontBuffer();
 
 void I_Error (const char *error, ...);
 

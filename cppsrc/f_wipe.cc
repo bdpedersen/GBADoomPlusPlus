@@ -71,69 +71,12 @@ int wipe_EndScreen(void)
 
 // oh man, why aren't you commenting anything ?
 // 2021-08-08 next-hack: commented and modified to use the dual buffer.
-static int wipe_doMelt(int ticks)
+static int wipe_doMelt(int ticks UNUSED)
 {
-    boolean done = true;
+    // wipe logic was broken anyway, so make this a nop
+    return 1;
 
-    unsigned short* backbuffer = I_GetBackBuffer();
-    unsigned short* frontbuffer = I_GetFrontBuffer();
 
-    while (ticks--)
-    {
-        for (int i = 0; i < SCREENWIDTH; i++)
-        {
-            if (wipe_y_lookup[i] < 0)
-            {
-                wipe_y_lookup[i]++;
-                done = false;
-                continue;
-            }
-
-            // scroll down columns, which are still visible
-            if (wipe_y_lookup[i] < SCREENHEIGHT)
-            {
-                /* cph 2001/07/29 -
-                 *  The original melt rate was 8 pixels/sec, i.e. 25 frames to melt
-                 *  the whole screen, so make the melt rate depend on SCREENHEIGHT
-                 *  so it takes no longer in high res
-                 */
-                int dy = (wipe_y_lookup[i] < 16) ? wipe_y_lookup[i] + 1 : SCREENHEIGHT / 25;
-                // At most dy shall be so that the column is shifted by SCREENHEIGHT (i.e. just
-                // invisible)
-                if (wipe_y_lookup[i] + dy >= SCREENHEIGHT)
-                    dy = SCREENHEIGHT - wipe_y_lookup[i];
-
-                unsigned short* s = &frontbuffer[i] + ((SCREENHEIGHT - dy - 1) * SCREENPITCH);
-
-                unsigned short* d = &frontbuffer[i] + ((SCREENHEIGHT - 1) * SCREENPITCH);
-
-                // scroll down the column. Of course we need to copy from the bottom... up to
-                // SCREENHEIGHT - yLookup - dy
-
-                for (int j = SCREENHEIGHT - wipe_y_lookup[i] - dy; j; j--)
-                {
-                    *d = *s;
-                    d += -SCREENPITCH;
-                    s += -SCREENPITCH;
-                }
-
-                // copy new screen. We need to copy only between y_lookup and + dy y_lookup
-                s = &backbuffer[i] +  wipe_y_lookup[i] * SCREENPITCH;
-                d = &frontbuffer[i] + wipe_y_lookup[i] * SCREENPITCH;
-
-                for (int j = 0 ; j < dy; j++)
-                {
-                    *d = *s;
-                    d += SCREENPITCH;
-                    s += SCREENPITCH;
-                }
-
-                wipe_y_lookup[i] += dy;
-                done = false;
-            }
-        }
-    }
-    return done;
 }
 
 void wipe_initMelt()
